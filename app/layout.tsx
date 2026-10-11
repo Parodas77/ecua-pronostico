@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "QuantEdge - Dashboard",
+  title: "EcuaPronóstico - Terminal",
   description: "Terminal de Inteligencia Deportiva",
 };
 

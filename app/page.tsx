@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 
-export default function QuantEdgeDashboard() {
+export default function EcuaPronosticoDashboard() {
   const [view, setView] = useState("basic");
   const [sport, setSport] = useState("football");
   const [league, setLeague] = useState("ligapro");
@@ -16,9 +16,9 @@ export default function QuantEdgeDashboard() {
           <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-3xl font-extrabold text-blue-500 uppercase tracking-wider">
-                Quant<span className="text-white">Edge</span>
+                Ecua<span className="text-white">Pronóstico</span>
               </h1>
-              <p className="text-slate-400 text-sm mt-1">Terminal de Inteligencia Deportiva Quant</p>
+              <p className="text-slate-400 text-sm mt-1">Terminal de Inteligencia Deportiva</p>
             </div>
             {/* SWITCHER BÁSICO / PREMIUM */}
             <div className="flex gap-2 bg-slate-800 p-1 rounded-lg border border-slate-700 shadow-xl">
@@ -102,7 +102,7 @@ export default function QuantEdgeDashboard() {
         {sport === "football" && league === "ligapro" && match === "ldu-bsc" && (
           <div className="animate-fade-in">
             
-            {/* CABECERA DEL PARTIDO CON ESCUDOS (CÍRCULOS DE INICIALES) */}
+            {/* CABECERA DEL PARTIDO CON ESCUDOS */}
             <div className="rounded-xl p-6 mb-6 flex justify-between items-center bg-slate-800/80 border border-slate-600 shadow-2xl backdrop-blur-md">
               <div className="flex flex-col items-center w-1/3">
                 <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-slate-900 font-black text-xl mb-3 shadow-[0_0_15px_rgba(255,255,255,0.3)]">LDU</div>
