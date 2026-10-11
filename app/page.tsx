@@ -14,12 +14,16 @@ export default function EcuaPronosticoDashboard() {
         {/* HEADER Y NAVEGACIÓN */}
         <header className="mb-8 border-b border-slate-700 pb-6">
           <div className="flex justify-between items-center mb-6">
+            
+            {/* AQUÍ ESTÁ LA MAGIA DEL LOGO */}
             <div>
-              <h1 className="text-3xl font-extrabold text-blue-500 uppercase tracking-wider">
-                Ecua<span className="text-white">Pronóstico</span>
-              </h1>
-              <p className="text-slate-400 text-sm mt-1">Terminal de Inteligencia Deportiva</p>
+              <img 
+                src="/logo.png" 
+                alt="EcuaPronóstico Logo" 
+                className="h-16 md:h-20 object-contain drop-shadow-[0_0_15px_rgba(56,189,248,0.4)]" 
+              />
             </div>
+
             {/* SWITCHER BÁSICO / PREMIUM */}
             <div className="flex gap-2 bg-slate-800 p-1 rounded-lg border border-slate-700 shadow-xl">
               <button
@@ -79,9 +83,9 @@ export default function EcuaPronosticoDashboard() {
                 onChange={(e) => setMatch(e.target.value)}
                 className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
               >
-                <option value="ldu-bsc">LDU Quito vs Barcelona SC (10 Oct)</option>
-                <option value="idv-emelec">Ind. del Valle vs Emelec (11 Oct)</option>
-                <option value="auc-elf">Aucas vs El Nacional (12 Oct)</option>
+                <option value="ldu-bsc">LDU Quito vs Barcelona SC</option>
+                <option value="idv-emelec">Ind. del Valle vs Emelec</option>
+                <option value="auc-elf">Aucas vs El Nacional</option>
               </select>
             </div>
           </div>
@@ -112,7 +116,7 @@ export default function EcuaPronosticoDashboard() {
               
               <div className="flex flex-col items-center w-1/3">
                 <span className="bg-blue-600/20 text-blue-400 border border-blue-500/50 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest mb-3">LIGAPRO - FECHA 14</span>
-                <p className="text-sm text-slate-300 font-medium text-center">Sábado, 10 de octubre de 2026<br /><span className="text-white text-lg font-bold mt-1 block">19:00 EST</span></p>
+                <p className="text-sm text-slate-300 font-medium text-center">Domingo, 11 de octubre de 2026<br /><span className="text-white text-lg font-bold mt-1 block">16:00 EST</span></p>
               </div>
               
               <div className="flex flex-col items-center w-1/3">
@@ -122,7 +126,7 @@ export default function EcuaPronosticoDashboard() {
               </div>
             </div>
 
-            {/* SECCIÓN DE TRANSPARENCIA: PARÁMETROS DEL MODELO */}
+            {/* SECCIÓN DE TRANSPARENCIA */}
             <div className="mb-6 bg-slate-800/40 border border-slate-700 p-4 rounded-xl flex items-start gap-4">
               <div className="p-2 bg-blue-900/50 rounded-lg text-blue-400 mt-1">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
@@ -134,7 +138,6 @@ export default function EcuaPronosticoDashboard() {
                   <span className="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded">Fuerza de Ataque/Defensa (Poisson)</span>
                   <span className="text-xs bg-red-900/40 text-red-300 border border-red-500/30 px-2 py-1 rounded">Desgaste por Altitud (Factor K)</span>
                   <span className="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded">Posesión en 1/3 rival</span>
-                  <span className="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded">Clima y Humedad</span>
                 </div>
               </div>
             </div>
@@ -145,9 +148,9 @@ export default function EcuaPronosticoDashboard() {
                 <div className="bg-red-900/20 border border-red-500/50 rounded-xl p-5 text-center mb-6">
                   <h3 className="text-red-400 font-bold mb-1 flex justify-center items-center gap-2">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    Alerta de Mercado Eficiente (Ventana Cerrada)
+                    Alerta de Mercado Eficiente
                   </h3>
-                  <p className="text-slate-300 text-sm">Las métricas gratuitas se desbloquean a las <strong>17:00</strong> (2 horas antes del evento). A esa hora, las cuotas ya habrán colapsado.</p>
+                  <p className="text-slate-300 text-sm">Las métricas gratuitas se desbloquean a las <strong>14:00</strong> (2 horas antes del evento). A esa hora, las cuotas ya habrán colapsado.</p>
                 </div>
                 
                 <div className="rounded-xl p-8 text-center relative overflow-hidden bg-slate-800/30 border border-slate-700">
@@ -196,9 +199,7 @@ export default function EcuaPronosticoDashboard() {
                     Conclusión del Algoritmo
                   </h3>
                   <p className="text-slate-300 text-sm leading-relaxed">
-                    Las casas de apuestas operan asumiendo un riesgo estándar, fijando una cuota de <strong>2.15</strong>. Sin embargo, nuestro sistema ha detectado una fisura en su valoración. Al cruzar el poder ofensivo de LDU (xG) con el severo decaimiento físico proyectado para Barcelona SC debido a los 2,850 msnm, la red neuronal confirma que LDU ganará en un <strong>61.3%</strong> de los escenarios. 
-                    <br /><br />
-                    Apostar bajo estas condiciones te otorga un margen de error a favor (Edge) del <strong>14.8%</strong>. Es una posición obligatoria para inversores a largo plazo.
+                    Al cruzar el poder ofensivo de LDU (xG) con el severo decaimiento físico proyectado para Barcelona SC debido a los 2,850 msnm, la red neuronal confirma que LDU ganará en un <strong>61.3%</strong> de los escenarios. Apostar bajo estas condiciones te otorga un margen de error a favor (Edge) del <strong>14.8%</strong>. Es una posición obligatoria.
                   </p>
                 </div>
               </div>
