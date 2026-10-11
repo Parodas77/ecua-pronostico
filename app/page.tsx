@@ -8,7 +8,7 @@ export default function EcuaPronosticoDashboard() {
   const [match, setMatch] = useState("ldu-bsc");
 
   // Número de WhatsApp (Cambiar por el tuyo)
-  const whatsappNumber = "593939197775"; 
+  const whatsappNumber = "593999999999"; 
   const whatsappMessage = "Hola, quiero activar mi suscripción Premium en EcuaPronóstico para acceder a las ventajas matemáticas. ¿Me ayudan con los datos de transferencia bancaria?";
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
@@ -50,13 +50,16 @@ export default function EcuaPronosticoDashboard() {
             </div>
           </div>
 
-          {/* SELECTORES EN CASCADA */}
+          {/* SELECTORES EN CASCADA CON LAS LIGAS OFICIALES */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Deporte</label>
               <select 
                 value={sport} 
-                onChange={(e) => setSport(e.target.value)}
+                onChange={(e) => {
+                  setSport(e.target.value);
+                  setLeague(""); // Reset liga
+                }}
                 className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
               >
                 <option value="football">Fútbol (Soccer)</option>
@@ -71,46 +74,84 @@ export default function EcuaPronosticoDashboard() {
               <label className="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Competición</label>
               <select 
                 value={league} 
-                onChange={(e) => setLeague(e.target.value)}
+                onChange={(e) => {
+                  setLeague(e.target.value);
+                  // Auto-seleccionar un partido válido según la liga para la demo
+                  if(e.target.value === 'ligapro') setMatch('ldu-bsc');
+                  else if(e.target.value === 'libertadores') setMatch('pal-flu');
+                  else setMatch('en-analisis');
+                }}
                 className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
               >
-                <option value="ligapro">LigaPro Ecuador</option>
-                <option value="champions">UEFA Champions League</option>
-                <option value="conmebol">Copa Libertadores</option>
-                <option value="premier">Premier League</option>
+                <optgroup label="América">
+                  <option value="ligapro">LigaPro Ecuador</option>
+                  <option value="libertadores">Copa Libertadores (CONMEBOL)</option>
+                  <option value="sudamericana">Copa Sudamericana (CONMEBOL)</option>
+                </optgroup>
+                <optgroup label="Europa">
+                  <option value="premier">Premier League (Inglaterra)</option>
+                  <option value="laliga">LaLiga (España)</option>
+                  <option value="seriea">Serie A (Italia)</option>
+                  <option value="bundesliga">Bundesliga (Alemania)</option>
+                  <option value="ligue1">Ligue 1 (Francia)</option>
+                  <option value="champions">UEFA Champions League</option>
+                  <option value="europa">UEFA Europa League</option>
+                </optgroup>
               </select>
             </div>
 
-            <div className={`transition-opacity ${sport === 'football' && league === 'ligapro' ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+            <div className={`transition-opacity ${sport === 'football' && league ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
               <label className="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Evento Programado</label>
               <select 
                 value={match} 
                 onChange={(e) => setMatch(e.target.value)}
                 className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
               >
-                <option value="ldu-bsc">LDU Quito vs Barcelona SC</option>
-                <option value="idv-emelec">Ind. del Valle vs Emelec</option>
-                <option value="auc-elf">Aucas vs El Nacional</option>
+                {league === "ligapro" && (
+                  <>
+                    <option value="ldu-bsc">LDU Quito vs Barcelona SC</option>
+                    <option value="idv-emelec">Ind. del Valle vs Emelec</option>
+                    <option value="auc-elf">Aucas vs El Nacional</option>
+                  </>
+                )}
+                {league === "libertadores" && (
+                  <>
+                    <option value="pal-flu">Semifinal: Palmeiras vs. Fluminense</option>
+                    <option value="fla-est">Semifinal: Flamengo vs. Estudiantes</option>
+                  </>
+                )}
+                {league !== "ligapro" && league !== "libertadores" && (
+                  <option value="en-analisis">Procesando métricas de la jornada...</option>
+                )}
               </select>
             </div>
           </div>
         </header>
 
-        {/* ESTADO SI EL DEPORTE NO ESTÁ DISPONIBLE */}
+        {/* ESTADOS DE DESARROLLO O PROCESAMIENTO */}
         {sport !== "football" && (
           <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-slate-800/30 border border-slate-700 border-dashed rounded-xl">
             <svg className="w-16 h-16 text-blue-500 mb-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
             <h2 className="text-2xl font-bold text-white mb-2">Modelo Matemático en Entrenamiento</h2>
             <p className="text-slate-400 max-w-lg">
-              Nuestros algoritmos para <strong>{sport.toUpperCase()}</strong> están actualmente ingiriendo bases de datos históricas para calibrar la red neuronal. Estará disponible en el próximo trimestre.
+              Nuestros algoritmos para <strong>{sport.toUpperCase()}</strong> están calibrando la red neuronal. Estará disponible el próximo trimestre.
             </p>
           </div>
         )}
 
-        {/* CONTENIDO PRINCIPAL */}
+        {sport === "football" && match === "en-analisis" && (
+          <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-slate-800/30 border border-slate-700 border-dashed rounded-xl">
+             <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <h2 className="text-2xl font-bold text-white mb-2">Procesando {league.toUpperCase()}</h2>
+            <p className="text-slate-400 max-w-lg">
+              Extrayendo bases de datos de xG y simulaciones de Monte Carlo para la próxima jornada. Las proyecciones de Valor Esperado (+EV) se publicarán pronto.
+            </p>
+          </div>
+        )}
+
+        {/* CONTENIDO PRINCIPAL: MVP LDU VS BSC */}
         {sport === "football" && league === "ligapro" && match === "ldu-bsc" && (
           <div className="animate-fade-in">
-            
             {/* CABECERA DEL PARTIDO */}
             <div className="rounded-xl p-6 mb-6 flex justify-between items-center bg-slate-800/80 border border-slate-600 shadow-2xl backdrop-blur-md">
               <div className="flex flex-col items-center w-1/3">
@@ -166,7 +207,6 @@ export default function EcuaPronosticoDashboard() {
                     <h3 className="text-2xl font-bold text-white mb-3">Ventaja Matemática Oculta</h3>
                     <p className="text-slate-300 text-sm mb-6 max-w-lg leading-relaxed">Las casas de apuestas han cometido un error estadístico en este evento. Aprovecha el Valor Esperado (+EV) antes de que ajusten la cuota.</p>
                     
-                    {/* BOTÓN WHATSAPP */}
                     <a 
                       href={whatsappLink}
                       target="_blank"
@@ -177,16 +217,11 @@ export default function EcuaPronosticoDashboard() {
                       Activar Premium vía WhatsApp - $17.99
                     </a>
                   </div>
-                  <div className="opacity-10 blur-md pointer-events-none">
-                    <div className="h-6 bg-slate-700 rounded w-full mb-4"></div>
-                    <div className="h-20 bg-slate-700 rounded w-full mb-4"></div>
-                    <div className="h-6 bg-slate-700 rounded w-full"></div>
-                  </div>
                 </div>
               </div>
             )}
 
-            {/* VISTA PREMIUM (Sin cambios estructurales) */}
+            {/* VISTA PREMIUM */}
             {view === "premium" && (
               <div className="animate-fade-in">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
