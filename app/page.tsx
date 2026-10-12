@@ -146,26 +146,26 @@ export default function EcuaPronosticoDashboard() {
         {sport === "football" && league === "ligapro" && match === "ldu-bsc" && (
           <div className="animate-fade-in">
             
-            {/* CABECERA CON LETRAS ROJAS */}
+            {/* CABECERA CON LETRAS ROJAS AJUSTADAS */}
             <div className="rounded-xl p-6 mb-6 flex justify-between items-start bg-slate-800/80 border border-slate-600 shadow-2xl backdrop-blur-md">
               <div className="flex flex-col items-center w-1/3">
                 <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-slate-900 font-black text-xl mb-3 shadow-[0_0_15px_rgba(255,255,255,0.3)]">LDU</div>
                 <h2 className="text-xl font-bold text-center">LDU Quito</h2>
                 <p className="text-slate-400 text-xs mt-1 text-center">Local - Altitud: 2,850 msnm</p>
-                <p className="text-red-400 text-xs font-bold mt-3 bg-red-950/30 border border-red-500/20 px-3 py-1 rounded-full shadow-sm text-center">Mercado: {probImplicitaCasa}%</p>
+                <p className="text-red-400 text-sm md:text-base font-bold mt-4 bg-red-950/40 border border-red-500/40 px-5 py-1.5 rounded-full shadow-md text-center">Mercado: {probImplicitaCasa}%</p>
               </div>
               
               <div className="flex flex-col items-center w-1/3">
                 <span className="bg-blue-600/20 text-blue-400 border border-blue-500/50 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest mb-3 whitespace-nowrap">LIGAPRO - FECHA 14</span>
                 <p className="text-sm text-slate-300 font-medium text-center">Domingo, 11 de octubre de 2026<br /><span className="text-white text-lg font-bold mt-1 block">16:00 EST</span></p>
-                <p className="text-red-400 text-xs font-bold mt-3 bg-red-950/30 border border-red-500/20 px-3 py-1 rounded-full shadow-sm text-center">Empate: {probImplicitaEmpate}%</p>
+                <p className="text-red-400 text-sm md:text-base font-bold mt-4 bg-red-950/40 border border-red-500/40 px-5 py-1.5 rounded-full shadow-md text-center">Empate: {probImplicitaEmpate}%</p>
               </div>
               
               <div className="flex flex-col items-center w-1/3">
                 <div className="w-16 h-16 rounded-full bg-yellow-400 flex items-center justify-center text-slate-900 font-black text-xl mb-3 shadow-[0_0_15px_rgba(250,204,21,0.3)]">BSC</div>
                 <h2 className="text-xl font-bold text-center">Barcelona SC</h2>
                 <p className="text-slate-400 text-xs mt-1 text-center">Visitante - Altitud: Nivel del mar</p>
-                <p className="text-red-400 text-xs font-bold mt-3 bg-red-950/30 border border-red-500/20 px-3 py-1 rounded-full shadow-sm text-center">Mercado: {probImplicitaVisita}%</p>
+                <p className="text-red-400 text-sm md:text-base font-bold mt-4 bg-red-950/40 border border-red-500/40 px-5 py-1.5 rounded-full shadow-md text-center">Mercado: {probImplicitaVisita}%</p>
               </div>
             </div>
 
@@ -224,84 +224,4 @@ export default function EcuaPronosticoDashboard() {
                     <p className="text-slate-400 text-xs mb-1 font-bold uppercase tracking-wider">Prob. Implícita</p>
                     <p className="text-3xl text-slate-300">{probImplicitaCasa}%</p>
                   </div>
-                  <div className="bg-slate-800/80 rounded-xl p-5 text-center border-t-4 border-blue-500 flex flex-col justify-center shadow-lg">
-                    <p className="text-slate-400 text-xs mb-1 font-bold uppercase tracking-wider">Prob. Real</p>
-                    <p className="text-3xl font-bold text-blue-400">{probRealLocal}%</p>
-                    <p className="text-slate-400 text-xs mt-2">Cuota Justa: <strong className="text-white">{cuotaJustaLocal}</strong></p>
-                  </div>
-                  <div className="bg-green-900/20 border border-green-500/50 rounded-xl p-5 text-center flex flex-col justify-center shadow-[0_0_30px_rgba(74,222,128,0.1)]">
-                    <p className="text-green-400 text-xs mb-1 font-bold uppercase tracking-wider">Valor Esperado (+EV)</p>
-                    <p className="text-3xl font-extrabold text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]">+{evCalculado}%</p>
-                  </div>
-                </div>
-
-                <div className="bg-slate-800/30 border border-slate-700/50 rounded-lg p-3 text-center text-sm text-slate-400">
-                  <span className="font-bold text-slate-300">Proyección de Empate:</span> Cuota Casa: {cuotaEmpate} | Prob. Real Algorítmica: {probEmpate}%
-                </div>
-
-                <div className="bg-blue-900/10 border border-blue-500/30 p-6 rounded-xl relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-                  <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2">
-                    <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path></svg>
-                    Conclusión del Algoritmo
-                  </h3>
-                  <p className="text-slate-300 text-sm leading-relaxed">
-                    {getInterpretacionDinamica()}
-                  </p>
-                </div>
-
-                <div className="bg-slate-900 border border-blue-500/30 rounded-xl overflow-hidden flex flex-col h-[400px] shadow-[0_0_20px_rgba(37,99,235,0.15)] mt-8">
-                  <div className="bg-slate-800/80 px-4 py-3 border-b border-slate-700 flex items-center gap-3">
-                    <div className="relative">
-                      <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs">IA</div>
-                      <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-slate-800 rounded-full"></div>
-                    </div>
-                    <div>
-                      <h3 className="text-white font-bold text-sm">Asistente Cuantitativo IA</h3>
-                      <p className="text-blue-400 text-xs">Exclusivo Premium (Conectado a Datos Reales)</p>
-                    </div>
-                  </div>
-                  
-                  <div className="p-4 flex-1 overflow-y-auto bg-slate-900/50 flex flex-col gap-4">
-                    {chatHistory.map((msg, i) => (
-                      <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[85%] p-4 rounded-xl text-sm whitespace-pre-wrap ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-slate-800 text-slate-300 border border-slate-700 rounded-tl-none leading-relaxed shadow-md'}`}>
-                          {msg.text}
-                        </div>
-                      </div>
-                    ))}
-                    {isTyping && (
-                      <div className="flex justify-start">
-                        <div className="bg-slate-800 border border-slate-700 rounded-xl rounded-tl-none p-4 flex gap-1 shadow-md">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
-                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }}></div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="p-3 bg-slate-800 border-t border-slate-700 flex gap-2">
-                    <input 
-                      type="text" 
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                      disabled={isTyping}
-                      placeholder="Pregunta a la IA sobre la rentabilidad..." 
-                      className="flex-1 bg-slate-900 border border-slate-600 text-sm text-white rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 disabled:opacity-50"
-                    />
-                    <button onClick={handleSendMessage} disabled={isTyping} className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-lg transition-colors disabled:opacity-50 font-bold">
-                      Enviar
-                    </button>
-                  </div>
-                </div>
-
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+                  <div className="bg-
