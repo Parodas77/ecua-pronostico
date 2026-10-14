@@ -119,7 +119,9 @@ export default function EcuaPronosticoDashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           system_instruction: { parts: [{ text: reglas }] },
-          contents: [{ parts: [{ text: `BASE DE DATOS: ${cartelera}\n\nPREGUNTA: ${newUserMsg.text}` }] }]
+          contents: [{ parts: [{ text: `BASE DE DATOS: ${cartelera}
+
+PREGUNTA: ${newUserMsg.text}` }] }]
         })
       });
 
@@ -190,12 +192,13 @@ export default function EcuaPronosticoDashboard() {
               <div className="space-y-4 pt-2 border-t border-slate-700 text-xs md:text-sm text-slate-300">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-700">
-                    <strong className="text-blue-400 block mb-1">1. ¿De qué trata EcuaPronóstico?</strong>
-                    El 97% de apostadores pierde por intuición. EcuaPronóstico audita a la casa usando Distribución de Poisson, <strong>simulación de Montecarlo (10,000+ corridas)</strong>, xG y algoritmos diferenciados para Sudamérica y Europa.
+                    <strong className="text-blue-400 block mb-1">1. ¿De qué trata EcuaPronóstico y por qué las casas pierden aquí?</strong>
+                    El 97% de los apostadores pierde dinero porque apuesta con el corazón, la camiseta o la intuición. Las casas de apuestas lo saben e inflan sus cuotas aplicando un margen oculto. EcuaPronóstico no adivina quién va a ganar; audita a la casa de apuestas.
+                    Nuestro motor cruza bases de datos históricas mediante la Distribución de Poisson, la simulación de Montecarlo (10,000 o más simulaciones computarizadas para proyectar el resultado real), el índice de Goles Esperados (xG) y algoritmos especializados: uno exclusivo para Sudamérica —que evalúa el tipo de juego y las características geográficas— y otro para Europa, adaptado a sus propias dinámicas competitivas. Por ejemplo, cuando una casa de apuestas subestima el impacto de jugar a 2,850 metros de altitud en Quito y ofrece una cuota superior a la que dicta la estadística real, nuestro radar detecta esa grieta financiera para que inviertas con una auténtica ventaja matemática a favor.
                   </div>
                   <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-700">
-                    <strong className="text-green-400 block mb-1">2. Manual Operativo:</strong>
-                    Compara la Prob. Real (Azul) con la del Mercado (Rojo). Opera solo con Valor Esperado (+EV) mayor al +5%.
+                    <strong className="text-green-400 block mb-1">2. Manual Operativo: Cómo sacarle el máximo provecho</strong>
+                    Compara la Prob. Real (Azul) con la del Mercado (Rojo). Opera solo con Valor Esperado (+EV) mayor al +5%. Usa el Asistente IA para gestionar tu capital.
                   </div>
                 </div>
                 <div className="bg-slate-900/90 p-3 rounded-xl border border-blue-500/30 flex justify-between items-center">
