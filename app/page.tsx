@@ -1,97 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
-
-interface MatchMetrics {
-  id: string;
-  home: string;
-  homeShort: string;
-  homeColor: string;
-  homeAlt: string;
-  away: string;
-  awayShort: string;
-  awayColor: string;
-  awayAlt: string;
-  date: string;
-  time: string;
-  jornada: string;
-  cuotaLocal: number;
-  probRealLocal: number;
-  evCalculado: number;
-  cuotaEmpate: number;
-  probEmpate: number;
-  cuotaVisita: number;
-  isFreePreview: boolean;
-  analisis: string;
-}
-
-const MATCHES_DATA: Record<string, MatchMetrics> = {
-  "ldu-bsc": {
-    id: "ldu-bsc",
-    home: "LDU Quito",
-    homeShort: "LDU",
-    homeColor: "bg-white text-slate-900 shadow-[0_0_15px_rgba(255,255,255,0.3)]",
-    homeAlt: "Local - Altitud: 2,850 msnm",
-    away: "Barcelona SC",
-    awayShort: "BSC",
-    awayColor: "bg-yellow-400 text-slate-900 shadow-[0_0_15px_rgba(250,204,21,0.3)]",
-    awayAlt: "Visitante - Altitud: Nivel del mar",
-    date: "Domingo, 18 de octubre de 2026",
-    time: "16:00 EST",
-    jornada: "LIGAPRO - FECHA 14",
-    cuotaLocal: 2.15,
-    probRealLocal: 61.3,
-    evCalculado: 14.8,
-    cuotaEmpate: 3.40,
-    probEmpate: 28.5,
-    cuotaVisita: 4.15,
-    isFreePreview: false,
-    analisis: "Al cruzar el poder ofensivo (xG) con el desgaste proyectado por altitud (2,850 msnm), el modelo detecta una severa ineficiencia del mercado. La casa paga una cuota de 2.15 (asumiendo un 46.5% de probabilidad), pero nuestra red neuronal proyecta un 61.3%. Esto genera un margen asimétrico a tu favor (Edge) del +14.8%. Es una posición matemáticamente obligatoria."
-  },
-  "idv-emelec": {
-    id: "idv-emelec",
-    home: "Ind. del Valle",
-    homeShort: "IDV",
-    homeColor: "bg-blue-900 text-white border border-pink-500 shadow-[0_0_15px_rgba(236,72,153,0.3)]",
-    homeAlt: "Local - Altitud: 2,500 msnm",
-    away: "CS Emelec",
-    awayShort: "EME",
-    awayColor: "bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]",
-    awayAlt: "Visitante - Altitud: Nivel del mar",
-    date: "Sábado, 17 de octubre de 2026",
-    time: "18:30 EST",
-    jornada: "LIGAPRO - FECHA 14",
-    cuotaLocal: 1.75,
-    probRealLocal: 66.8,
-    evCalculado: 9.7,
-    cuotaEmpate: 3.60,
-    probEmpate: 21.0,
-    cuotaVisita: 4.80,
-    isFreePreview: false,
-    analisis: "Independiente del Valle registra el mayor volumen de generación en el último tercio (xG de 2.34 por partido en casa). Las casas de apuestas subestiman la transición rápida de IDV a 2,500 msnm frente al bloque bajo de Emelec. El Valor Esperado de +9.7% justifica entrada con Stake medio-alto."
-  },
-  "auc-elf": {
-    id: "auc-elf",
-    home: "SD Aucas",
-    homeShort: "AUC",
-    homeColor: "bg-yellow-500 text-red-900 shadow-[0_0_15px_rgba(234,179,8,0.3)]",
-    homeAlt: "Local - Altitud: 2,850 msnm",
-    away: "El Nacional",
-    awayShort: "NAC",
-    awayColor: "bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]",
-    awayAlt: "Visitante - Altitud: 2,850 msnm (Neutral)",
-    date: "Sábado, 17 de octubre de 2026",
-    time: "14:00 EST",
-    jornada: "LIGAPRO - MUESTRA ABIERTA",
-    cuotaLocal: 2.05,
-    probRealLocal: 55.4,
-    evCalculado: 6.6,
-    cuotaEmpate: 3.30,
-    probEmpate: 26.2,
-    cuotaVisita: 3.70,
-    isFreePreview: true,
-    analisis: "[VISTA PREVIA GRATUITA] Al ser ambos equipos de altura, el 'Factor K' de desgaste hipobárico queda neutralizado (0.0%). Sin embargo, la métrica de Poisson favorece a SD Aucas por su efectividad de conversión a balón parado frente a la fragilidad defensiva aérea de El Nacional. Ventaja estadística moderada del +6.6%."
-  }
-};
+import { useState } from "react";
 
 export default function EcuaPronosticoDashboard() {
   const [view, setView] = useState("basic");
@@ -99,7 +7,7 @@ export default function EcuaPronosticoDashboard() {
   const [league, setLeague] = useState("ligapro");
   const [match, setMatch] = useState("ldu-bsc");
 
-  // ESTADOS DE AUTENTICACIÓN VIP
+  // ESTADOS DE AUTENTICACIÓN VIP (100% compatibles con Next.js estricto)
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [username, setUsername] = useState("");
@@ -120,23 +28,14 @@ export default function EcuaPronosticoDashboard() {
   const whatsappMessage = "Hola, quiero activar mi suscripción Premium en EcuaPronóstico ($17.99/mes) para recibir mi usuario y contraseña VIP. ¿Me ayudan con los datos de pago?";
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
-  useEffect(() => {
-    const savedSession = localStorage.getItem("ecuapronostico_vip");
-    if (savedSession === "true") {
-      setIsAuthenticated(true);
-      setView("premium");
-    }
-  }, []);
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
+  // FUNCIONES DE LOGIN SIN TIPOS COMPLEJOS
+  const handleLogin = () => {
     const validUser = username.trim().toLowerCase();
     if ((validUser === "vip" || validUser === "admin" || validUser === "pedro") && password === "quant2026") {
       setIsAuthenticated(true);
       setView("premium");
       setShowLoginModal(false);
       setLoginError("");
-      localStorage.setItem("ecuapronostico_vip", "true");
     } else {
       setLoginError("Credenciales inválidas. Verifica tu suscripción o solicita acceso vía WhatsApp.");
     }
@@ -145,7 +44,8 @@ export default function EcuaPronosticoDashboard() {
   const handleLogout = () => {
     setIsAuthenticated(false);
     setView("basic");
-    localStorage.removeItem("ecuapronostico_vip");
+    setUsername("");
+    setPassword("");
   };
 
   const handlePremiumSwitch = () => {
@@ -156,13 +56,53 @@ export default function EcuaPronosticoDashboard() {
     }
   };
 
-  const currentMatch = MATCHES_DATA[match] || MATCHES_DATA["ldu-bsc"];
-  const probImplicitaCasa = ((1 / currentMatch.cuotaLocal) * 100).toFixed(1);
-  const cuotaJustaLocal = (100 / currentMatch.probRealLocal).toFixed(2);
-  const probImplicitaEmpate = ((1 / currentMatch.cuotaEmpate) * 100).toFixed(1);
-  const probImplicitaVisita = ((1 / currentMatch.cuotaVisita) * 100).toFixed(1);
+  // DATOS DINÁMICOS SEGÚN EL PARTIDO SELECCIONADO (Lógica plana a prueba de fallos)
+  const isFreePreview = match === "auc-elf";
+  const isMatchUnlocked = view === "premium" || isFreePreview;
 
-  const isMatchUnlocked = view === "premium" || currentMatch.isFreePreview;
+  const homeTeam = match === "ldu-bsc" ? "LDU Quito" : match === "idv-emelec" ? "Ind. del Valle" : "SD Aucas";
+  const homeShort = match === "ldu-bsc" ? "LDU" : match === "idv-emelec" ? "IDV" : "AUC";
+  const homeColor = match === "ldu-bsc" 
+    ? "bg-white text-slate-900 shadow-[0_0_15px_rgba(255,255,255,0.3)]" 
+    : match === "idv-emelec" 
+    ? "bg-blue-900 text-white border border-pink-500 shadow-[0_0_15px_rgba(236,72,153,0.3)]" 
+    : "bg-yellow-500 text-red-900 shadow-[0_0_15px_rgba(234,179,8,0.3)]";
+  const homeAlt = match === "idv-emelec" ? "Local - Altitud: 2,500 msnm" : "Local - Altitud: 2,850 msnm";
+
+  const awayTeam = match === "ldu-bsc" ? "Barcelona SC" : match === "idv-emelec" ? "CS Emelec" : "El Nacional";
+  const awayShort = match === "ldu-bsc" ? "BSC" : match === "idv-emelec" ? "EME" : "NAC";
+  const awayColor = match === "ldu-bsc" 
+    ? "bg-yellow-400 text-slate-900 shadow-[0_0_15px_rgba(250,204,21,0.3)]" 
+    : match === "idv-emelec" 
+    ? "bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]" 
+    : "bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]";
+  const awayAlt = match === "auc-elf" ? "Visitante - Altitud: 2,850 msnm (Neutral)" : "Visitante - Altitud: Nivel del mar";
+
+  const jornadaText = match === "auc-elf" ? "LIGAPRO - MUESTRA ABIERTA" : "LIGAPRO - FECHA 14";
+  const dateText = match === "ldu-bsc" ? "Domingo, 18 de octubre de 2026" : "Sábado, 17 de octubre de 2026";
+  const timeText = match === "ldu-bsc" ? "16:00 EST" : match === "idv-emelec" ? "18:30 EST" : "14:00 EST";
+
+  const cuotaLocal = match === "ldu-bsc" ? 2.15 : match === "idv-emelec" ? 1.75 : 2.05;
+  const probRealLocal = match === "ldu-bsc" ? 61.3 : match === "idv-emelec" ? 66.8 : 55.4;
+  const evCalculado = match === "ldu-bsc" ? 14.8 : match === "idv-emelec" ? 9.7 : 6.6;
+  const cuotaEmpate = match === "ldu-bsc" ? 3.40 : match === "idv-emelec" ? 3.60 : 3.30;
+  const probEmpate = match === "ldu-bsc" ? 28.5 : match === "idv-emelec" ? 21.0 : 26.2;
+  const cuotaVisita = match === "ldu-bsc" ? 4.15 : match === "idv-emelec" ? 4.80 : 3.70;
+
+  const probImplicitaCasa = ((1 / cuotaLocal) * 100).toFixed(1);
+  const cuotaJustaLocal = (100 / probRealLocal).toFixed(2);
+  const probImplicitaEmpate = ((1 / cuotaEmpate) * 100).toFixed(1);
+  const probImplicitaVisita = ((1 / cuotaVisita) * 100).toFixed(1);
+
+  const getInterpretacionDinamica = () => {
+    if (match === "ldu-bsc") {
+      return `Al cruzar el poder ofensivo (xG) con el desgaste proyectado por altitud (2,850 msnm), el modelo detecta una severa ineficiencia del mercado. La casa paga una cuota de ${cuotaLocal} (asumiendo un ${probImplicitaCasa}% de probabilidad), pero nuestra red neuronal proyecta un ${probRealLocal}%. Esto genera un margen asimétrico a tu favor (Edge) del +${evCalculado}%. Es una posición matemáticamente obligatoria.`;
+    }
+    if (match === "idv-emelec") {
+      return `Independiente del Valle registra el mayor volumen de generación en el último tercio (xG de 2.34 por partido en casa). Las casas de apuestas subestiman la transición rápida de IDV a 2,500 msnm frente al bloque bajo de Emelec. La casa asume un ${probImplicitaCasa}%, pero la simulación de Montecarlo otorga un ${probRealLocal}%. El Valor Esperado de +${evCalculado}% justifica entrada con Stake medio-alto.`;
+    }
+    return `[VISTA PREVIA GRATUITA] Al ser ambos equipos de altura, el 'Factor K' de desgaste hipobárico queda neutralizado (0.0%). Sin embargo, la métrica de Poisson y Montecarlo favorece a SD Aucas (${probRealLocal}% real vs ${probImplicitaCasa}% de la casa) por su efectividad de conversión frente a la fragilidad defensiva de El Nacional. Ventaja estadística moderada del +${evCalculado}%.`;
+  };
 
   const handleSendMessage = async () => {
     if (!chatInput.trim()) return;
@@ -207,7 +147,8 @@ export default function EcuaPronosticoDashboard() {
       } else {
         throw new Error("Respuesta inválida");
       }
-    } catch {
+    } catch (error) {
+      console.error(error);
       setChatHistory(prev => [...prev, { role: "ai", text: "Error de conexión con el motor cuantitativo. Verifique su API Key en Vercel." }]);
     } finally {
       setIsTyping(false);
@@ -238,7 +179,7 @@ export default function EcuaPronosticoDashboard() {
                 </div>
               </div>
 
-              <form onSubmit={handleLogin} className="space-y-4 mt-4">
+              <div className="space-y-4 mt-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase mb-1">Usuario / ID de Inversor</label>
                   <input 
@@ -247,7 +188,6 @@ export default function EcuaPronosticoDashboard() {
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="Ej: vip"
                     className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:border-blue-500 outline-none text-sm"
-                    required
                   />
                 </div>
                 <div>
@@ -256,9 +196,9 @@ export default function EcuaPronosticoDashboard() {
                     type="password" 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                     placeholder="••••••••"
                     className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:border-blue-500 outline-none text-sm"
-                    required
                   />
                 </div>
 
@@ -267,12 +207,12 @@ export default function EcuaPronosticoDashboard() {
                 )}
 
                 <button 
-                  type="submit"
+                  onClick={handleLogin}
                   className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg shadow-blue-600/30 transition-all"
                 >
                   Desbloquear Terminal
                 </button>
-              </form>
+              </div>
 
               <div className="mt-6 pt-4 border-t border-slate-700 text-center">
                 <p className="text-xs text-slate-400 mb-3">¿Aún no tienes tus credenciales de acceso?</p>
@@ -282,59 +222,4 @@ export default function EcuaPronosticoDashboard() {
                   rel="noopener noreferrer"
                   className="inline-block w-full bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-bold py-2.5 px-4 rounded-lg text-sm transition-all"
                 >
-                  Solicitar Suscripción por WhatsApp ($17.99/mes)
-                </a>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* HEADER Y NAVEGACIÓN */}
-        <header className="mb-8 border-b border-slate-700 pb-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-            <div>
-              <img src="/logo.png" alt="EcuaPronóstico Logo" className="h-16 md:h-20 object-contain drop-shadow-[0_0_15px_rgba(56,189,248,0.4)]" />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="flex gap-2 bg-slate-800 p-1 rounded-lg border border-slate-700 shadow-xl">
-                <button 
-                  onClick={() => setView("basic")} 
-                  className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${view === "basic" ? "bg-slate-600 text-white shadow" : "text-slate-400 hover:text-white"}`}
-                >
-                  Vista Básica
-                </button>
-                <button 
-                  onClick={handlePremiumSwitch} 
-                  className={`px-4 py-2 text-sm font-semibold rounded-md transition-all flex items-center gap-1.5 ${view === "premium" ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30" : "text-slate-400 hover:text-white"}`}
-                >
-                  {!isAuthenticated && (
-                    <svg className="w-3.5 h-3.5 text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"></path></svg>
-                  )}
-                  Vista Premium VIP
-                </button>
-              </div>
-
-              {isAuthenticated && (
-                <button 
-                  onClick={handleLogout}
-                  title="Cerrar sesión VIP"
-                  className="text-xs text-slate-400 hover:text-red-400 border border-slate-700 px-3 py-2 rounded-lg bg-slate-800/50"
-                >
-                  Salir
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* SECCIÓN EXPLICATIVA Y GUÍA DE USO (DESPLEGABLE) */}
-          <div className="mb-6 bg-gradient-to-br from-slate-800/90 via-slate-800/60 to-blue-950/30 border border-slate-700 rounded-2xl p-5 md:p-6 shadow-xl">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-ping"></span>
-                <h1 className="text-base md:text-lg font-extrabold text-white uppercase tracking-wide">
-                  Inteligencia Matemática Aplicada a Pronósticos Deportivos
-                </h1>
-              </div>
-              <button 
-                on
+                  Solicitar
