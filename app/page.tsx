@@ -9,8 +9,8 @@ export default function EcuaPronosticoDashboard() {
   const [matches, setMatches] = useState([
     {
       id: "ldu-bsc",
-      home: "Liga Deportiva Universitaria", homeLogo: "https://upload.wikimedia.org/wikipedia/commons/2/23/Escudo_de_Liga_Deportiva_Universitaria_de_Quito.png", homeAlt: "Local - Altitud: 2,850 msnm",
-      away: "Barcelona Sporting Club", awayLogo: "https://upload.wikimedia.org/wikipedia/commons/e/e8/Barcelona_SC_logo.png", awayAlt: "Visitante - Nivel del mar",
+      home: "Liga Deportiva Universitaria", homeLogo: "https://media.api-sports.io/football/teams/1123.png", homeAlt: "Local - Altitud: 2,850 msnm",
+      away: "Barcelona Sporting Club", awayLogo: "https://media.api-sports.io/football/teams/1125.png", awayAlt: "Visitante - Nivel del mar",
       jornada: "LIGAPRO - FECHA 14", date: "Domingo, 18 de octubre de 2026", time: "16:00 EST",
       cuotaLocal: 2.15, cuotaEmpate: 3.40, cuotaVisita: 4.15,
       probReal: 61.3, ev: 14.8,
@@ -18,8 +18,8 @@ export default function EcuaPronosticoDashboard() {
     },
     {
       id: "idv-emelec",
-      home: "Independiente del Valle", homeLogo: "https://upload.wikimedia.org/wikipedia/commons/b/b2/Independiente_del_Valle_logo.png", homeAlt: "Local - Altitud: 2,500 msnm",
-      away: "Club Sport Emelec", awayLogo: "https://upload.wikimedia.org/wikipedia/commons/3/36/Club_Sport_Emelec_logo.png", awayAlt: "Visitante - Nivel del mar",
+      home: "Independiente del Valle", homeLogo: "https://media.api-sports.io/football/teams/1127.png", homeAlt: "Local - Altitud: 2,500 msnm",
+      away: "Club Sport Emelec", awayLogo: "https://media.api-sports.io/football/teams/1128.png", awayAlt: "Visitante - Nivel del mar",
       jornada: "LIGAPRO - FECHA 14", date: "Sábado, 17 de octubre de 2026", time: "18:30 EST",
       cuotaLocal: 1.75, cuotaEmpate: 3.60, cuotaVisita: 4.80,
       probReal: 66.8, ev: 9.7,
@@ -27,8 +27,8 @@ export default function EcuaPronosticoDashboard() {
     },
     {
       id: "auc-elf",
-      home: "Sociedad Deportiva Aucas", homeLogo: "https://upload.wikimedia.org/wikipedia/commons/8/87/Sociedad_Deportiva_Aucas_logo.png", homeAlt: "Local - Altitud: 2,850 msnm",
-      away: "Club Deportivo El Nacional", awayLogo: "https://upload.wikimedia.org/wikipedia/commons/7/70/Club_Deportivo_El_Nacional_logo.png", awayAlt: "Visitante - Altitud: 2,850 msnm",
+      home: "Sociedad Deportiva Aucas", homeLogo: "https://media.api-sports.io/football/teams/1126.png", homeAlt: "Local - Altitud: 2,850 msnm",
+      away: "Club Deportivo El Nacional", awayLogo: "https://media.api-sports.io/football/teams/1124.png", awayAlt: "Visitante - Altitud: 2,850 msnm",
       jornada: "LIGAPRO - MUESTRA ABIERTA", date: "Sábado, 17 de octubre de 2026", time: "14:00 EST",
       cuotaLocal: 2.05, cuotaEmpate: 3.30, cuotaVisita: 3.70,
       probReal: 55.4, ev: 6.6,
@@ -88,8 +88,8 @@ export default function EcuaPronosticoDashboard() {
       setMatches([
         {
           id: "mancity-rma",
-          home: "Manchester City Football Club", homeLogo: "https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg", homeAlt: "Local - Dinámica Premier",
-          away: "Real Madrid Club de Fútbol", awayLogo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", awayAlt: "Visitante - Dinámica UEFA",
+          home: "Manchester City Football Club", homeLogo: "https://media.api-sports.io/football/teams/50.png", homeAlt: "Local - Dinámica Premier",
+          away: "Real Madrid Club de Fútbol", awayLogo: "https://media.api-sports.io/football/teams/541.png", awayAlt: "Visitante - Dinámica UEFA",
           jornada: "CHAMPIONS LEAGUE - FASE DE LIGA", date: "Martes, 20 de octubre de 2026", time: "20:00 CET",
           cuotaLocal: 1.95, cuotaEmpate: 3.50, cuotaVisita: 3.80,
           probReal: 58.4, ev: 13.8,
@@ -97,8 +97,8 @@ export default function EcuaPronosticoDashboard() {
         },
         {
           id: "barca-inter",
-          home: "Futbol Club Barcelona", homeLogo: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg", homeAlt: "Local - Montjuïc Style",
-          away: "Football Club Internazionale Milano", awayLogo: "https://upload.wikimedia.org/wikipedia/en/0/05/FC_Internazionale_Milano_2021.svg", awayAlt: "Visitante - Bloque Bajo UEFA",
+          home: "Futbol Club Barcelona", homeLogo: "https://media.api-sports.io/football/teams/529.png", homeAlt: "Local - Montjuïc Style",
+          away: "Football Club Internazionale Milano", awayLogo: "https://media.api-sports.io/football/teams/505.png", awayAlt: "Visitante - Bloque Bajo UEFA",
           jornada: "CHAMPIONS LEAGUE - FASE DE LIGA", date: "Miércoles, 21 de octubre de 2026", time: "20:00 CET",
           cuotaLocal: 1.85, cuotaEmpate: 3.60, cuotaVisita: 4.20,
           probReal: 63.5, ev: 11.2,
@@ -110,8 +110,8 @@ export default function EcuaPronosticoDashboard() {
       setMatches([
         {
           id: "ldu-bsc",
-          home: "Liga Deportiva Universitaria", homeLogo: "https://upload.wikimedia.org/wikipedia/commons/2/23/Escudo_de_Liga_Deportiva_Universitaria_de_Quito.png", homeAlt: "Local - Altitud: 2,850 msnm",
-          away: "Barcelona Sporting Club", awayLogo: "https://upload.wikimedia.org/wikipedia/commons/e/e8/Barcelona_SC_logo.png", awayAlt: "Visitante - Nivel del mar",
+          home: "Liga Deportiva Universitaria", homeLogo: "https://media.api-sports.io/football/teams/1123.png", homeAlt: "Local - Altitud: 2,850 msnm",
+          away: "Barcelona Sporting Club", awayLogo: "https://media.api-sports.io/football/teams/1125.png", awayAlt: "Visitante - Nivel del mar",
           jornada: "LIGAPRO - FECHA 14", date: "Domingo, 18 de octubre de 2026", time: "16:00 EST",
           cuotaLocal: 2.15, cuotaEmpate: 3.40, cuotaVisita: 4.15,
           probReal: 61.3, ev: 14.8,
@@ -119,8 +119,8 @@ export default function EcuaPronosticoDashboard() {
         },
         {
           id: "idv-emelec",
-          home: "Independiente del Valle", homeLogo: "https://upload.wikimedia.org/wikipedia/commons/b/b2/Independiente_del_Valle_logo.png", homeAlt: "Local - Altitud: 2,500 msnm",
-          away: "Club Sport Emelec", awayLogo: "https://upload.wikimedia.org/wikipedia/commons/3/36/Club_Sport_Emelec_logo.png", awayAlt: "Visitante - Nivel del mar",
+          home: "Independiente del Valle", homeLogo: "https://media.api-sports.io/football/teams/1127.png", homeAlt: "Local - Altitud: 2,500 msnm",
+          away: "Club Sport Emelec", awayLogo: "https://media.api-sports.io/football/teams/1128.png", awayAlt: "Visitante - Nivel del mar",
           jornada: "LIGAPRO - FECHA 14", date: "Sábado, 17 de octubre de 2026", time: "18:30 EST",
           cuotaLocal: 1.75, cuotaEmpate: 3.60, cuotaVisita: 4.80,
           probReal: 66.8, ev: 9.7,
@@ -128,8 +128,8 @@ export default function EcuaPronosticoDashboard() {
         },
         {
           id: "auc-elf",
-          home: "Sociedad Deportiva Aucas", homeLogo: "https://upload.wikimedia.org/wikipedia/commons/8/87/Sociedad_Deportiva_Aucas_logo.png", homeAlt: "Local - Altitud: 2,850 msnm",
-          away: "Club Deportivo El Nacional", awayLogo: "https://upload.wikimedia.org/wikipedia/commons/7/70/Club_Deportivo_El_Nacional_logo.png", awayAlt: "Visitante - Altitud: 2,850 msnm",
+          home: "Sociedad Deportiva Aucas", homeLogo: "https://media.api-sports.io/football/teams/1126.png", homeAlt: "Local - Altitud: 2,850 msnm",
+          away: "Club Deportivo El Nacional", awayLogo: "https://media.api-sports.io/football/teams/1124.png", awayAlt: "Visitante - Altitud: 2,850 msnm",
           jornada: "LIGAPRO - MUESTRA ABIERTA", date: "Sábado, 17 de octubre de 2026", time: "14:00 EST",
           cuotaLocal: 2.05, cuotaEmpate: 3.30, cuotaVisita: 3.70,
           probReal: 55.4, ev: 6.6,
@@ -286,7 +286,7 @@ PREGUNTA DEL INVERSOR: ${newUserMsg.text}` }] }]
             
             <div className="rounded-xl p-6 flex flex-col sm:flex-row justify-between items-center bg-slate-800/90 border border-slate-600 shadow-2xl gap-6">
               
-              {/* LOCAL: ESCUDO CONTENIDO Y NOMBRE COMPLETO */}
+              {/* LOCAL: ESCUDO CDN OFICIAL Y NOMBRE COMPLETO */}
               <div className="flex flex-col items-center text-center sm:w-1/3">
                 <div className="w-20 h-20 bg-white rounded-full p-2.5 flex items-center justify-center mb-3 border border-slate-600 shadow-lg overflow-hidden shrink-0">
                   <img src={currentMatch.homeLogo} alt={currentMatch.home} className="w-full h-full object-contain" />
@@ -303,7 +303,7 @@ PREGUNTA DEL INVERSOR: ${newUserMsg.text}` }] }]
                 <p className="text-red-400 text-xs font-bold mt-2 bg-red-950/40 border border-red-500/40 px-3 py-1 rounded-full">Empate: {probImplicitaEmpate}%</p>
               </div>
               
-              {/* VISITANTE: ESCUDO CONTENIDO Y NOMBRE COMPLETO */}
+              {/* VISITANTE: ESCUDO CDN OFICIAL Y NOMBRE COMPLETO */}
               <div className="flex flex-col items-center text-center sm:w-1/3">
                 <div className="w-20 h-20 bg-white rounded-full p-2.5 flex items-center justify-center mb-3 border border-slate-600 shadow-lg overflow-hidden shrink-0">
                   <img src={currentMatch.awayLogo} alt={currentMatch.away} className="w-full h-full object-contain" />
