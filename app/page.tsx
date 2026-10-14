@@ -6,7 +6,6 @@ export default function EcuaPronosticoDashboard() {
   const [sport, setSport] = useState("football");
   const [league, setLeague] = useState("ligapro");
   
-  // Lista dinámica con logos oficiales (escudos) y nombres completos
   const [matches, setMatches] = useState([
     {
       id: "ldu-bsc",
@@ -83,7 +82,6 @@ export default function EcuaPronosticoDashboard() {
     }
   };
 
-  // Cambio dinámico de competición con escudos y nombres completos
   const handleLeagueChange = (newLeague: string) => {
     setLeague(newLeague);
     if (newLeague === "champions") {
@@ -288,10 +286,10 @@ PREGUNTA DEL INVERSOR: ${newUserMsg.text}` }] }]
             
             <div className="rounded-xl p-6 flex flex-col sm:flex-row justify-between items-center bg-slate-800/90 border border-slate-600 shadow-2xl gap-6">
               
-              {/* LOCAL: ESCUDO Y NOMBRE COMPLETO */}
+              {/* LOCAL: ESCUDO CONTENIDO Y NOMBRE COMPLETO */}
               <div className="flex flex-col items-center text-center sm:w-1/3">
-                <div className="w-16 h-16 bg-white/10 rounded-full p-2 flex items-center justify-center mb-3 border border-white/20 shadow-inner">
-                  <img src={currentMatch.homeLogo} alt={currentMatch.home} className="w-12 h-12 object-contain drop-shadow" />
+                <div className="w-20 h-20 bg-white rounded-full p-2.5 flex items-center justify-center mb-3 border border-slate-600 shadow-lg overflow-hidden shrink-0">
+                  <img src={currentMatch.homeLogo} alt={currentMatch.home} className="w-full h-full object-contain" />
                 </div>
                 <h2 className="text-base md:text-lg font-extrabold text-white">{currentMatch.home}</h2>
                 <p className="text-slate-400 text-xs mt-0.5">{currentMatch.homeAlt}</p>
@@ -305,10 +303,10 @@ PREGUNTA DEL INVERSOR: ${newUserMsg.text}` }] }]
                 <p className="text-red-400 text-xs font-bold mt-2 bg-red-950/40 border border-red-500/40 px-3 py-1 rounded-full">Empate: {probImplicitaEmpate}%</p>
               </div>
               
-              {/* VISITANTE: ESCUDO Y NOMBRE COMPLETO */}
+              {/* VISITANTE: ESCUDO CONTENIDO Y NOMBRE COMPLETO */}
               <div className="flex flex-col items-center text-center sm:w-1/3">
-                <div className="w-16 h-16 bg-white/10 rounded-full p-2 flex items-center justify-center mb-3 border border-white/20 shadow-inner">
-                  <img src={currentMatch.awayLogo} alt={currentMatch.away} className="w-12 h-12 object-contain drop-shadow" />
+                <div className="w-20 h-20 bg-white rounded-full p-2.5 flex items-center justify-center mb-3 border border-slate-600 shadow-lg overflow-hidden shrink-0">
+                  <img src={currentMatch.awayLogo} alt={currentMatch.away} className="w-full h-full object-contain" />
                 </div>
                 <h2 className="text-base md:text-lg font-extrabold text-white">{currentMatch.away}</h2>
                 <p className="text-slate-400 text-xs mt-0.5">{currentMatch.awayAlt}</p>
