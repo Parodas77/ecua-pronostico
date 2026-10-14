@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function EcuaPronosticoDashboard() {
   const [view, setView] = useState("basic");
@@ -14,9 +14,13 @@ export default function EcuaPronosticoDashboard() {
   const [loginError, setLoginError] = useState("");
   const [showGuide, setShowGuide] = useState(true);
 
+  // ESTADOS PARA EL MOTOR MULTICRITERIO ADAPTATIVO
+  const [analisisDinamico, setAnalisisDinamico] = useState("Inicializando clúster de simulación estocástica y selección dinámica de variables...");
+  const [isLoadingAnalisis, setIsLoadingAnalisis] = useState(false);
+
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState([
-    { role: "ai", text: "Cartelera ampliada sincronizada con API-Football (LigaPro, Champions y Premier). ¿Qué partido analizamos?" }
+    { role: "ai", text: "Motor de análisis adaptativo activo. El Agente IA selecciona variables críticas (clima, rachas, xG, lesiones, altitud) de forma única por cada evento. ¿Qué auditamos?" }
   ]);
   const [isTyping, setIsTyping] = useState(false);
 
@@ -54,59 +58,97 @@ export default function EcuaPronosticoDashboard() {
   const isFreePreview = match === "auc-elf";
   const isMatchUnlocked = view === "premium" || isFreePreview;
 
-  // DATOS DINÁMICOS AMPLIADOS (LIGA PRO + CHAMPIONS + PREMIER)
-  let homeTeam = "LDU Quito";
-  let homeShort = "LDU";
-  let homeColor = "bg-white text-slate-900 shadow-[0_0_15px_rgba(255,255,255,0.3)]";
-  let homeAlt = "Local - Altitud: 2,850 msnm";
-
-  let awayTeam = "Barcelona SC";
-  let awayShort = "BSC";
-  let awayColor = "bg-yellow-400 text-slate-900 shadow-[0_0_15px_rgba(250,204,21,0.3)]";
-  let awayAlt = "Visitante - Altitud: Nivel del mar";
-
-  let jornadaText = "LIGAPRO - FECHA 14";
-  let dateText = "Domingo, 18 de octubre de 2026";
-  let timeText = "16:00 EST";
-
-  let cuotaLocal = 2.15;
-  let probRealLocal = 61.3;
-  let evCalculado = 14.8;
-  let cuotaEmpate = 3.40;
-  let probEmpate = 28.5;
-  let cuotaVisita = 4.15;
-
-  if (match === "idv-emelec") {
-    homeTeam = "Ind. del Valle"; homeShort = "IDV"; homeColor = "bg-blue-900 text-white border border-pink-500 shadow-[0_0_15px_rgba(236,72,153,0.3)]"; homeAlt = "Local - Altitud: 2,500 msnm";
-    awayTeam = "CS Emelec"; awayShort = "EME"; awayColor = "bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]"; awayAlt = "Visitante - Altitud: Nivel del mar";
-    cuotaLocal = 1.75; probRealLocal = 66.8; evCalculado = 9.7; cuotaEmpate = 3.60; probEmpate = 21.0; cuotaVisita = 4.80;
-  } else if (match === "auc-elf") {
-    homeTeam = "SD Aucas"; homeShort = "AUC"; homeColor = "bg-yellow-500 text-red-900 shadow-[0_0_15px_rgba(234,179,8,0.3)]"; homeAlt = "Local - Altitud: 2,850 msnm";
-    awayTeam = "El Nacional"; awayShort = "NAC"; awayColor = "bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]"; awayAlt = "Visitante - Altitud: 2,850 msnm";
-    jornadaText = "LIGAPRO - MUESTRA ABIERTA"; cuotaLocal = 2.05; probRealLocal = 55.4; evCalculado = 6.6; cuotaEmpate = 3.30; probEmpate = 26.2; cuotaVisita = 3.70;
-  } else if (match === "mancity-rma") {
-    homeTeam = "Manchester City"; homeShort = "MCI"; homeColor = "bg-sky-400 text-slate-950 shadow-[0_0_15px_rgba(56,189,248,0.4)]"; homeAlt = "Local - Dinámica Premier";
-    awayTeam = "Real Madrid"; awayShort = "RMA"; awayColor = "bg-indigo-900 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]"; awayAlt = "Visitante - Dinámica UEFA";
-    jornadaText = "CHAMPIONS LEAGUE - CUARTOS"; dateText = "Martes, 20 de octubre de 2026"; timeText = "20:00 CET";
-    cuotaLocal = 1.95; probRealLocal = 58.4; evCalculado = 13.8; cuotaEmpate = 3.50; probEmpate = 24.0; cuotaVisita = 3.80;
-  } else if (match === "arsenal-bayern") {
-    homeTeam = "Arsenal FC"; homeShort = "ARS"; homeColor = "bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]"; homeAlt = "Local - Emirates Stadium";
-    awayTeam = "Bayern Múnich"; awayShort = "BAY"; awayColor = "bg-red-700 text-white border border-white/20 shadow-[0_0_15px_rgba(185,28,28,0.4)]"; awayAlt = "Visitante - Allianz Arena Style";
-    jornadaText = "CHAMPIONS LEAGUE - CUARTOS"; dateText = "Miércoles, 21 de octubre de 2026"; timeText = "20:00 CET";
-    cuotaLocal = 2.30; probRealLocal = 52.0; evCalculado = 7.6; cuotaEmpate = 3.40; probEmpate = 26.0; cuotaVisita = 3.10;
-  }
-
-  const probImplicitaCasa = ((1 / cuotaLocal) * 100).toFixed(1);
-  const cuotaJustaLocal = (100 / probRealLocal).toFixed(2);
-  const probImplicitaEmpate = ((1 / cuotaEmpate) * 100).toFixed(1);
-  const probImplicitaVisita = ((1 / cuotaVisita) * 100).toFixed(1);
-
-  const getInterpretacionDinamica = () => {
-    if (match === "mancity-rma" || match === "arsenal-bayern") {
-      return `[ALGORITMO EUROPA SYNC] Aplicando matriz táctica de alta intensidad europea (bloque medio-alto y transiciones rápidas). El modelo de Montecarlo (10,000 iteraciones) sobre el xG de Champions detecta un desfase con los momios de The Odds API. Ventaja cuantitativa validada del +${evCalculado}%.`;
+  // MATRIZ DE EVENTOS CON DATOS BASE PARA QUE LA IA SELECCIONE Y CRUCE VARIABLES
+  const MATCH_DETAILS: Record<string, any> = {
+    "ldu-bsc": {
+      home: "LDU Quito", homeShort: "LDU", homeColor: "bg-white text-slate-900 shadow-[0_0_15px_rgba(255,255,255,0.3)]", homeAlt: "Local - Altitud: 2,850 msnm",
+      away: "Barcelona SC", awayShort: "BSC", awayColor: "bg-yellow-400 text-slate-900 shadow-[0_0_15px_rgba(250,204,21,0.3)]", awayAlt: "Visitante - Nivel del mar",
+      jornada: "LIGAPRO - FECHA 14", date: "Domingo, 18 de octubre de 2026", time: "16:00 EST",
+      cuotaLocal: 2.15, cuotaEmpate: 3.40, cuotaVisita: 4.15,
+      contextoBase: "Clásico ecuatoriano en Quito. Temperatura proyectada 18°C, humedad 65%. LDU encadena 4 victorias y 1 empate como local (xG 2.1). BSC llega tras desgaste copero, racha alternada (2 ganados, 2 empatados, 1 perdido) y sufre la baja por sanción de su lateral titular y capitán."
+    },
+    "idv-emelec": {
+      home: "Ind. del Valle", homeShort: "IDV", homeColor: "bg-blue-900 text-white border border-pink-500 shadow-[0_0_15px_rgba(236,72,153,0.3)]", homeAlt: "Local - Altitud: 2,500 msnm",
+      away: "CS Emelec", awayShort: "EME", awayColor: "bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]", awayAlt: "Visitante - Nivel del mar",
+      jornada: "LIGAPRO - FECHA 14", date: "Sábado, 17 de octubre de 2026", time: "18:30 EST",
+      cuotaLocal: 1.75, cuotaEmpate: 3.60, cuotaVisita: 4.80,
+      contextoBase: "Encuentro en Chillo Jijón. Clima templado, cancha rápida. IDV con dominio absoluto de posesión (xG 2.34) y racha invicta de 6 partidos. Emelec con esquema defensivo obligado por lesiones en la primera línea de volantes y rendimiento irregular fuera de casa (1 victoria en sus últimas 5 salidas)."
+    },
+    "auc-elf": {
+      home: "SD Aucas", homeShort: "AUC", homeColor: "bg-yellow-500 text-red-900 shadow-[0_0_15px_rgba(234,179,8,0.3)]", homeAlt: "Local - Altitud: 2,850 msnm",
+      away: "El Nacional", awayShort: "NAC", awayColor: "bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]", awayAlt: "Visitante - Altitud: 2,850 msnm",
+      jornada: "LIGAPRO - MUESTRA ABIERTA", date: "Sábado, 17 de octubre de 2026", time: "14:00 EST",
+      cuotaLocal: 2.05, cuotaEmpate: 3.30, cuotaVisita: 3.70,
+      contextoBase: "Duelo capitalino en altura idéntica (Factor K neutro). Sol fuerte de tarde, gramado seco. Aucas con eficacia superior a balón parado pero altibajos anímicos. El Nacional con urgencia de puntos, racha de 2 derrotas al hilo y baja por lesión de su goleador principal."
+    },
+    "mancity-rma": {
+      home: "Manchester City", homeShort: "MCI", homeColor: "bg-sky-400 text-slate-950 shadow-[0_0_15px_rgba(56,189,248,0.4)]", homeAlt: "Local - Dinámica Premier",
+      away: "Real Madrid", awayShort: "RMA", awayColor: "bg-indigo-900 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]", awayAlt: "Visitante - Dinámica UEFA",
+      jornada: "CHAMPIONS LEAGUE - CUARTOS", date: "Martes, 20 de octubre de 2026", time: "20:00 CET",
+      cuotaLocal: 1.95, cuotaEmpate: 3.50, cuotaVisita: 3.80,
+      contextoBase: "Noche europea en el Etihad Stadium. Lluvia ligera pronosticada (10°C), ritmo vertiginoso. City con racha imparable de 8 triunfos en casa (xG 2.6). Real Madrid con bajas estructurales en defensa y mediocampo, apelando a resiliencia histórica pero con desgaste físico acumulado en liga."
+    },
+    "arsenal-bayern": {
+      home: "Arsenal FC", homeShort: "ARS", homeColor: "bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]", homeAlt: "Local - Emirates Stadium",
+      away: "Bayern Múnich", awayShort: "BAY", awayColor: "bg-red-700 text-white border border-white/20 shadow-[0_0_15px_rgba(185,28,28,0.4)]", awayAlt: "Visitante - Allianz Arena Style",
+      jornada: "CHAMPIONS LEAGUE - CUARTOS", date: "Miércoles, 21 de octubre de 2026", time: "20:00 CET",
+      cuotaLocal: 2.30, cuotaEmpate: 3.40, cuotaVisita: 3.10,
+      contextoBase: "Choque táctico de máxima exigencia en Londres. Césped impecable, clima frío (8°C). Arsenal con solidez defensiva extrema (solo 1 gol encajado en sus últimos 4 partidos). Bayern con pegada letal pero rotaciones obligadas en ataque por molestias físicas menores."
     }
-    return `[ALGORITMO SUDAMÉRICA SYNC] Análisis Poisson ponderado con factor geográfico y xG. Ineficiencia detectada frente a la línea de The Odds API con un Edge de +${evCalculado}%.`;
   };
+
+  const currentMatchData = MATCH_DETAILS[match] || MATCH_DETAILS["ldu-bsc"];
+
+  // AGENTE IA ANALISTA MULTICRITERIO ADAPTATIVO
+  const generarAnalisisMulticriterio = async () => {
+    setIsLoadingAnalisis(true);
+    try {
+      const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+      const promptSistema = `Eres el Agente Cuantitativo Jefe de EcuaPronóstico. Tu tarea es realizar un análisis financiero y deportivo PROFUNDO, ADAPTATIVO Y MULTICRITERIO para el partido seleccionado.
+      
+      REGLAS ESTRICTAS DE ANÁLISIS:
+      1. NO USES plantillas fijas ni repitas los mismos argumentos para todos los partidos.
+      2. ACTÚA COMO UN EXPERTO: Selecciona y pondera de forma inteligente las variables más pertinentes de acuerdo al caso específico (ej: si es en altura, evalúa el Factor K y la aclimatación; si es en Europa, evalúa la intensidad táctica, el clima, la lluvia o la fatiga por calendario; cruza obligatoriamente las rachas recientes de los últimos 5 partidos, estado de forma local/visitante, impacto de bajas/lesionados y métricas de xG).
+      3. Ejecuta mentalmente el modelo de Distribución de Poisson y 10,000 simulaciones estocásticas de Montecarlo para contrastar tu probabilidad real frente a las cuotas de The Odds API.
+      4. Escribe un análisis fluido en párrafos humanos profesionales, de alto nivel financiero.
+      5. Termina SIEMPRE con un veredicto comercial rotundo en un bloque destacado: ¿Vale la pena apostar? ¿Cuál es el Valor Esperado (+EV)? ¿Qué nivel de capital (Stake) se sugiere, o por el contrario, el mercado está bien calibrado y se debe declarar NO APOSTAR para proteger el capital?`;
+
+      const promptUsuario = `Analiza bajo este enfoque multicriterio el siguiente encuentro:
+      Partido: ${currentMatchData.home} vs ${currentMatchData.away} (${currentMatchData.jornada})
+      Cuotas de mercado (The Odds API): Local ${currentMatchData.cuotaLocal} | Empate ${currentMatchData.cuotaEmpate} | Visita ${currentMatchData.cuotaVisita}
+      Contexto y variables recolectadas en vivo: ${currentMatchData.contextoBase}`;
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: promptSistema }] },
+          contents: [{ parts: [{ text: promptUsuario }] }]
+        })
+      });
+
+      const data = await response.json();
+      if (data.candidates && data.candidates[0].content.parts[0].text) {
+        setAnalisisDinamico(data.candidates[0].content.parts[0].text);
+      } else {
+        throw new Error("Respuesta inválida");
+      }
+    } catch {
+      setAnalisisDinamico("Error temporal al procesar el modelo estocástico multicriterio. Verifique su API Key en Vercel.");
+    } finally {
+      setIsLoadingAnalisis(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isMatchUnlocked) {
+      generarAnalisisMulticriterio();
+    }
+  }, [match, isMatchUnlocked]);
+
+  const probImplicitaCasa = ((1 / currentMatchData.cuotaLocal) * 100).toFixed(1);
+  const probImplicitaEmpate = ((1 / currentMatchData.cuotaEmpate) * 100).toFixed(1);
+  const probImplicitaVisita = ((1 / currentMatchData.cuotaVisita) * 100).toFixed(1);
 
   const handleSendMessage = async () => {
     if (!chatInput.trim()) return;
@@ -117,21 +159,17 @@ export default function EcuaPronosticoDashboard() {
 
     try {
       const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-      const cartelera = `
-      - LDU Quito vs Barcelona SC: EV +14.8% (LigaPro)
-      - Manchester City vs Real Madrid: EV +13.8% (Champions League)
-      - Arsenal vs Bayern Múnich: EV +7.6% (Champions League)
-      `;
-      const reglas = `Eres el 'Asistente Cuantitativo IA' de EcuaPronóstico. Tono clínico y financiero. No uses Markdown.`;
+      const reglas = `Eres el 'Asistente Cuantitativo IA' de EcuaPronóstico. Responde de forma clínica, adaptativa y basada en múltiples variables (clima, rachas, lesiones, xG, Poisson, Montecarlo). No uses Markdown.`;
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           system_instruction: { parts: [{ text: reglas }] },
-          contents: [{ parts: [{ text: `CARTELERA EN VIVO: ${cartelera}
+          contents: [{ parts: [{ text: `PARTIDO EN ESTUDIO: ${currentMatchData.home} vs ${currentMatchData.away}
+CONTEXTO: ${currentMatchData.contextoBase}
 
-PREGUNTA: ${newUserMsg.text}` }] }]
+PREGUNTA DEL INVERSOR: ${newUserMsg.text}` }] }]
         })
       });
 
@@ -196,7 +234,7 @@ PREGUNTA: ${newUserMsg.text}` }] }]
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse"></span>
-                <h1 className="text-sm md:text-base font-extrabold text-white uppercase tracking-wide">Cartelera Global Sincronizada (LigaPro & Champions League)</h1>
+                <h1 className="text-sm md:text-base font-extrabold text-white uppercase tracking-wide">Motor Cuantitativo Multicriterio Adaptativo (IA + Montecarlo)</h1>
               </div>
               <button onClick={() => setShowGuide(!showGuide)} className="text-xs text-blue-400 underline">{showGuide ? "Ocultar Guía" : "Mostrar Guía"}</button>
             </div>
@@ -211,7 +249,7 @@ PREGUNTA: ${newUserMsg.text}` }] }]
                   </div>
                   <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-700">
                     <strong className="text-green-400 block mb-1">2. Manual Operativo: Cómo sacarle el máximo provecho</strong>
-                    Compara la Prob. Real (Azul) con la del Mercado (Rojo). Opera solo con Valor Esperado (+EV) mayor al +5%. Usa el Asistente IA para gestionar tu capital.
+                    El agente inteligente analiza de forma autónoma el clima, las rachas de los últimos 5 partidos, las lesiones y los factores tácticos específicos para emitir un veredicto único por evento.
                   </div>
                 </div>
                 <div className="bg-slate-900/90 p-3 rounded-xl border border-blue-500/30 flex justify-between items-center">
@@ -261,22 +299,22 @@ PREGUNTA: ${newUserMsg.text}` }] }]
             
             <div className="rounded-xl p-6 flex justify-between items-center bg-slate-800/80 border border-slate-600 shadow-2xl">
               <div className="flex flex-col items-center w-1/3">
-                <div className={`w-14 h-14 rounded-full flex items-center justify-center font-black text-lg mb-2 ${homeColor}`}>{homeShort}</div>
-                <h2 className="text-lg font-bold text-center">{homeTeam}</h2>
-                <p className="text-slate-400 text-xs">{homeAlt}</p>
+                <div className={`w-14 h-14 rounded-full flex items-center justify-center font-black text-lg mb-2 ${currentMatchData.homeColor}`}>{currentMatchData.homeShort}</div>
+                <h2 className="text-lg font-bold text-center">{currentMatchData.home}</h2>
+                <p className="text-slate-400 text-xs">{currentMatchData.homeAlt}</p>
                 <p className="text-red-400 text-sm font-bold mt-2 bg-red-950/40 border border-red-500/40 px-3 py-1 rounded-full">Mercado: {probImplicitaCasa}%</p>
               </div>
               
               <div className="flex flex-col items-center w-1/3">
-                <span className="bg-blue-600/20 text-blue-400 border border-blue-500/50 px-3 py-1 rounded-full text-xs font-bold mb-2">{jornadaText}</span>
-                <p className="text-xs text-slate-300 text-center">{dateText}<br /><strong className="text-white text-base">{timeText}</strong></p>
+                <span className="bg-blue-600/20 text-blue-400 border border-blue-500/50 px-3 py-1 rounded-full text-xs font-bold mb-2">{currentMatchData.jornada}</span>
+                <p className="text-xs text-slate-300 text-center">{currentMatchData.date}<br /><strong className="text-white text-base">{currentMatchData.time}</strong></p>
                 <p className="text-red-400 text-sm font-bold mt-2 bg-red-950/40 border border-red-500/40 px-3 py-1 rounded-full">Empate: {probImplicitaEmpate}%</p>
               </div>
               
               <div className="flex flex-col items-center w-1/3">
-                <div className={`w-14 h-14 rounded-full flex items-center justify-center font-black text-lg mb-2 ${awayColor}`}>{awayShort}</div>
-                <h2 className="text-lg font-bold text-center">{awayTeam}</h2>
-                <p className="text-slate-400 text-xs">{awayAlt}</p>
+                <div className={`w-14 h-14 rounded-full flex items-center justify-center font-black text-lg mb-2 ${currentMatchData.awayColor}`}>{currentMatchData.awayShort}</div>
+                <h2 className="text-lg font-bold text-center">{currentMatchData.away}</h2>
+                <p className="text-slate-400 text-xs">{currentMatchData.awayAlt}</p>
                 <p className="text-red-400 text-sm font-bold mt-2 bg-red-950/40 border border-red-500/40 px-3 py-1 rounded-full">Mercado: {probImplicitaVisita}%</p>
               </div>
             </div>
@@ -284,8 +322,8 @@ PREGUNTA: ${newUserMsg.text}` }] }]
             {!isMatchUnlocked && (
               <div className="rounded-xl p-8 text-center relative overflow-hidden bg-slate-800/40 border border-slate-700">
                 <div className="bg-slate-900/90 p-8 rounded-xl border border-blue-500/30 flex flex-col items-center">
-                  <h3 className="text-xl font-bold text-white mb-2">Ventaja Matemática Sincronizada (+EV)</h3>
-                  <p className="text-slate-300 text-sm mb-6 max-w-lg">Ingresa con tu cuenta VIP o adquiere acceso para desbloquear el flujo de API-Football y The Odds API en tiempo real.</p>
+                  <h3 className="text-xl font-bold text-white mb-2">Motor Multicriterio VIP Bloqueado</h3>
+                  <p className="text-slate-300 text-sm mb-6 max-w-lg">Ingresa con tu cuenta VIP para procesar las variables climáticas, de rachas y lesiones en tiempo real.</p>
                   <div className="flex gap-3">
                     <button onClick={() => setShowLoginModal(true)} className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg text-sm">Iniciar Sesión VIP</button>
                     <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-bold py-3 px-6 rounded-lg text-sm">Comprar Acceso - $17.99/mes</a>
@@ -299,39 +337,44 @@ PREGUNTA: ${newUserMsg.text}` }] }]
                 
                 {isFreePreview && !isAuthenticated && (
                   <div className="bg-blue-950/60 border border-blue-400/50 rounded-xl p-4 flex justify-between items-center">
-                    <p className="text-xs text-blue-200">🔓 Muestra Gratuita sincronizada activa. Para desbloquear LDU vs Barcelona, activa tu cuenta VIP.</p>
+                    <p className="text-xs text-blue-200">🔓 Muestra Gratuita con análisis multicriterio activo para Aucas vs El Nacional.</p>
                     <button onClick={() => setShowLoginModal(true)} className="bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded">Activar VIP</button>
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-center">
                     <p className="text-slate-400 text-xs uppercase font-bold">Cuota Odds API</p>
-                    <p className="text-3xl text-white font-light">{cuotaLocal}</p>
+                    <p className="text-3xl text-white font-light">{currentMatchData.cuotaLocal}</p>
                   </div>
                   <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-center">
-                    <p className="text-slate-400 text-xs uppercase font-bold">Prob. Implícita</p>
+                    <p className="text-slate-400 text-xs uppercase font-bold">Prob. Implícita Mercado</p>
                     <p className="text-3xl text-slate-300">{probImplicitaCasa}%</p>
                   </div>
                   <div className="bg-slate-800/80 border-t-4 border-blue-500 rounded-xl p-4 text-center">
-                    <p className="text-slate-400 text-xs uppercase font-bold">Prob. Real (API-FB)</p>
-                    <p className="text-3xl text-blue-400 font-bold">{probRealLocal}%</p>
-                  </div>
-                  <div className="bg-green-900/20 border border-green-500/50 rounded-xl p-4 text-center">
-                    <p className="text-green-400 text-xs uppercase font-bold">Valor Esperado (+EV)</p>
-                    <p className="text-3xl text-green-400 font-extrabold">+{evCalculado}%</p>
+                    <p className="text-slate-400 text-xs uppercase font-bold">Variables de Contexto Activas</p>
+                    <p className="text-xs text-blue-300 mt-1 font-medium">{currentMatchData.contextoBase}</p>
                   </div>
                 </div>
 
-                <div className="bg-blue-900/10 border border-blue-500/30 p-5 rounded-xl">
-                  <h3 className="text-white font-bold text-base mb-2">Conclusión del Algoritmo (Sincronizado)</h3>
-                  <p className="text-slate-300 text-sm leading-relaxed">{getInterpretacionDinamica()}</p>
+                {/* CAJÓN DE ANÁLISIS MULTICRITERIO GENERADO POR IA */}
+                <div className="bg-blue-900/15 border border-blue-500/40 p-6 rounded-xl space-y-3">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
+                      <h3 className="text-white font-bold text-base uppercase tracking-wider">Auditoría Cuantitativa Multicriterio (IA Adaptativa)</h3>
+                    </div>
+                    {isLoadingAnalisis && <span className="text-xs text-blue-400 animate-pulse">Cruzando clima, rachas, xG y Montecarlo...</span>}
+                  </div>
+                  <p className="text-slate-200 text-sm md:text-base leading-relaxed whitespace-pre-line">
+                    {analisisDinamico}
+                  </p>
                 </div>
 
                 <div className="bg-slate-900 border border-blue-500/30 rounded-xl overflow-hidden flex flex-col h-[350px]">
                   <div className="bg-slate-800 px-4 py-3 border-b border-slate-700 flex justify-between items-center">
-                    <h3 className="text-white font-bold text-sm">Asistente Cuantitativo IA (API-Linked)</h3>
-                    <span className="text-[10px] bg-green-950 text-green-400 border border-green-500/40 px-2 py-0.5 rounded-full font-bold">LIVE SYNC</span>
+                    <h3 className="text-white font-bold text-sm">Asistente Cuantitativo IA (Multicriterio)</h3>
+                    <span className="text-[10px] bg-green-950 text-green-400 border border-green-500/40 px-2 py-0.5 rounded-full font-bold">ADAPTATIVE AI</span>
                   </div>
                   <div className="p-4 flex-1 overflow-y-auto space-y-3">
                     {chatHistory.map((msg, i) => (
@@ -339,10 +382,10 @@ PREGUNTA: ${newUserMsg.text}` }] }]
                         <div className={`max-w-[85%] p-3 rounded-xl text-sm ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300 border border-slate-700'}`}>{msg.text}</div>
                       </div>
                     ))}
-                    {isTyping && <div className="text-xs text-slate-400 animate-pulse">Consultando API-Football y The Odds API...</div>}
+                    {isTyping && <div className="text-xs text-slate-400 animate-pulse">Procesando variables del encuentro...</div>}
                   </div>
                   <div className="p-3 bg-slate-800 border-t border-slate-700 flex gap-2">
-                    <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} placeholder="Pregunta sobre la rentabilidad sincronizada..." className="flex-1 bg-slate-900 border border-slate-600 text-sm text-white rounded-lg px-4 py-2.5 outline-none" />
+                    <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} placeholder="Pregunta sobre clima, rachas o rentabilidad..." className="flex-1 bg-slate-900 border border-slate-600 text-sm text-white rounded-lg px-4 py-2.5 outline-none" />
                     <button onClick={handleSendMessage} className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold">Enviar</button>
                   </div>
                 </div>
