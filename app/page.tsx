@@ -17,17 +17,16 @@ export default function EcuaPronosticoDashboard() {
   const [loginError, setLoginError] = useState("");
   const [showGuide, setShowGuide] = useState(false);
 
-  // SIMULADOR DE CUPÓN / RETORNO FINANCIERO (COMO EL BOLETO DE BET593 PERO CON +EV)
   const [stakeAmount, setStakeAmount] = useState<number>(10);
 
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState([
-    { role: "ai", text: "Radar sincronizado con la cartelera y cuotas reales de Bet593 Ecuador. Audito mercado 1X2, Más/Menos Goles, Tiros de Esquina, Tarjetas, Remates y detecto trampas en 'Cuotas Mejoradas'. ¿Qué encuentro revisamos?" }
+    { role: "ai", text: "Radar sincronizado con la cartelera y cuotas reales de las casas de apuestas. Audito mercado 1X2, Más/Menos Goles, Tiros de Esquina, Tarjetas, Remates y detecto trampas en 'Cuotas Mejoradas'. ¿Qué encuentro revisamos?" }
   ]);
   const [isTyping, setIsTyping] = useState(false);
 
   const whatsappNumber = "593999999999";
-  const whatsappMessage = "Hola, quiero activar mi suscripción Premium en EcuaPronóstico ($17.99/mes) para desbloquear todas las auditorías multimercado de Bet593. ¿Me ayudan con los datos de pago?";
+  const whatsappMessage = "Hola, quiero activar mi suscripción Premium en EcuaPronóstico ($17.99/mes) para desbloquear todas las auditorías multimercado. ¿Me ayudan con los datos de pago?";
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
   const fetchMatchesFromServer = async (targetLeague: string) => {
@@ -82,7 +81,7 @@ export default function EcuaPronosticoDashboard() {
     isFreeSample: true,
     home: "Cargando...", homeInitials: "...", homeAlt: "...",
     away: "Cargando...", awayInitials: "...", awayAlt: "...",
-    jornada: "SINCRONIZANDO CARTELERA BET593...", date: "...", time: "...",
+    jornada: "SINCRONIZANDO CARTELERA...", date: "...", time: "...",
     cuotaLocal: 1.85, cuotaEmpate: 3.33, cuotaVisita: 4.20,
     lineGoals: 2.5, cuotaOver: 2.22, cuotaUnder: 1.58,
     cuotaBttsYes: 1.90, cuotaBttsNo: 1.80,
@@ -101,7 +100,6 @@ export default function EcuaPronosticoDashboard() {
   const probImplicitaLocal = ((1 / currentMatch.cuotaLocal) * 100).toFixed(1);
   const probImplicitaEmpate = ((1 / currentMatch.cuotaEmpate) * 100).toFixed(1);
   const probImplicitaVisita = ((1 / currentMatch.cuotaVisita) * 100).toFixed(1);
-  const margenCasa = (Number(probImplicitaLocal) + Number(probImplicitaEmpate) + Number(probImplicitaVisita) - 100).toFixed(1);
 
   const handleSendMessage = async () => {
     if (!chatInput.trim()) return;
@@ -112,14 +110,14 @@ export default function EcuaPronosticoDashboard() {
 
     try {
       const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-      const reglas = `Eres el 'Asistente Cuantitativo IA' de EcuaPronóstico. Responde como un comentarista y trader deportivo experto. Explica qué mercado conviene más (1X2, Más/Menos goles, Córners, Tarjetas, Remates) usando Poisson y Montecarlo. No uses Markdown.`;
+      const reglas = `Eres el 'Asistente Cuantitativo IA' de EcuaPronóstico. Responde como un comentarista y trader deportivo experto. Explica qué mercado conviene más (1X2, Más/Menos goles, Córners, Tarjetas, Remates) frente a las casas de apuestas usando Poisson y Montecarlo. Nunca menciones marcas de casas de apuestas específicas, di siempre 'las casas de apuestas'. No uses Markdown.`;
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           system_instruction: { parts: [{ text: reglas }] },
-          contents: [{ parts: [{ text: `PARTIDO EN BET593: ${currentMatch.home} vs ${currentMatch.away}\nCUOTAS: 1(${currentMatch.cuotaLocal}) X(${currentMatch.cuotaEmpate}) 2(${currentMatch.cuotaVisita}) | Más/Menos ${currentMatch.lineGoals} goles: (${currentMatch.cuotaOver} / ${currentMatch.cuotaUnder})\nANÁLISIS: ${currentMatch.analisisDinamico}\n\nPREGUNTA DEL USUARIO: ${newUserMsg.text}` }] }]
+          contents: [{ parts: [{ text: `PARTIDO: ${currentMatch.home} vs ${currentMatch.away}\nCUOTAS DE LAS CASAS DE APUESTAS: 1(${currentMatch.cuotaLocal}) X(${currentMatch.cuotaEmpate}) 2(${currentMatch.cuotaVisita}) | Más/Menos ${currentMatch.lineGoals} goles: (${currentMatch.cuotaOver} / ${currentMatch.cuotaUnder})\nANÁLISIS: ${currentMatch.analisisDinamico}\n\nPREGUNTA DEL USUARIO: ${newUserMsg.text}` }] }]
         })
       });
 
@@ -130,7 +128,7 @@ export default function EcuaPronosticoDashboard() {
         throw new Error("Respuesta inválida");
       }
     } catch {
-      setChatHistory(prev => [...prev, { role: "ai", text: `En este duelo (${currentMatch.home} vs ${currentMatch.away}), la mejor grieta frente a Bet593 está en '${currentMatch.bestMarketName}' a cuota ${currentMatch.bestOdd} (Probabilidad real Montecarlo: ${currentMatch.probReal}%) y en el mercado de ${currentMatch.cornersLine} (${currentMatch.probCorners}% real). Evita las Cuotas Mejoradas combinadas de la casa.` }]);
+      setChatHistory(prev => [...prev, { role: "ai", text: `En este duelo (${currentMatch.home} vs ${currentMatch.away}), la mejor grieta frente a las casas de apuestas está en '${currentMatch.bestMarketName}' a cuota ${currentMatch.bestOdd} (Probabilidad real Montecarlo: ${currentMatch.probReal}%) y en el mercado de ${currentMatch.cornersLine} (${currentMatch.probCorners}% real). Evita las Cuotas Mejoradas combinadas de la casa.` }]);
     } finally {
       setIsTyping(false);
     }
@@ -174,8 +172,8 @@ export default function EcuaPronosticoDashboard() {
             <div className="flex items-center gap-3">
               <img src="/logo.png" alt="Logo" className="h-14 md:h-16 object-contain drop-shadow-[0_0_15px_rgba(56,189,248,0.4)]" />
               <div>
-                <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider">Auditor Oficial de Casas de Apuestas</span>
-                <h1 className="text-base md:text-xl font-black text-white mt-0.5">RADAR MULTIMERCADO vs BET593</h1>
+                <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider">Auditor Cuantitativo de Casas de Apuestas</span>
+                <h1 className="text-base md:text-xl font-black text-white mt-0.5">RADAR MULTIMERCADO INTELIGENTE</h1>
               </div>
             </div>
 
@@ -194,17 +192,17 @@ export default function EcuaPronosticoDashboard() {
           {showGuide && (
             <div className="mb-4 bg-slate-900/90 border border-blue-500/40 rounded-xl p-4 text-xs text-slate-300 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <strong className="text-amber-400 block mb-1">¿Por qué Bet593 solo te muestra cuotas (ej: 1.85) y NUNCA porcentajes?</strong>
+                <strong className="text-amber-400 block mb-1">¿Por qué las casas de apuestas solo te muestran cuotas (ej: 1.85) y NUNCA porcentajes?</strong>
                 Porque la cuota esconde la probabilidad real y les permite cobrarte una comisión oculta (margen de la casa del 6% al 9%). Aquí destapamos el porcentaje exacto con 10,000 simulaciones de Montecarlo y te decimos en qué mercado (Ganador, Más/Menos Goles, Córners, Tarjetas o Remates) está la verdadera ventaja matemática (+EV).
               </div>
               <div>
                 <strong className="text-red-400 block mb-1">¡Cuidado con las "Cuotas Mejoradas" (6.40, 25.00, 56.00)!</strong>
-                Las casas promocionan combinadas de 3 o 4 cosas muy específicas (ej: Marcador exacto + Córners + Tarjetas) porque saben que la probabilidad matemática conjunta es menor al 2%. Nuestro radar te alerta de esas trampas y te guía hacia apuestas profesionales.
+                Las casas de apuestas promocionan combinadas de 3 o 4 cosas muy específicas (ej: Marcador exacto + Córners + Tarjetas) porque saben que la probabilidad matemática conjunta es menor al 2%. Nuestro radar te alerta de esas trampas y te guía hacia apuestas profesionales.
               </div>
             </div>
           )}
 
-          {/* PESTAÑAS DE COMPETICIÓN ESTILO CASA DE APUESTAS */}
+          {/* PESTAÑAS DE COMPETICIÓN */}
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setLeague("ligapro")}
@@ -221,7 +219,7 @@ export default function EcuaPronosticoDashboard() {
           </div>
         </header>
 
-        {/* 1. GRILLA COMPLETA DE PARTIDOS ESTILO BET593 (LO QUE PEDISTE EN EL MINUTO 05:45 DEL VIDEO) */}
+        {/* 1. GRILLA COMPLETA DE PARTIDOS */}
         <section className="mb-8 bg-[#131d3b] border border-slate-700/80 rounded-2xl overflow-hidden shadow-2xl">
           <div className="bg-[#1c2a52] px-4 py-3 border-b border-slate-700 flex flex-wrap justify-between items-center gap-2">
             <div className="flex items-center gap-2">
@@ -231,7 +229,7 @@ export default function EcuaPronosticoDashboard() {
               </h2>
             </div>
             <div className="hidden lg:flex gap-16 text-[11px] font-bold text-slate-300 pr-6">
-              <span>1 X 2 (Cuotas Bet593)</span>
+              <span>1 X 2 (Cuotas Mercado)</span>
               <span>Total Goles (Más / Menos)</span>
               <span>Ventaja Detectada (+EV)</span>
             </div>
@@ -268,7 +266,7 @@ export default function EcuaPronosticoDashboard() {
                     </span>
                   </div>
 
-                  {/* BOTONES DE CUOTAS 1X2 ESTILO BET593 */}
+                  {/* BOTONES DE CUOTAS 1X2 */}
                   <div className="grid grid-cols-3 gap-2 w-full lg:w-1/3">
                     <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-center">
                       <span className="block text-[10px] text-slate-400 truncate">1 ({m.homeInitials})</span>
@@ -320,29 +318,35 @@ export default function EcuaPronosticoDashboard() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            {/* COLUMNA IZQUIERDA Y CENTRAL (2/3): TODOS LOS MERCADOS QUE VISTE EN BET593 PERO CON PORCENTAJES REALES */}
+            {/* COLUMNA IZQUIERDA Y CENTRAL (2/3) */}
             <div className="lg:col-span-2 space-y-6">
               
-              {/* ENCABEZADO DEL PARTIDO EN ESTUDIO */}
+              {/* ENCABEZADO DEL PARTIDO EN ESTUDIO CON PORCENTAJES EN ROJO RESTAURADOS */}
               <div className="rounded-2xl p-5 bg-gradient-to-r from-slate-800 via-[#152247] to-slate-800 border border-slate-600 shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="flex flex-col items-center text-center sm:w-1/3">
                   <div className="w-16 h-16 bg-slate-900 text-white font-black text-lg rounded-full flex items-center justify-center mb-2 border-2 border-blue-400 shadow-lg">{currentMatch.homeInitials}</div>
                   <h2 className="text-base font-black text-white">{currentMatch.home}</h2>
                   <p className="text-slate-400 text-[11px]">{currentMatch.homeAlt}</p>
+                  <p className="text-red-400 text-xs font-bold mt-2 bg-red-950/40 border border-red-500/40 px-3 py-1 rounded-full">
+                    Mercado: {probImplicitaLocal}%
+                  </p>
                 </div>
 
                 <div className="flex flex-col items-center text-center sm:w-1/3">
                   <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 px-3 py-0.5 rounded-full text-[10px] font-black mb-1">{currentMatch.jornada}</span>
                   <p className="text-xs text-slate-300">{currentMatch.date} • <strong className="text-white">{currentMatch.time}</strong></p>
-                  <div className="mt-2 bg-red-950/60 border border-red-500/40 px-3 py-1 rounded-full text-[11px] text-red-300 font-bold">
-                    Comisión oculta Bet593: {margenCasa}%
-                  </div>
+                  <p className="text-red-400 text-xs font-bold mt-2 bg-red-950/40 border border-red-500/40 px-3 py-1 rounded-full">
+                    Empate: {probImplicitaEmpate}%
+                  </p>
                 </div>
 
                 <div className="flex flex-col items-center text-center sm:w-1/3">
                   <div className="w-16 h-16 bg-slate-900 text-white font-black text-lg rounded-full flex items-center justify-center mb-2 border-2 border-amber-400 shadow-lg">{currentMatch.awayInitials}</div>
                   <h2 className="text-base font-black text-white">{currentMatch.away}</h2>
                   <p className="text-slate-400 text-[11px]">{currentMatch.awayAlt}</p>
+                  <p className="text-red-400 text-xs font-bold mt-2 bg-red-950/40 border border-red-500/40 px-3 py-1 rounded-full">
+                    Mercado: {probImplicitaVisita}%
+                  </p>
                 </div>
               </div>
 
@@ -351,7 +355,7 @@ export default function EcuaPronosticoDashboard() {
                 <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-3.5 text-center">
                   <p className="text-slate-400 text-[10px] uppercase font-bold">Mejor Mercado Detectado</p>
                   <p className="text-sm text-amber-300 font-black mt-1">{currentMatch.bestMarketName}</p>
-                  <p className="text-xs text-slate-300 mt-0.5">Cuota Bet593: <strong>{currentMatch.bestOdd}</strong></p>
+                  <p className="text-xs text-slate-300 mt-0.5">Cuota Casa: <strong>{currentMatch.bestOdd}</strong></p>
                 </div>
                 <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-3.5 text-center">
                   <p className="text-slate-400 text-[10px] uppercase font-bold">Lo que dice la Casa</p>
@@ -370,7 +374,7 @@ export default function EcuaPronosticoDashboard() {
                 </div>
               </div>
 
-              {/* BARRA DE PESTAÑAS DE MERCADOS IGUAL A BET593 (PERO CON PROBABILIDAD REAL) */}
+              {/* BARRA DE PESTAÑAS DE MERCADOS */}
               <div className="bg-[#131d3b] border border-slate-700 rounded-2xl overflow-hidden">
                 <div className="flex overflow-x-auto bg-[#1c2a52] border-b border-slate-700 p-1.5 gap-1.5 text-xs font-bold">
                   {[
@@ -500,9 +504,9 @@ export default function EcuaPronosticoDashboard() {
                   {(activeMarketTab === "todos" || activeMarketTab === "trampas") && (
                     <div className="bg-red-950/30 border border-red-500/50 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                       <div>
-                        <span className="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded font-black uppercase">⚠️ Alerta Anti-Cazabobos (Cuotas Mejoradas Bet593)</span>
+                        <span className="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded font-black uppercase">⚠️ Alerta Anti-Cazabobos (Cuotas Mejoradas de las Casas de Apuestas)</span>
                         <p className="text-xs text-slate-200 mt-1.5">
-                          La casa promociona en este partido: <strong className="text-amber-300">{currentMatch.cuotaMejoradaTrampa}</strong>. Nuestro motor estocástico advierte que acertar múltiples variables encadenadas reduce tu probabilidad real por debajo del 3.5%. ¡No regales tu dinero ahí!
+                          Las casas de apuestas promocionan en este partido: <strong className="text-amber-300">{currentMatch.cuotaMejoradaTrampa}</strong>. Nuestro motor estocástico advierte que acertar múltiples variables encadenadas reduce tu probabilidad real por debajo del 3.5%. ¡No regales tu dinero ahí!
                         </p>
                       </div>
                     </div>
@@ -527,7 +531,7 @@ export default function EcuaPronosticoDashboard() {
             {/* COLUMNA DERECHA (1/3): CUPÓN SIMULADOR DE GANANCIA + CHAT IA */}
             <div className="space-y-6">
               
-              {/* CUPÓN INTELIGENTE (COMO EL BOLETO DE BET593 QUE ABRISTE EN EL MINUTO 07:24 PERO AUDITADO) */}
+              {/* CUPÓN INTELIGENTE */}
               <div className="bg-[#131d3b] border-2 border-amber-400/70 rounded-2xl overflow-hidden shadow-2xl">
                 <div className="bg-amber-400 text-slate-950 px-4 py-2.5 font-black text-xs uppercase flex justify-between items-center">
                   <span>🎟️ Cupón de Inversión Auditado</span>
@@ -538,7 +542,7 @@ export default function EcuaPronosticoDashboard() {
                     <span className="text-[10px] text-slate-400 block">{currentMatch.home} vs {currentMatch.away}</span>
                     <strong className="text-sm text-amber-300 block mt-0.5">Selección IA: {currentMatch.bestMarketName}</strong>
                     <div className="flex justify-between mt-2 pt-2 border-t border-slate-800">
-                      <span>Cuota en Bet593: <strong className="text-white">{currentMatch.bestOdd}</strong></span>
+                      <span>Cuota en Casa de Apuestas: <strong className="text-white">{currentMatch.bestOdd}</strong></span>
                       <span className="text-green-400 font-bold">Prob. Real: {currentMatch.probReal}%</span>
                     </div>
                   </div>
@@ -555,7 +559,7 @@ export default function EcuaPronosticoDashboard() {
 
                   <div className="bg-green-950/50 border border-green-500/40 rounded-xl p-3 space-y-1">
                     <div className="flex justify-between text-slate-300">
-                      <span>Retorno Total en Bet593:</span>
+                      <span>Retorno Total Estimado:</span>
                       <strong className="text-base text-white">${(stakeAmount * currentMatch.bestOdd).toFixed(2)}</strong>
                     </div>
                     <div className="flex justify-between text-green-400 font-bold">
@@ -578,7 +582,7 @@ export default function EcuaPronosticoDashboard() {
                       <div className={`max-w-[88%] p-2.5 rounded-xl text-xs leading-relaxed ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-200 border border-slate-700'}`}>{msg.text}</div>
                     </div>
                   ))}
-                  {isTyping && <div className="text-xs text-blue-400 animate-pulse">Auditando líneas de Bet593...</div>}
+                  {isTyping && <div className="text-xs text-blue-400 animate-pulse">Auditando líneas de las casas de apuestas...</div>}
                 </div>
                 <div className="p-2.5 bg-slate-800 border-t border-slate-700 flex gap-2">
                   <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} placeholder="Pregunta por córners, goles o tarjetas..." className="flex-1 bg-slate-900 border border-slate-600 text-xs text-white rounded-lg px-3 py-2 outline-none" />
