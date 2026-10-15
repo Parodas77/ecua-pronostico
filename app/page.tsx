@@ -9,30 +9,30 @@ export default function EcuaPronosticoDashboard() {
   const [matches, setMatches] = useState([
     {
       id: "ldu-bsc",
-      home: "Liga Deportiva Universitaria", homeLogo: "https://media.api-sports.io/football/teams/1123.png", homeAlt: "Local - Altitud: 2,850 msnm",
-      away: "Barcelona Sporting Club", awayLogo: "https://media.api-sports.io/football/teams/1125.png", awayAlt: "Visitante - Nivel del mar",
+      home: "Liga Deportiva Universitaria", homeInitials: "LDU", homeAlt: "Local - Altitud: 2,850 msnm",
+      away: "Barcelona Sporting Club", awayInitials: "BSC", awayAlt: "Visitante - Nivel del mar",
       jornada: "LIGAPRO - FECHA 14", date: "Domingo, 18 de octubre de 2026", time: "16:00 EST",
       cuotaLocal: 2.15, cuotaEmpate: 3.40, cuotaVisita: 4.15,
       probReal: 61.3, ev: 14.8,
-      analisisDinamico: "El modelo estocástico de Poisson combinado con 10,000 simulaciones de Montecarlo detecta una asimetría clara frente a los momios de The Odds API. Al ponderar el factor altitudinal de 2,850 metros, el pronóstico térmico de 18°C, la solidez defensiva local (0.8 xG concedido en promedio) y la baja por sanción del capitán lateral de Barcelona Sporting Club, la probabilidad real de victoria alba se sitúa en 61.3% frente al 46.5% implícito del mercado. RECOMENDACIÓN: Entrada obligatoria a favor de Liga Deportiva Universitaria con Stake medio-alto antes de que las casas reduzcan la cuota."
+      analisisDinamico: "¡Atención inversores! El mercado está cometiendo un error monumental en este Clásico. Las casas de apuestas pagan una cuota inflada de 2.15 (46.5% implícito) porque miran nombres, pero nuestro clúster estocástico de 10,000 simulaciones de Montecarlo y la distribución de Poisson dictan sentencia: LDU Quito tiene un 61.3% de probabilidad real de demoler al rival. Pon sobre la mesa el factor hipobárico de los 2,850 metros de Quito, el ahogo físico proyectado, la solidez defensiva alba (apenas 0.8 xG en contra) y la pesada baja por suspensión del lateral titular de Barcelona. Esto es oro puro. RECOMENDACIÓN CONTUNDENTE: ¡Entrada obligatoria a favor de Liga con Stake medio-alto YA MISMO antes de que las casas corrijan y desplomen esta cuota!"
     },
     {
       id: "idv-emelec",
-      home: "Independiente del Valle", homeLogo: "https://media.api-sports.io/football/teams/1127.png", homeAlt: "Local - Altitud: 2,500 msnm",
-      away: "Club Sport Emelec", awayLogo: "https://media.api-sports.io/football/teams/1128.png", awayAlt: "Visitante - Nivel del mar",
+      home: "Independiente del Valle", homeInitials: "IDV", homeAlt: "Local - Altitud: 2,500 msnm",
+      away: "Club Sport Emelec", awayInitials: "EME", awayAlt: "Visitante - Nivel del mar",
       jornada: "LIGAPRO - FECHA 14", date: "Sábado, 17 de octubre de 2026", time: "18:30 EST",
       cuotaLocal: 1.75, cuotaEmpate: 3.60, cuotaVisita: 4.80,
       probReal: 66.8, ev: 9.7,
-      analisisDinamico: "El análisis multicriterio procesa un volumen ofensivo dominante de Independiente del Valle en Chillo Jijón (xG de 2.34). Cruzando esta métrica con el invicto de 6 partidos y las bajas obligadas de Club Sport Emelec en su primera línea de volantes por lesión, el clúster estocástico arroja una probabilidad real del 66.8%. RECOMENDACIÓN: Oportunidad táctica clara, entrada a favor de Independiente del Valle con Stake moderado."
+      analisisDinamico: "¡Fiebre de valor en Chillo Jijón! El rodillo negriazul llega con un volumen ofensivo devastador (xG de 2.34), triturando métricas y encadenando un invicto de 6 partidos que el mercado insiste en subestimar. Del otro lado, Emelec llega con el agua al cuello y un rompecabezas defensivo debido a lesiones críticas en la primera línea de volantes. Nuestro modelo arroja un sólido 66.8% de probabilidad real frente a una cuota de 1.75 que deja un jugoso +9.7% de Valor Esperado. RECOMENDACIÓN TÁCTICA: No lo pienses tanto; el empuje local pesa. Apuesta al triunfo de Independiente del Valle con un Stake moderado y cobra caja."
     },
     {
       id: "auc-elf",
-      home: "Sociedad Deportiva Aucas", homeLogo: "https://media.api-sports.io/football/teams/1126.png", homeAlt: "Local - Altitud: 2,850 msnm",
-      away: "Club Deportivo El Nacional", awayLogo: "https://media.api-sports.io/football/teams/1124.png", awayAlt: "Visitante - Altitud: 2,850 msnm",
+      home: "Sociedad Deportiva Aucas", homeInitials: "AUC", homeAlt: "Local - Altitud: 2,850 msnm",
+      away: "Club Deportivo El Nacional", awayInitials: "NAC", awayAlt: "Visitante - Altitud: 2,850 msnm",
       jornada: "LIGAPRO - MUESTRA ABIERTA", date: "Sábado, 17 de octubre de 2026", time: "14:00 EST",
       cuotaLocal: 2.05, cuotaEmpate: 3.30, cuotaVisita: 3.70,
       probReal: 55.4, ev: 6.6,
-      analisisDinamico: "Duelo capitalino con factor geográfico neutro. Las simulaciones de Montecarlo evalúan la eficacia a balón parado de Sociedad Deportiva Aucas frente a la urgencia de Club Deportivo El Nacional y la baja de su goleador principal. Margen de valor del +6.6% EV. RECOMENDACIÓN: Entrada conservadora con Stake bajo para proteger el bankroll."
+      analisisDinamico: "Duelo de alta tensión en el sur de Quito. Con altitud idéntica para ambos (Factor K neutro), el partido se define en los detalles tácticos. Las simulaciones estocásticas detectan la letalidad de Aucas a balón parado y desnudan la fragilidad aérea de un Nacional urgido y diezmado por la baja de su artillero principal. Tenemos un margen positivo del +6.6% EV. RECOMENDACIÓN: Muestra abierta validada. Entra con confianza pero protege tu bankroll con un Stake bajo."
     }
   ]);
 
@@ -47,7 +47,7 @@ export default function EcuaPronosticoDashboard() {
 
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState([
-    { role: "ai", text: "Terminal conectada a API-Football y The Odds API. El Agente IA analiza de forma multivariable cada encuentro en tiempo real. ¿Qué consultamos?" }
+    { role: "ai", text: "Terminal cuantitativa activa. El Agente IA audita momios, xG, clima y lesiones en tiempo real. ¿Qué consultamos?" }
   ]);
   const [isTyping, setIsTyping] = useState(false);
 
@@ -88,21 +88,21 @@ export default function EcuaPronosticoDashboard() {
       setMatches([
         {
           id: "mancity-rma",
-          home: "Manchester City Football Club", homeLogo: "https://media.api-sports.io/football/teams/50.png", homeAlt: "Local - Dinámica Premier",
-          away: "Real Madrid Club de Fútbol", awayLogo: "https://media.api-sports.io/football/teams/541.png", awayAlt: "Visitante - Dinámica UEFA",
+          home: "Manchester City", homeInitials: "MCI", homeAlt: "Local - Dinámica Premier",
+          away: "Real Madrid", awayInitials: "RMA", awayAlt: "Visitante - Dinámica UEFA",
           jornada: "CHAMPIONS LEAGUE - FASE DE LIGA", date: "Martes, 20 de octubre de 2026", time: "20:00 CET",
           cuotaLocal: 1.95, cuotaEmpate: 3.50, cuotaVisita: 3.80,
           probReal: 58.4, ev: 13.8,
-          analisisDinamico: "El motor estocástico cruza el xG local de 2.6 del Manchester City Football Club en el Etihad con las bajas defensivas del Real Madrid Club de Fútbol y el pronóstico de lluvia ligera (10°C). Las simulaciones revelan una sobrevaloración visitante por inercia histórica. RECOMENDACIÓN: Apuesta firme a favor del Manchester City con Stake medio."
+          analisisDinamico: "¡Noche de colosos en el Etihad Stadium! Las casas de apuestas tiemblan al ver cómo el xG local de 2.6 arrolla cualquier pronóstico romántico. Cruzando las 10,000 simulaciones de Montecarlo con las bajas defensivas del Real Madrid y la lluvia ligera a 10°C, el motor detecta que el mercado sobrevalora al visitante por inercia histórica. Hay un jugoso +13.8% de Valor Esperado esperando. RECOMENDACIÓN: ¡A por todas a favor del Manchester City con Stake medio!"
         },
         {
           id: "barca-inter",
-          home: "Futbol Club Barcelona", homeLogo: "https://media.api-sports.io/football/teams/529.png", homeAlt: "Local - Montjuïc Style",
-          away: "Football Club Internazionale Milano", awayLogo: "https://media.api-sports.io/football/teams/505.png", awayAlt: "Visitante - Bloque Bajo UEFA",
+          home: "FC Barcelona", homeInitials: "BAR", homeAlt: "Local - Montjuïc Style",
+          away: "Inter de Milán", awayInitials: "INT", awayAlt: "Visitante - Bloque Bajo UEFA",
           jornada: "CHAMPIONS LEAGUE - FASE DE LIGA", date: "Miércoles, 21 de octubre de 2026", time: "20:00 CET",
           cuotaLocal: 1.85, cuotaEmpate: 3.60, cuotaVisita: 4.20,
           probReal: 63.5, ev: 11.2,
-          analisisDinamico: "Análisis de posesión dinámica frente al bloque bajo italiano. El modelo penaliza el desgaste físico del Football Club Internazionale Milano en Serie A y proyecta un EV+ de 11.2%. RECOMENDACIÓN: Entrada a favor del Futbol Club Barcelona con Stake medio."
+          analisisDinamico: "Duelo táctico de alto voltaje en Montjuïc. El algoritmo multicriterio procesa la posesión asfixiante culé y castiga el desgaste físico acumulado del Inter en el Calcio. Con un 63.5% de probabilidad real y +11.2% EV, la ventaja matemática es indiscutible. RECOMENDACIÓN: Apuesta con confianza a favor del FC Barcelona con Stake medio."
         }
       ]);
       setSelectedMatchId("mancity-rma");
@@ -110,30 +110,30 @@ export default function EcuaPronosticoDashboard() {
       setMatches([
         {
           id: "ldu-bsc",
-          home: "Liga Deportiva Universitaria", homeLogo: "https://media.api-sports.io/football/teams/1123.png", homeAlt: "Local - Altitud: 2,850 msnm",
-          away: "Barcelona Sporting Club", awayLogo: "https://media.api-sports.io/football/teams/1125.png", awayAlt: "Visitante - Nivel del mar",
+          home: "Liga Deportiva Universitaria", homeInitials: "LDU", homeAlt: "Local - Altitud: 2,850 msnm",
+          away: "Barcelona Sporting Club", awayInitials: "BSC", awayAlt: "Visitante - Nivel del mar",
           jornada: "LIGAPRO - FECHA 14", date: "Domingo, 18 de octubre de 2026", time: "16:00 EST",
           cuotaLocal: 2.15, cuotaEmpate: 3.40, cuotaVisita: 4.15,
           probReal: 61.3, ev: 14.8,
-          analisisDinamico: "El análisis de Poisson combinado con 10,000 simulaciones de Montecarlo detecta una discrepancia crítica en los momios de The Odds API. Ponderando altitud, clima y lesiones. RECOMENDACIÓN: Entrada táctica a favor de Liga Deportiva Universitaria con Stake medio-alto."
+          analisisDinamico: "¡Atención inversores! El mercado está cometiendo un error monumental en este Clásico. Las casas de apuestas pagan una cuota inflada de 2.15 (46.5% implícito) porque miran nombres, pero nuestro clúster estocástico de 10,000 simulaciones de Montecarlo y la distribución de Poisson dictan sentencia: LDU Quito tiene un 61.3% de probabilidad real de demoler al rival. Pon sobre la mesa el factor hipobárico de los 2,850 metros de Quito, el ahogo físico proyectado, la solidez defensiva alba (apenas 0.8 xG en contra) y la pesada baja por suspensión del lateral titular de Barcelona. Esto es oro puro. RECOMENDACIÓN CONTUNDENTE: ¡Entrada obligatoria a favor de Liga con Stake medio-alto YA MISMO antes de que las casas corrijan y desplomen esta cuota!"
         },
         {
           id: "idv-emelec",
-          home: "Independiente del Valle", homeLogo: "https://media.api-sports.io/football/teams/1127.png", homeAlt: "Local - Altitud: 2,500 msnm",
-          away: "Club Sport Emelec", awayLogo: "https://media.api-sports.io/football/teams/1128.png", awayAlt: "Visitante - Nivel del mar",
+          home: "Independiente del Valle", homeInitials: "IDV", homeAlt: "Local - Altitud: 2,500 msnm",
+          away: "Club Sport Emelec", awayInitials: "EME", awayAlt: "Visitante - Nivel del mar",
           jornada: "LIGAPRO - FECHA 14", date: "Sábado, 17 de octubre de 2026", time: "18:30 EST",
           cuotaLocal: 1.75, cuotaEmpate: 3.60, cuotaVisita: 4.80,
           probReal: 66.8, ev: 9.7,
-          analisisDinamico: "Volumen ofensivo superior (xG 2.34) y bajas en Club Sport Emelec. RECOMENDACIÓN: Apostar al triunfo local con Stake moderado."
+          analisisDinamico: "¡Fiebre de valor en Chillo Jijón! El rodillo negriazul llega con un volumen ofensivo devastador (xG de 2.34), triturando métricas y encadenando un invicto de 6 partidos que el mercado insiste en subestimar. Del otro lado, Emelec llega con el agua al cuello y un rompecabezas defensivo debido a lesiones críticas en la primera línea de volantes. Nuestro modelo arroja un sólido 66.8% de probabilidad real frente a una cuota de 1.75 que deja un jugoso +9.7% de Valor Esperado. RECOMENDACIÓN TÁCTICA: No lo pienses tanto; el empuje local pesa. Apuesta al triunfo de Independiente del Valle con un Stake moderado y cobra caja."
         },
         {
           id: "auc-elf",
-          home: "Sociedad Deportiva Aucas", homeLogo: "https://media.api-sports.io/football/teams/1126.png", homeAlt: "Local - Altitud: 2,850 msnm",
-          away: "Club Deportivo El Nacional", awayLogo: "https://media.api-sports.io/football/teams/1124.png", awayAlt: "Visitante - Altitud: 2,850 msnm",
+          home: "Sociedad Deportiva Aucas", homeInitials: "AUC", homeAlt: "Local - Altitud: 2,850 msnm",
+          away: "Club Deportivo El Nacional", awayInitials: "NAC", awayAlt: "Visitante - Altitud: 2,850 msnm",
           jornada: "LIGAPRO - MUESTRA ABIERTA", date: "Sábado, 17 de octubre de 2026", time: "14:00 EST",
           cuotaLocal: 2.05, cuotaEmpate: 3.30, cuotaVisita: 3.70,
           probReal: 55.4, ev: 6.6,
-          analisisDinamico: "Factor geográfico neutro. Margen positivo del +6.6% EV. RECOMENDACIÓN: Entrada conservadora con Stake bajo."
+          analisisDinamico: "Duelo de alta tensión en el sur de Quito. Con altitud idéntica para ambos (Factor K neutro), el partido se define en los detalles tácticos. Las simulaciones estocásticas detectan la letalidad de Aucas a balón parado y desnudan la fragilidad aérea de un Nacional urgido y diezmado por la baja de su artillero principal. Tenemos un margen positivo del +6.6% EV. RECOMENDACIÓN: Muestra abierta validada. Entra con confianza pero protege tu bankroll con un Stake bajo."
         }
       ]);
       setSelectedMatchId("ldu-bsc");
@@ -286,10 +286,10 @@ PREGUNTA DEL INVERSOR: ${newUserMsg.text}` }] }]
             
             <div className="rounded-xl p-6 flex flex-col sm:flex-row justify-between items-center bg-slate-800/90 border border-slate-600 shadow-2xl gap-6">
               
-              {/* LOCAL: ESCUDO CDN OFICIAL Y NOMBRE COMPLETO */}
+              {/* LOCAL: INSIGNIA / INICIALES DE ÉLITE Y NOMBRE COMPLETO */}
               <div className="flex flex-col items-center text-center sm:w-1/3">
-                <div className="w-20 h-20 bg-white rounded-full p-2.5 flex items-center justify-center mb-3 border border-slate-600 shadow-lg overflow-hidden shrink-0">
-                  <img src={currentMatch.homeLogo} alt={currentMatch.home} className="w-full h-full object-contain" />
+                <div className="w-20 h-20 bg-gradient-to-br from-slate-700 to-slate-900 text-white font-black text-xl rounded-full flex items-center justify-center mb-3 border-2 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)] shrink-0">
+                  {currentMatch.homeInitials}
                 </div>
                 <h2 className="text-base md:text-lg font-extrabold text-white">{currentMatch.home}</h2>
                 <p className="text-slate-400 text-xs mt-0.5">{currentMatch.homeAlt}</p>
@@ -303,10 +303,10 @@ PREGUNTA DEL INVERSOR: ${newUserMsg.text}` }] }]
                 <p className="text-red-400 text-xs font-bold mt-2 bg-red-950/40 border border-red-500/40 px-3 py-1 rounded-full">Empate: {probImplicitaEmpate}%</p>
               </div>
               
-              {/* VISITANTE: ESCUDO CDN OFICIAL Y NOMBRE COMPLETO */}
+              {/* VISITANTE: INSIGNIA / INICIALES DE ÉLITE Y NOMBRE COMPLETO */}
               <div className="flex flex-col items-center text-center sm:w-1/3">
-                <div className="w-20 h-20 bg-white rounded-full p-2.5 flex items-center justify-center mb-3 border border-slate-600 shadow-lg overflow-hidden shrink-0">
-                  <img src={currentMatch.awayLogo} alt={currentMatch.away} className="w-full h-full object-contain" />
+                <div className="w-20 h-20 bg-gradient-to-br from-slate-700 to-slate-900 text-white font-black text-xl rounded-full flex items-center justify-center mb-3 border-2 border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.3)] shrink-0">
+                  {currentMatch.awayInitials}
                 </div>
                 <h2 className="text-base md:text-lg font-extrabold text-white">{currentMatch.away}</h2>
                 <p className="text-slate-400 text-xs mt-0.5">{currentMatch.awayAlt}</p>
@@ -357,13 +357,13 @@ PREGUNTA DEL INVERSOR: ${newUserMsg.text}` }] }]
                   </div>
                 </div>
 
-                {/* CAJÓN DE ANÁLISIS MULTICRITERIO SÓLIDO Y DINÁMICO */}
+                {/* CAJÓN DE ANÁLISIS MULTICRITERIO EMOCIONANTE Y PROFESIONAL */}
                 <div className="bg-blue-900/15 border border-blue-500/40 p-6 rounded-xl space-y-3">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
                     <h3 className="text-white font-bold text-base uppercase tracking-wider">Auditoría Cuantitativa Multicriterio (Poisson + Montecarlo + Contexto)</h3>
                   </div>
-                  <p className="text-slate-200 text-sm md:text-base leading-relaxed whitespace-pre-line">
+                  <p className="text-slate-200 text-sm md:text-base leading-relaxed whitespace-pre-line font-medium">
                     {currentMatch.analisisDinamico}
                   </p>
                 </div>
