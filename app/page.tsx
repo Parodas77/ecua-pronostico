@@ -9,7 +9,7 @@ export default function EcuaPronosticoDashboard() {
   const [matches, setMatches] = useState<any[]>([]);
   const [selectedMatchId, setSelectedMatchId] = useState<string>("");
   const [isLoadingMatches, setIsLoadingMatches] = useState<boolean>(true);
-  const [liveWindow, setLiveWindow] = useState<string>("Sincronizando calendario oficial...");
+  const [liveWindow, setLiveWindow] = useState<string>("Sincronizando corte diario de 8 días...");
   const [apiDiagnostics, setApiDiagnostics] = useState<string[]>([]);
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -23,12 +23,12 @@ export default function EcuaPronosticoDashboard() {
 
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState([
-    { role: "ai", text: "Sistema conectado en tiempo real a los calendarios oficiales de la semana (ESPN Official Scoreboard, The Odds API y API-Football). Cero partidos quemados en código: la cartelera se renueva automáticamente cada semana. ¿Qué partido auditamos?" }
+    { role: "ai", text: "Calendario oficial de ESPN (8 días hacia adelante) sincronizado una vez al día y cruzado con The Odds API y API-Football. Ligas 100% separadas y solo partidos por jugar. ¿Qué encuentro revisamos?" }
   ]);
   const [isTyping, setIsTyping] = useState(false);
 
   const whatsappNumber = "593999999999";
-  const whatsappMessage = "Hola, quiero activar mi suscripción Premium en EcuaPronóstico ($17.99/mes) para desbloquear todas las jugadas en tiempo real. ¿Me ayudan con los datos de pago?";
+  const whatsappMessage = "Hola, quiero activar mi suscripción Premium en EcuaPronóstico ($17.99/mes) para desbloquear todas las jugadas de la semana. ¿Me ayudan con los datos de pago?";
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
   const fetchMatchesFromServer = async (targetLeague: string, force = false) => {
@@ -90,28 +90,29 @@ export default function EcuaPronosticoDashboard() {
   const currentMatch = matches.find(m => m.id === selectedMatchId) || matches[0] || {
     id: "loading",
     isFreeSample: true,
-    dataSource: "Extrayendo en vivo...",
+    leagueTitle: "Cargando liga...",
+    dataSource: "Extrayendo calendario oficial...",
     home: "Sincronizando...", homeInitials: "...", homeAlt: "...",
     away: "Sincronizando...", awayInitials: "...", awayAlt: "...",
-    jornada: "EXTRAYENDO CALENDARIO SEMANAL EN VIVO...", date: "...", time: "...",
+    jornada: "EXTRAYENDO PARTIDOS POR JUGAR (PRÓXIMOS 8 DÍAS)...", date: "...", time: "...",
     cuotaLocal: 2.00, cuotaEmpate: 3.20, cuotaVisita: 3.50,
     lineGoals: 2.5, cuotaOver: 2.00, cuotaUnder: 1.80,
-    marginCasa: 5.5,
+    marginCasa: 5.0,
     cleanProb1: 47.0, cleanProbX: 29.0, cleanProb2: 24.0,
-    xgHome: 1.35, xgAway: 1.05, expectedGoals: 2.40,
+    xgHome: 1.45, xgAway: 1.10, expectedGoals: 2.55,
     probHomeSim: 48.0, probDrawSim: 27.0, probAwaySim: 25.0,
-    probOverSim: 45.0, probUnderSim: 55.0,
-    probBttsYesSim: 48.0, probBttsNoSim: 52.0,
-    fairOddBttsYes: 2.08, fairOddBttsNo: 1.92,
+    probOverSim: 46.0, probUnderSim: 54.0,
+    probBttsYesSim: 49.0, probBttsNoSim: 51.0,
+    fairOddBttsYes: 2.04, fairOddBttsNo: 1.96,
     prob1X: 75.0, probX2: 52.0,
     topScores: [{ score: "1-0", prob: 15.2 }, { score: "1-1", prob: 12.4 }, { score: "2-1", prob: 9.8 }],
     bestMarketName: "Sincronizando...",
-    bestMarketExplanation: "Extrayendo cuotas oficiales de la semana...",
-    bestOdd: 2.00, probImplicitaBest: 50.0,
-    probReal: 50.0, ev: 0.0, hasRealEdge: false,
-    reportePlantilla: "Consultando fuentes oficiales...",
+    bestMarketExplanation: "Extrayendo calendario de los próximos 8 días...",
+    bestOdd: 2.00, minFairOddForTopPick: 1.85, probImplicitaBest: 50.0,
+    probReal: 54.0, ev: 0.0, hasRealEdge: false,
+    reportePlantilla: "Consultando calendario oficial de ESPN...",
     cuotaMejoradaCasa: "Evita combinadas de más de 3 eventos en el mismo partido.",
-    analisisDinamico: "Conectando en vivo con las fuentes oficiales de la semana..."
+    analisisDinamico: "Conectando con el calendario oficial para los próximos 8 días..."
   };
 
   const isFreePreview = currentMatch.isFreeSample === true;
@@ -151,7 +152,7 @@ export default function EcuaPronosticoDashboard() {
         ...prev,
         {
           role: "ai",
-          text: `Evaluación directa para ${currentMatch.home} vs ${currentMatch.away}: el EV real calculado es ${currentMatch.ev}%. ${currentMatch.ev >= 1.0 ? "Sí hay ventaja matemática en " + currentMatch.bestMarketName : "No recomendamos apostar en este partido porque el margen de la casa absorbe la ganancia."}`
+          text: `Para ${currentMatch.home} vs ${currentMatch.away}, la opción más fuerte en nuestras 10,000 simulaciones es '${currentMatch.bestMarketName}' con ${currentMatch.probReal}% de probabilidad real (Cuota mínima rentable: ${currentMatch.minFairOddForTopPick}).`
         }
       ]);
     } finally {
@@ -169,7 +170,7 @@ export default function EcuaPronosticoDashboard() {
             <div className="bg-slate-800 border border-slate-600 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
               <button onClick={() => { setShowLoginModal(false); setLoginError(""); }} className="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold">✕</button>
               <h3 className="text-xl font-bold text-white mb-1">Acceso VIP EcuaPronóstico</h3>
-              <p className="text-xs text-slate-400 mb-4">Auditoría en tiempo real con renovación automática semanal</p>
+              <p className="text-xs text-slate-400 mb-4">Desbloquea todos los partidos por jugar de los próximos 8 días</p>
 
               <div className="space-y-4">
                 <div>
@@ -198,7 +199,7 @@ export default function EcuaPronosticoDashboard() {
               <img src="/logo.png" alt="Logo" className="h-14 md:h-16 object-contain drop-shadow-[0_0_15px_rgba(56,189,248,0.4)]" />
               <div>
                 <span className="text-[10px] bg-green-500/20 text-green-300 border border-green-500/40 px-2.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider">
-                  Sincronización Automática Semanal ({liveWindow})
+                  Corte Diario Programado — Próximos 8 Días ({liveWindow})
                 </span>
                 <h1 className="text-base md:text-xl font-black text-white mt-0.5">RADAR MULTIMERCADO INTELIGENTE</h1>
               </div>
@@ -209,7 +210,7 @@ export default function EcuaPronosticoDashboard() {
                 onClick={() => fetchMatchesFromServer(league, true)}
                 className="text-xs bg-slate-800 hover:bg-slate-700 text-green-400 border border-green-500/40 px-3 py-2 rounded-lg font-bold"
               >
-                🔄 Actualizar En Vivo
+                🔄 Forzar Sincronización Diaria
               </button>
               <button onClick={() => setShowGuide(!showGuide)} className="text-xs bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 px-3 py-2 rounded-lg font-bold">
                 {showGuide ? "Ocultar Guía" : "📖 Guía Fácil"}
@@ -225,73 +226,73 @@ export default function EcuaPronosticoDashboard() {
           {showGuide && (
             <div className="mb-4 bg-slate-900/90 border border-blue-500/40 rounded-xl p-4 text-xs text-slate-300 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <strong className="text-amber-400 block mb-1">1. Renovación Automática Semanal</strong>
-                El servidor calcula dinámicamente la fecha actual más los próximos 7 días y extrae los partidos programados directamente de ESPN Official Scoreboard, The Odds API y API-Football. Nunca tienes que cambiar partidos a mano.
+                <strong className="text-amber-400 block mb-1">1. Corte Diario de 8 Días (ESPN Oficial)</strong>
+                Una vez al día el servidor recorre los próximos 8 días del calendario oficial de ESPN para cada liga por separado (solo partidos por jugar, descartando los ya terminados).
               </div>
               <div>
-                <strong className="text-blue-400 block mb-1">2. Honestidad Total: Verde vs Ámbar</strong>
-                No inventamos ventajas falsas. Si un partido da Valor Esperado positivo (+EV), se marca en VERDE (Sí Apostar). Si la comisión de la casa absorbe el margen y da EV negativo o bajo, se marca en ÁMBAR y te dice claramente NO APOSTAR.
+                <strong className="text-blue-400 block mb-1">2. Cruce con Estadísticas y Casas de Apuestas</strong>
+                Con la lista de partidos futuros de la semana, el motor consulta las estadísticas de temporada y las cuotas de las casas de apuestas para correr las 10,000 simulaciones de Montecarlo.
               </div>
               <div>
-                <strong className="text-green-400 block mb-1">3. Distribución de Poisson + 10k Montecarlo</strong>
-                Calculamos cuántos goles se esperan realmente según el récord oficial de la temporada y simulamos el partido 10,000 veces para encontrar dónde está la mejor oportunidad.
+                <strong className="text-green-400 block mb-1">3. Cuota Mínima Rentable</strong>
+                Incluso si tu casa de apuestas local cambia la cuota minutos antes del partido, el radar te dice cuál es la Cuota Mínima Justa por encima de la cual te conviene apostar.
               </div>
             </div>
           )}
 
-          {/* PESTAÑAS DE COMPETICIÓN */}
+          {/* 3 PESTAÑAS DE COMPETICIÓN 100% SEPARADAS (SIN MEZCLAR LIGAS) */}
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setLeague("ligapro")}
               className={`px-4 py-2.5 rounded-xl font-extrabold text-xs md:text-sm flex items-center gap-2 transition-all ${league === "ligapro" ? "bg-amber-400 text-slate-950 shadow-[0_0_20px_rgba(251,191,36,0.4)]" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
             >
-              🇪🇨 LigaPro Primera A (Calendario Oficial de la Semana)
+              🇪🇨 LigaPro Ecuador (Primera A)
             </button>
             <button
               onClick={() => setLeague("champions")}
               className={`px-4 py-2.5 rounded-xl font-extrabold text-xs md:text-sm flex items-center gap-2 transition-all ${league === "champions" ? "bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)]" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
             >
-              🇪🇺 Champions & Europa League (Calendario Oficial de la Semana)
+              🏆 UEFA Champions League
+            </button>
+            <button
+              onClick={() => setLeague("europa")}
+              className={`px-4 py-2.5 rounded-xl font-extrabold text-xs md:text-sm flex items-center gap-2 transition-all ${league === "europa" ? "bg-orange-500 text-slate-950 shadow-[0_0_20px_rgba(249,115,22,0.4)]" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
+            >
+              🌍 UEFA Europa League
             </button>
           </div>
         </header>
 
-        {/* 1. GRILLA COMPLETA DE PARTIDOS EXTRAÍDOS EN VIVO */}
+        {/* 1. GRILLA COMPLETA DE PARTIDOS POR JUGAR (PRÓXIMOS 8 DÍAS) */}
         <section className="mb-8 bg-[#131d3b] border border-slate-700/80 rounded-2xl overflow-hidden shadow-2xl">
           <div className="bg-[#1c2a52] px-4 py-3 border-b border-slate-700 flex flex-wrap justify-between items-center gap-2">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-ping"></span>
               <h2 className="text-xs md:text-sm font-black uppercase tracking-wider text-amber-300">
                 {isLoadingMatches
-                  ? "Extrayendo partidos oficiales de la semana en tiempo real..."
-                  : `Cartelera Oficial Extraída en Vivo (${matches.length} Partidos Programados)`}
+                  ? "Consultando calendario oficial de ESPN para los próximos 8 días..."
+                  : `${currentMatch.leagueTitle} — ${matches.length} Partidos Por Jugar (Próximos 8 Días)`}
               </h2>
             </div>
             <div className="hidden lg:flex gap-16 text-[11px] font-bold text-slate-300 pr-6">
               <span>Ganador 1 X 2 (Cuotas)</span>
               <span>Total Goles (Más / Menos)</span>
-              <span>Veredicto Honesto EV</span>
+              <span>Certeza Montecarlo</span>
             </div>
           </div>
 
           {!isLoadingMatches && matches.length === 0 && (
             <div className="p-6 text-center space-y-2 bg-slate-900/80">
-              <p className="text-sm font-bold text-amber-300">Diagnóstico en Vivo de Conexión con Fuentes Oficiales:</p>
+              <p className="text-sm font-bold text-amber-300">No hay partidos programados en los próximos 8 días para esta competición:</p>
               <div className="text-xs text-slate-300 space-y-1 max-w-xl mx-auto">
                 {apiDiagnostics.map((d, idx) => (
                   <p key={idx} className="bg-slate-800 px-3 py-1.5 rounded border border-slate-700">{d}</p>
                 ))}
               </div>
-              <button
-                onClick={() => fetchMatchesFromServer(league, true)}
-                className="mt-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-lg"
-              >
-                Reintentar Extracción en Vivo
-              </button>
             </div>
           )}
 
-          <div className="divide-y divide-slate-800/80 max-h-[420px] overflow-y-auto">
+          <div className="divide-y divide-slate-800/80 max-h-[460px] overflow-y-auto">
             {matches.map((m) => {
               const isSelected = m.id === currentMatch.id;
               const unlocked = view === "premium" || m.isFreeSample;
@@ -302,10 +303,10 @@ export default function EcuaPronosticoDashboard() {
                   onClick={() => setSelectedMatchId(m.id)}
                   className={`p-3.5 md:px-5 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 cursor-pointer transition-all ${isSelected ? "bg-blue-950/80 border-l-4 border-amber-400" : "hover:bg-slate-800/50"}`}
                 >
-                  {/* EQUIPOS Y FECHA */}
+                  {/* EQUIPOS, FECHA Y HORA DE ECUADOR */}
                   <div className="flex items-center gap-3 w-full lg:w-1/3">
-                    <div className="text-xs font-bold text-amber-400 w-16 shrink-0">
-                      {m.date.split(",")[0].slice(0, 3).toUpperCase()}<br />
+                    <div className="text-xs font-bold text-amber-400 w-20 shrink-0">
+                      {m.date.split(",")[0].slice(0, 3).toUpperCase()} {m.date.match(/\d+/)?.[0]}<br />
                       <span className="text-white text-[11px]">{m.time.replace(" ECT", "")}</span>
                     </div>
                     <div className="space-y-1 flex-1">
@@ -339,7 +340,7 @@ export default function EcuaPronosticoDashboard() {
                     </div>
                   </div>
 
-                  {/* BOTONES MÁS/MENOS GOLES Y BADGE HONESTO DE VALOR */}
+                  {/* BOTONES MÁS/MENOS GOLES Y PROBABILIDAD MONTECARLO */}
                   <div className="grid grid-cols-3 gap-2 w-full lg:w-1/3 items-center">
                     <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-center">
                       <span className="block text-[10px] text-slate-400">Más de {m.lineGoals}</span>
@@ -349,12 +350,12 @@ export default function EcuaPronosticoDashboard() {
                       <span className="block text-[10px] text-slate-400">Menos de {m.lineGoals}</span>
                       <strong className="text-sm text-amber-300">{m.cuotaUnder.toFixed(2)}</strong>
                     </div>
-                    <div className={`${!unlocked ? "bg-slate-800 border-slate-600" : isProfitable ? "bg-green-950/70 border-green-500/50" : "bg-amber-950/50 border-amber-500/40"} border rounded-lg px-2 py-1.5 text-center`}>
+                    <div className={`${!unlocked ? "bg-slate-800 border-slate-600" : isProfitable ? "bg-green-950/70 border-green-500/50" : "bg-blue-950/70 border-blue-500/50"} border rounded-lg px-2 py-1.5 text-center`}>
                       <span className="block text-[9px] text-slate-300 uppercase font-bold">
-                        {!unlocked ? "Valor IA" : isProfitable ? "✅ Apostar" : "⛔ Evitar"}
+                        {!unlocked ? "Análisis IA" : isProfitable ? `+${m.ev}% EV` : "Montecarlo"}
                       </span>
-                      <strong className={`text-xs md:text-sm font-black ${!unlocked ? "text-amber-300" : isProfitable ? "text-green-400" : "text-amber-400"}`}>
-                        {unlocked ? `${m.ev >= 0 ? "+" + m.ev : m.ev}% EV` : "🔒 VIP"}
+                      <strong className={`text-xs md:text-sm font-black ${!unlocked ? "text-amber-300" : isProfitable ? "text-green-400" : "text-blue-300"}`}>
+                        {unlocked ? `${m.probReal}% Real` : "🔒 VIP"}
                       </strong>
                     </div>
                   </div>
@@ -367,9 +368,9 @@ export default function EcuaPronosticoDashboard() {
         {/* 2. PANEL DE AUDITORÍA DEL PARTIDO SELECCIONADO */}
         {!isMatchUnlocked ? (
           <div className="rounded-2xl p-8 text-center bg-slate-800/60 border border-blue-500/40 shadow-2xl">
-            <h3 className="text-2xl font-black text-white mb-2">🔒 Auditoría en Vivo Bloqueada para {currentMatch.home} vs {currentMatch.away}</h3>
+            <h3 className="text-2xl font-black text-white mb-2">🔒 Pronóstico VIP Bloqueado para {currentMatch.home} vs {currentMatch.away}</h3>
             <p className="text-slate-300 text-sm mb-6 max-w-xl mx-auto">
-              Desbloquea el veredicto real calculado con Distribución de Poisson y 10,000 Simulaciones de Montecarlo para saber en qué partidos sí hay ventaja y en cuáles no debes arriesgar tu dinero.
+              Desbloquea la simulación completa de Poisson y Montecarlo (10,000 iteraciones), la Cuota Mínima Rentable y los marcadores más probables para toda la fecha de {currentMatch.leagueTitle}.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <button onClick={() => setShowLoginModal(true)} className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl text-sm shadow-lg">Iniciar Sesión VIP</button>
@@ -400,7 +401,7 @@ export default function EcuaPronosticoDashboard() {
                     Empate: {probImplicitaEmpate}%
                   </p>
                   <span className="text-[10px] text-green-300 mt-1.5 font-semibold">
-                    Fuente: {currentMatch.dataSource}
+                    {currentMatch.dataSource}
                   </span>
                 </div>
 
@@ -414,12 +415,12 @@ export default function EcuaPronosticoDashboard() {
                 </div>
               </div>
 
-              {/* LOS 4 CUADROS PRINCIPALES SIN MAQUILLAJE */}
+              {/* LOS 4 CUADROS PRINCIPALES */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="bg-slate-800/90 border border-amber-400/50 rounded-xl p-3.5 text-center">
-                  <p className="text-amber-300 text-[10px] uppercase font-black">1. Opción Analizada</p>
+                  <p className="text-amber-300 text-[10px] uppercase font-black">1. Jugada Más Sólida</p>
                   <p className="text-xs md:text-sm text-white font-black mt-1">{currentMatch.bestMarketName}</p>
-                  <p className="text-[11px] text-amber-300 mt-0.5">Paga Cuota: <strong>{currentMatch.bestOdd}</strong></p>
+                  <p className="text-[11px] text-amber-300 mt-0.5">Cuota Ref: <strong>{currentMatch.bestOdd}</strong></p>
                 </div>
                 <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-3.5 text-center">
                   <p className="text-slate-300 text-[10px] uppercase font-bold">2. Lo que cree la Casa</p>
@@ -429,32 +430,28 @@ export default function EcuaPronosticoDashboard() {
                 <div className="bg-slate-800/90 border-t-4 border-blue-500 rounded-xl p-3.5 text-center">
                   <p className="text-blue-300 text-[10px] uppercase font-black">3. Simulación Montecarlo</p>
                   <p className="text-2xl text-blue-400 font-black mt-1">{currentMatch.probReal}%</p>
-                  <p className="text-[10px] text-slate-300">Probabilidad Real (10k Sim)</p>
+                  <p className="text-[10px] text-slate-300">Certeza Real (10k Sim)</p>
                 </div>
-                <div className={`${currentMatch.ev >= 1.0 ? "bg-green-950/40 border-green-500/60" : "bg-amber-950/40 border-amber-500/60"} border rounded-xl p-3.5 text-center`}>
-                  <p className={`${currentMatch.ev >= 1.0 ? "text-green-400" : "text-amber-400"} text-[10px] uppercase font-black`}>
-                    4. Valor Esperado Real
-                  </p>
-                  <p className={`text-2xl font-black mt-1 ${currentMatch.ev >= 1.0 ? "text-green-400" : "text-amber-400"}`}>
-                    {currentMatch.ev >= 0 ? `+${currentMatch.ev}%` : `${currentMatch.ev}%`}
-                  </p>
+                <div className="bg-green-950/40 border border-green-500/60 rounded-xl p-3.5 text-center">
+                  <p className="text-green-400 text-[10px] uppercase font-black">4. Cuota Mínima Rentable</p>
+                  <p className="text-2xl font-black mt-1 text-green-400">{currentMatch.minFairOddForTopPick}</p>
                   <p className="text-[10px] text-slate-200 font-bold">
-                    {currentMatch.ev >= 1.0 ? "✅ SÍ APOSTAR" : "⛔ NO APOSTAR"}
+                    Apuesta si pagan más de {currentMatch.minFairOddForTopPick}
                   </p>
                 </div>
               </div>
 
-              {/* CAJÓN DE REPORTE DE DATOS OFICIALES Y EXPLICACIÓN CLARA */}
+              {/* CAJÓN DE REPORTE DE DATOS OFICIALES */}
               <div className="bg-slate-800/90 border border-amber-400/40 rounded-2xl p-4 space-y-2 shadow-lg">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black uppercase text-amber-300">📋 Reporte Oficial Extraído y Significado de la Jugada</h4>
-                  <span className="text-[10px] bg-blue-950 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded font-bold">Datos Reales</span>
+                  <h4 className="text-xs font-black uppercase text-amber-300">📋 Datos Oficiales del Calendario y Regla de Inversión</h4>
+                  <span className="text-[10px] bg-blue-950 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded font-bold">{currentMatch.leagueTitle}</span>
                 </div>
                 <p className="text-xs md:text-sm text-slate-200 leading-relaxed">
                   {currentMatch.reportePlantilla}
                 </p>
                 <p className="text-xs md:text-sm text-amber-200 bg-slate-900/80 p-2.5 rounded-lg border border-slate-700">
-                  💡 <strong>En sencillo:</strong> La opción mejor posicionada es <strong>"{currentMatch.bestMarketName}"</strong> ({currentMatch.bestMarketExplanation}). {currentMatch.ev >= 1.0 ? `Como el EV es positivo (+${currentMatch.ev}%), sí conviene invertir.` : `Como el EV es de ${currentMatch.ev}%, la casa lleva ventaja y recomendamos NO arriesgar dinero en este partido.`}
+                  💡 <strong>Cómo usar este dato en tu casa de apuestas:</strong> Busca el partido <strong>{currentMatch.home} vs {currentMatch.away}</strong> y revisa la opción <strong>"{currentMatch.bestMarketName}"</strong> ({currentMatch.bestMarketExplanation}). Si tu casa de apuestas te paga una cuota mayor a <strong>{currentMatch.minFairOddForTopPick}</strong>, tienes ventaja matemática real a tu favor.
                 </p>
               </div>
 
@@ -582,7 +579,7 @@ export default function EcuaPronosticoDashboard() {
                             <strong className="text-white text-xs block mt-1">Al menos un equipo NO anota: {currentMatch.probBttsNoSim}%</strong>
                             <span className="text-[11px] text-slate-300 block mt-1">Cuota mínima recomendada: {currentMatch.fairOddBttsNo}</span>
                           </div>
-                          <span className="text-[10px] text-green-400 font-bold mt-2">✓ Extraído en tiempo real</span>
+                          <span className="text-[10px] text-green-400 font-bold mt-2">✓ Extraído de ESPN Oficial</span>
                         </div>
                       </div>
                     </div>
@@ -595,7 +592,7 @@ export default function EcuaPronosticoDashboard() {
               <div className="bg-blue-950/40 border-2 border-blue-500/50 p-5 rounded-2xl space-y-2 shadow-xl">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-ping"></span>
-                  <h3 className="text-white font-black text-sm md:text-base uppercase tracking-wider">🎙️ Veredicto Honesto del Analista (Poisson + Montecarlo En Vivo)</h3>
+                  <h3 className="text-white font-black text-sm md:text-base uppercase tracking-wider">🎙️ Veredicto del Analista (Poisson + Montecarlo)</h3>
                 </div>
                 <p className="text-slate-100 text-sm md:text-base leading-relaxed font-medium whitespace-pre-line">
                   {currentMatch.analisisDinamico}
@@ -609,9 +606,9 @@ export default function EcuaPronosticoDashboard() {
               
               {/* CUPÓN INTELIGENTE */}
               <div className="bg-[#131d3b] border-2 border-amber-400/70 rounded-2xl overflow-hidden shadow-2xl">
-                <div className={`${currentMatch.ev >= 1.0 ? "bg-green-500 text-slate-950" : "bg-amber-400 text-slate-950"} px-4 py-2.5 font-black text-xs uppercase flex justify-between items-center`}>
+                <div className="bg-amber-400 text-slate-950 px-4 py-2.5 font-black text-xs uppercase flex justify-between items-center">
                   <span>🎟️ Calculadora de Ganancia</span>
-                  <span>{currentMatch.ev >= 1.0 ? `+${currentMatch.ev}% VENTAJA` : `EV: ${currentMatch.ev}% (EVITAR)`}</span>
+                  <span>CUOTA MÍN: {currentMatch.minFairOddForTopPick}</span>
                 </div>
                 <div className="p-4 space-y-4 text-xs">
                   <div className="bg-slate-900 p-3 rounded-xl border border-slate-700">
@@ -619,7 +616,7 @@ export default function EcuaPronosticoDashboard() {
                     <strong className="text-sm text-amber-300 block mt-0.5">Jugada: {currentMatch.bestMarketName}</strong>
                     <span className="text-[11px] text-slate-300 block mt-0.5">{currentMatch.bestMarketExplanation}</span>
                     <div className="flex justify-between mt-2 pt-2 border-t border-slate-800">
-                      <span>Cuota a pagar: <strong className="text-white">{currentMatch.bestOdd}</strong></span>
+                      <span>Cuota Ref: <strong className="text-white">{currentMatch.bestOdd}</strong></span>
                       <span className="text-green-400 font-bold">Montecarlo: {currentMatch.probReal}%</span>
                     </div>
                   </div>
@@ -651,7 +648,7 @@ export default function EcuaPronosticoDashboard() {
               <div className="bg-slate-900 border border-blue-500/40 rounded-2xl overflow-hidden flex flex-col h-[380px] shadow-xl">
                 <div className="bg-slate-800 px-4 py-3 border-b border-slate-700 flex justify-between items-center">
                   <h3 className="text-white font-bold text-xs uppercase">Pregúntale al Auditor en Vivo</h3>
-                  <span className="text-[10px] bg-green-950 text-green-400 border border-green-500/40 px-2 py-0.5 rounded-full font-bold">100% REAL</span>
+                  <span className="text-[10px] bg-green-950 text-green-400 border border-green-500/40 px-2 py-0.5 rounded-full font-bold">CALENDARIO 8 DÍAS</span>
                 </div>
                 <div className="p-3 flex-1 overflow-y-auto space-y-2.5">
                   {chatHistory.map((msg, i) => (
@@ -659,10 +656,10 @@ export default function EcuaPronosticoDashboard() {
                       <div className={`max-w-[88%] p-2.5 rounded-xl text-xs leading-relaxed ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-200 border border-slate-700'}`}>{msg.text}</div>
                     </div>
                   ))}
-                  {isTyping && <div className="text-xs text-blue-400 animate-pulse">Auditando partidos de la semana...</div>}
+                  {isTyping && <div className="text-xs text-blue-400 animate-pulse">Auditando partidos de los próximos 8 días...</div>}
                 </div>
                 <div className="p-2.5 bg-slate-800 border-t border-slate-700 flex gap-2">
-                  <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} placeholder="Ej: ¿En qué partidos sí conviene apostar hoy?" className="flex-1 bg-slate-900 border border-slate-600 text-xs text-white rounded-lg px-3 py-2 outline-none" />
+                  <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} placeholder="Ej: ¿Cuáles son los mejores partidos de la semana?" className="flex-1 bg-slate-900 border border-slate-600 text-xs text-white rounded-lg px-3 py-2 outline-none" />
                   <button onClick={handleSendMessage} className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg text-xs font-bold">Preguntar</button>
                 </div>
               </div>
