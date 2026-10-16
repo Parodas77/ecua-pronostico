@@ -21,7 +21,7 @@ export default function EcuaPronosticoDashboard() {
 
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState([
-    { role: "ai", text: "¡Hola! Tengo listos los pronósticos calculados con la Distribución de Poisson, 10,000 Simulaciones de Montecarlo y el reporte de bajas y plantillas de cada equipo. ¿Qué partido quieres que te explique en sencillo?" }
+    { role: "ai", text: "¡Hola! Tengo toda la cartelera completa de LigaPro (8 partidos) y Champions/Europa League (9 partidos) cargada con Poisson, Montecarlo y reporte de bajas. Pregúntame cuál es el partido más rentable de toda la fecha, por las bajas, por los goles o hasta por Elvis." }
   ]);
   const [isTyping, setIsTyping] = useState(false);
 
@@ -110,34 +110,40 @@ export default function EcuaPronosticoDashboard() {
   const probImplicitaEmpate = ((1 / currentMatch.cuotaEmpate) * 100).toFixed(1);
   const probImplicitaVisita = ((1 / currentMatch.cuotaVisita) * 100).toFixed(1);
 
+  // CONEXIÓN DIRECTA AL MOTOR CONVERSACIONAL DEL SERVIDOR (/api/partidos POST)
   const handleSendMessage = async () => {
     if (!chatInput.trim()) return;
-    const newUserMsg = { role: "user", text: chatInput };
+    const questionText = chatInput.trim();
+    const newUserMsg = { role: "user", text: questionText };
     setChatHistory(prev => [...prev, newUserMsg]);
     setChatInput("");
     setIsTyping(true);
 
     try {
-      const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-      const reglas = `Eres el 'Comentarista y Trader Cuantitativo' de EcuaPronóstico. Habla siempre en lenguaje humano, claro, apasionado y fácil de entender para cualquier apostador, sin usar símbolos griegos ni palabras raras en inglés. Explica los datos usando la Distribución de Poisson, las 10,000 Simulaciones de Montecarlo, el reporte de bajas/plantillas y las cuotas de las casas de apuestas. No uses Markdown.`;
-
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+      const response = await fetch("/api/partidos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          system_instruction: { parts: [{ text: reglas }] },
-          contents: [{ parts: [{ text: `PARTIDO: ${currentMatch.home} vs ${currentMatch.away}\nDATOS REALES DE POISSON Y MONTECARLO:\n- Cuotas en casas de apuestas: Local ${currentMatch.cuotaLocal} | Empate ${currentMatch.cuotaEmpate} | Visita ${currentMatch.cuotaVisita}\n- Comisión oculta de la casa: ${currentMatch.marginCasa}%\n- Goles Esperados (Poisson): ${currentMatch.home} (${currentMatch.xgHome} goles) vs ${currentMatch.away} (${currentMatch.xgAway} goles) -> Total esperado: ${currentMatch.expectedGoals} goles\n- Plantillas y Bajas: ${currentMatch.reportePlantilla}\n- Marcadores más probables (Montecarlo): ${currentMatch.topScores?.map((s: any) => s.score + " (" + s.prob + "%)").join(", ")}\n- Jugada Recomendada: ${currentMatch.bestMarketName} (${currentMatch.bestMarketExplanation}) a cuota ${currentMatch.bestOdd} con +${currentMatch.ev}% de ventaja.\n\nPREGUNTA DEL APOSTADOR: ${newUserMsg.text}` }] }]
+          question: questionText,
+          currentMatch,
+          allMatches: matches
         })
       });
 
       const data = await response.json();
-      if (data.candidates && data.candidates[0].content.parts[0].text) {
-        setChatHistory(prev => [...prev, { role: "ai", text: data.candidates[0].content.parts[0].text }]);
+      if (data && data.reply) {
+        setChatHistory(prev => [...prev, { role: "ai", text: data.reply }]);
       } else {
-        throw new Error("Respuesta inválida");
+        throw new Error("Sin respuesta");
       }
     } catch {
-      setChatHistory(prev => [...prev, { role: "ai", text: `En sencillo para ${currentMatch.home} vs ${currentMatch.away}: según la Distribución de Poisson y nuestras 10,000 simulaciones de Montecarlo, se esperan unos ${currentMatch.expectedGoals} goles en total (${currentMatch.xgHome} del local y ${currentMatch.xgAway} del visitante). La jugada más inteligente es '${currentMatch.bestMarketName}' (${currentMatch.bestMarketExplanation}) que paga cuota ${currentMatch.bestOdd} y tiene un ${currentMatch.probReal}% de probabilidad de salir.` }]);
+      setChatHistory(prev => [
+        ...prev,
+        {
+          role: "ai",
+          text: `Revisando tu consulta sobre "${questionText}": en este duelo (${currentMatch.home} vs ${currentMatch.away}) la mayor ventaja está en '${currentMatch.bestMarketName}' a cuota ${currentMatch.bestOdd} (+${currentMatch.ev}% EV).`
+        }
+      ]);
     } finally {
       setIsTyping(false);
     }
@@ -215,19 +221,19 @@ export default function EcuaPronosticoDashboard() {
             </div>
           )}
 
-          {/* PESTAÑAS DE COMPETICIÓN */}
+          {/* PESTAÑAS DE COMPETICIÓN CON CONTEO COMPLETO DE PARTIDOS */}
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setLeague("ligapro")}
               className={`px-4 py-2.5 rounded-xl font-extrabold text-xs md:text-sm flex items-center gap-2 transition-all ${league === "ligapro" ? "bg-amber-400 text-slate-950 shadow-[0_0_20px_rgba(251,191,36,0.4)]" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
             >
-              🇪🇨 LigaPro Primera A (Ecuador)
+              🇪🇨 LigaPro Primera A (8 Partidos de la Fecha)
             </button>
             <button
               onClick={() => setLeague("champions")}
               className={`px-4 py-2.5 rounded-xl font-extrabold text-xs md:text-sm flex items-center gap-2 transition-all ${league === "champions" ? "bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)]" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
             >
-              🇪🇺 Champions & Europa League (Cartelera Oficial)
+              🇪🇺 Champions & Europa League (9 Partidos Estelares)
             </button>
           </div>
         </header>
@@ -238,7 +244,7 @@ export default function EcuaPronosticoDashboard() {
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
               <h2 className="text-xs md:text-sm font-black uppercase tracking-wider text-amber-300">
-                Cartelera de la Jornada — Toca cualquier partido para ver su Jugada Recomendada y Bajas
+                Cartelera Completa ({matches.length} Partidos) — Toca cualquier encuentro para ver su Jugada Recomendada y Bajas
               </h2>
             </div>
             <div className="hidden lg:flex gap-16 text-[11px] font-bold text-slate-300 pr-6">
@@ -248,7 +254,7 @@ export default function EcuaPronosticoDashboard() {
             </div>
           </div>
 
-          <div className="divide-y divide-slate-800/80">
+          <div className="divide-y divide-slate-800/80 max-h-[420px] overflow-y-auto">
             {matches.map((m) => {
               const isSelected = m.id === currentMatch.id;
               const unlocked = view === "premium" || m.isFreeSample;
@@ -336,7 +342,7 @@ export default function EcuaPronosticoDashboard() {
             {/* COLUMNA IZQUIERDA Y CENTRAL (2/3) */}
             <div className="lg:col-span-2 space-y-6">
               
-              {/* ENCABEZADO DEL PARTIDO CON LOS PORCENTAJES ROJOS QUE TE GUSTAN Y EXPLICACIÓN CLARA */}
+              {/* ENCABEZADO DEL PARTIDO */}
               <div className="rounded-2xl p-5 bg-gradient-to-r from-slate-800 via-[#152247] to-slate-800 border border-slate-600 shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="flex flex-col items-center text-center sm:w-1/3">
                   <div className="w-16 h-16 bg-slate-900 text-white font-black text-lg rounded-full flex items-center justify-center mb-2 border-2 border-blue-400 shadow-lg">{currentMatch.homeInitials}</div>
@@ -368,7 +374,7 @@ export default function EcuaPronosticoDashboard() {
                 </div>
               </div>
 
-              {/* LOS 4 CUADROS PRINCIPALES TRADUCIDOS A ESPAÑOL HUMANO Y CLARO */}
+              {/* LOS 4 CUADROS PRINCIPALES */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="bg-slate-800/90 border border-amber-400/50 rounded-xl p-3.5 text-center">
                   <p className="text-amber-300 text-[10px] uppercase font-black">1. Jugada Recomendada</p>
@@ -392,7 +398,7 @@ export default function EcuaPronosticoDashboard() {
                 </div>
               </div>
 
-              {/* CAJÓN NUEVO: REPORTE DE PLANTILLAS, BAJAS Y EXPLICACIÓN DE LA JUGADA EN CRISTIANO */}
+              {/* CAJÓN DE REPORTE DE PLANTILLAS Y BAJAS */}
               <div className="bg-slate-800/90 border border-amber-400/40 rounded-2xl p-4 space-y-2 shadow-lg">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-black uppercase text-amber-300">📋 Estado de Plantillas, Bajas y Qué Significa la Apuesta</h4>
@@ -406,7 +412,7 @@ export default function EcuaPronosticoDashboard() {
                 </p>
               </div>
 
-              {/* BARRA DE PESTAÑAS DE MERCADOS EXPLICADOS EN ESPAÑOL CLARO */}
+              {/* BARRA DE PESTAÑAS DE MERCADOS EXPLICADOS */}
               <div className="bg-[#131d3b] border border-slate-700 rounded-2xl overflow-hidden">
                 <div className="flex overflow-x-auto bg-[#1c2a52] border-b border-slate-700 p-1.5 gap-1.5 text-xs font-bold">
                   {[
@@ -427,7 +433,6 @@ export default function EcuaPronosticoDashboard() {
 
                 <div className="p-4 space-y-4">
                   
-                  {/* 1. GANADOR DEL PARTIDO (1X2) CON EXPLICACIÓN HUMANA */}
                   {(activeMarketTab === "todos") && (
                     <div className="bg-slate-900/90 border border-slate-700/80 rounded-xl p-4">
                       <div className="flex flex-wrap justify-between items-center mb-3 gap-2">
@@ -471,7 +476,6 @@ export default function EcuaPronosticoDashboard() {
                     </div>
                   )}
 
-                  {/* 2. TOTAL DE GOLES Y AMBOS MARCAN EXPLICADO EN SENCILLO */}
                   {(activeMarketTab === "todos" || activeMarketTab === "goles") && (
                     <div className="bg-slate-900/90 border border-slate-700/80 rounded-xl p-4">
                       <h4 className="text-xs font-black uppercase text-green-400 mb-3">⚽ Pronóstico de Goles Totales (Distribución de Poisson) & Ambos Equipos Marcan</h4>
@@ -504,7 +508,6 @@ export default function EcuaPronosticoDashboard() {
                     </div>
                   )}
 
-                  {/* 3. MARCADORES EXACTOS Y DOBLE OPORTUNIDAD */}
                   {(activeMarketTab === "todos" || activeMarketTab === "marcadores") && (
                     <div className="bg-slate-900/90 border border-slate-700/80 rounded-xl p-4">
                       <h4 className="text-xs font-black uppercase text-sky-400 mb-3">🎯 Los 3 Marcadores Más Probables (Simulación Montecarlo) & Doble Oportunidad</h4>
@@ -540,7 +543,6 @@ export default function EcuaPronosticoDashboard() {
                     </div>
                   )}
 
-                  {/* 4. DETECTOR DE TRAMPAS EN CUOTAS MEJORADAS */}
                   {(activeMarketTab === "todos" || activeMarketTab === "trampas") && (
                     <div className="bg-red-950/30 border border-red-500/50 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                       <div>
@@ -612,7 +614,7 @@ export default function EcuaPronosticoDashboard() {
               </div>
 
               {/* ASISTENTE IA MULTIMERCADO */}
-              <div className="bg-slate-900 border border-blue-500/40 rounded-2xl overflow-hidden flex flex-col h-[360px] shadow-xl">
+              <div className="bg-slate-900 border border-blue-500/40 rounded-2xl overflow-hidden flex flex-col h-[380px] shadow-xl">
                 <div className="bg-slate-800 px-4 py-3 border-b border-slate-700 flex justify-between items-center">
                   <h3 className="text-white font-bold text-xs uppercase">Pregúntale al Analista IA</h3>
                   <span className="text-[10px] bg-green-950 text-green-400 border border-green-500/40 px-2 py-0.5 rounded-full font-bold">EN SENCILLO</span>
@@ -623,10 +625,10 @@ export default function EcuaPronosticoDashboard() {
                       <div className={`max-w-[88%] p-2.5 rounded-xl text-xs leading-relaxed ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-200 border border-slate-700'}`}>{msg.text}</div>
                     </div>
                   ))}
-                  {isTyping && <div className="text-xs text-blue-400 animate-pulse">Analizando jugada...</div>}
+                  {isTyping && <div className="text-xs text-blue-400 animate-pulse">Analizando toda la cartelera...</div>}
                 </div>
                 <div className="p-2.5 bg-slate-800 border-t border-slate-700 flex gap-2">
-                  <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} placeholder="Pregunta qué apostar o cómo están las bajas..." className="flex-1 bg-slate-900 border border-slate-600 text-xs text-white rounded-lg px-3 py-2 outline-none" />
+                  <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} placeholder="Ej: ¿Cuál es el partido con más margen hoy?" className="flex-1 bg-slate-900 border border-slate-600 text-xs text-white rounded-lg px-3 py-2 outline-none" />
                   <button onClick={handleSendMessage} className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg text-xs font-bold">Preguntar</button>
                 </div>
               </div>
