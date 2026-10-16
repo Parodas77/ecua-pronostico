@@ -24,7 +24,7 @@ export default function EcuaPronosticoDashboard() {
 
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState([
-    { role: "ai", text: "Calendario oficial de ESPN (8 días hacia adelante) sincronizado una vez al día y cruzado con The Odds API y API-Football. Ligas 100% separadas y solo partidos por jugar. ¿Qué encuentro revisamos?" }
+    { role: "ai", text: "Calendario oficial de ESPN (8 días hacia adelante) sincronizado y cruzado con The Odds API y API-Football. Ligas 100% separadas y solo partidos por jugar. ¿Qué encuentro revisamos?" }
   ]);
   const [isTyping, setIsTyping] = useState(false);
 
@@ -95,7 +95,7 @@ export default function EcuaPronosticoDashboard() {
     dataSource: "Extrayendo calendario oficial...",
     home: "Sincronizando...", homeInitials: "...", homeAlt: "...",
     away: "Sincronizando...", awayInitials: "...", awayAlt: "...",
-    jornada: "EXTRAYENDO PARTIDOS POR JUGAR (PRÓXIMOS 8 DÍAS)...", date: "...", time: "...",
+    jornada: "EXTRAYENDO PARTIDOS POR JUGAR...", date: "...", time: "...",
     cuotaLocal: 2.00, cuotaEmpate: 3.20, cuotaVisita: 3.50,
     lineGoals: 2.5, cuotaOver: 2.00, cuotaUnder: 1.80,
     marginCasa: 5.0,
@@ -108,12 +108,12 @@ export default function EcuaPronosticoDashboard() {
     prob1X: 75.0, probX2: 52.0,
     topScores: [{ score: "1-0", prob: 15.2 }, { score: "1-1", prob: 12.4 }, { score: "2-1", prob: 9.8 }],
     bestMarketName: "Sincronizando...",
-    bestMarketExplanation: "Extrayendo calendario de los próximos 8 días...",
+    bestMarketExplanation: "Extrayendo calendario...",
     bestOdd: 2.00, minFairOddForTopPick: 1.85, probImplicitaBest: 50.0,
     probReal: 54.0, ev: 0.0, hasRealEdge: false,
-    reportePlantilla: "Consultando calendario oficial de ESPN...",
+    reportePlantilla: "Consultando calendario oficial...",
     cuotaMejoradaCasa: "Evita combinadas de más de 3 eventos en el mismo partido.",
-    analisisDinamico: "Conectando con el calendario oficial para los próximos 8 días..."
+    analisisDinamico: "Conectando con el calendario oficial..."
   };
 
   const isFreePreview = currentMatch.isFreeSample === true;
@@ -153,7 +153,7 @@ export default function EcuaPronosticoDashboard() {
         ...prev,
         {
           role: "ai",
-          text: `Para ${currentMatch.home} vs ${currentMatch.away}, la opción más fuerte en nuestras 10,000 simulaciones es '${currentMatch.bestMarketName}' con ${currentMatch.probReal}% de probabilidad real (Cuota mínima rentable: ${currentMatch.minFairOddForTopPick}).`
+          text: `Para ${currentMatch.home} vs ${currentMatch.away}, la opción más fuerte es '${currentMatch.bestMarketName}' con ${currentMatch.probReal}% de probabilidad real (Cuota mínima rentable: ${currentMatch.minFairOddForTopPick}).`
         }
       ]);
     } finally {
@@ -165,7 +165,6 @@ export default function EcuaPronosticoDashboard() {
     <div className="min-h-screen bg-[#0b132b] text-slate-50 p-3 md:p-6 font-sans">
       <div className="max-w-6xl mx-auto">
         
-        {/* MODAL VIP */}
         {showLoginModal && (
           <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex justify-center items-center z-50 p-4">
             <div className="bg-slate-800 border border-slate-600 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
@@ -193,14 +192,13 @@ export default function EcuaPronosticoDashboard() {
           </div>
         )}
 
-        {/* HEADER PRINCIPAL */}
         <header className="mb-6 border-b border-slate-800 pb-4">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
             <div className="flex items-center gap-3">
               <img src="/logo.png" alt="Logo" className="h-14 md:h-16 object-contain drop-shadow-[0_0_15px_rgba(56,189,248,0.4)]" />
               <div>
                 <span className="text-[10px] bg-green-500/20 text-green-300 border border-green-500/40 px-2.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider">
-                  Corte Diario Programado — Próximos 8 Días ({liveWindow})
+                  Sincronización Automática Semanal ({liveWindow})
                 </span>
                 <h1 className="text-base md:text-xl font-black text-white mt-0.5">RADAR MULTIMERCADO INTELIGENTE</h1>
               </div>
@@ -211,7 +209,7 @@ export default function EcuaPronosticoDashboard() {
                 onClick={() => fetchMatchesFromServer(league, true)}
                 className="text-xs bg-slate-800 hover:bg-slate-700 text-green-400 border border-green-500/40 px-3 py-2 rounded-lg font-bold"
               >
-                🔄 Forzar Sincronización Diaria
+                🔄 Forzar Sincronización
               </button>
               <button onClick={() => setShowGuide(!showGuide)} className="text-xs bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 px-3 py-2 rounded-lg font-bold">
                 {showGuide ? "Ocultar Guía" : "📖 Guía Fácil"}
@@ -228,22 +226,20 @@ export default function EcuaPronosticoDashboard() {
             <div className="mb-4 bg-slate-900/90 border border-blue-500/40 rounded-xl p-4 text-xs text-slate-300 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <strong className="text-amber-400 block mb-1">1. Corte Diario de 8 Días (ESPN Oficial)</strong>
-                Una vez al día el servidor recorre los próximos 8 días del calendario oficial de ESPN para cada liga por separado (solo partidos por jugar, descartando los ya terminados).
+                El servidor recorre los próximos 8 días del calendario oficial de ESPN para cada liga por separado (solo partidos por jugar, descartando los ya terminados).
               </div>
               <div>
                 <strong className="text-blue-400 block mb-1">2. Dos Modos de Visualización</strong>
-                Usa la 'Vista Simplificada (Solo Ganadores)' si quieres ir directo al grano viendo qué equipo va a ganar con su porcentaje exacto, o el 'Modo Completo' para ver cuotas y goles.
+                Usa la 'Vista Simplificada (Solo Ganadores)' para ver qué equipo va a ganar con su porcentaje exacto, o el 'Modo Completo' para ver cuotas y goles.
               </div>
               <div>
                 <strong className="text-green-400 block mb-1">3. Respaldo Matemático Real</strong>
-                Detrás de cada ganador proyectado corren la Distribución de Poisson y 10,000 Simulaciones de Montecarlo sobre los datos oficiales de la temporada.
+                Detrás de cada ganador proyectado corren la Distribución de Poisson y 10,000 Simulaciones de Montecarlo.
               </div>
             </div>
           )}
 
-          {/* BARRA SUPERIOR: LIGAS + BOTÓN GRANDE DE VISTA SIMPLIFICADA */}
           <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-3">
-            {/* 3 PESTAÑAS DE COMPETICIÓN 100% SEPARADAS */}
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setLeague("ligapro")}
@@ -265,7 +261,6 @@ export default function EcuaPronosticoDashboard() {
               </button>
             </div>
 
-            {/* BOTÓN GRANDE CONMUTADOR: VISTA SIMPLIFICADA (ESTILO CARTEL DE GANADORES) VS VISTA COMPLETA */}
             <div className="flex bg-slate-900 p-1.5 rounded-2xl border-2 border-amber-400/60 shadow-[0_0_25px_rgba(251,191,36,0.2)]">
               <button
                 onClick={() => setDisplayMode("simplified")}
@@ -291,12 +286,8 @@ export default function EcuaPronosticoDashboard() {
           </div>
         </header>
 
-        {/* ===================================================================== */}
-        {/* MODO 1: VISTA SIMPLIFICADA EN PANTALLA GRANDE (ESTILO CARTEL DIRECTO: SOLO GANADOR, PERDEDOR Y PORCENTAJE REAL DE GANAR) */}
-        {/* ===================================================================== */}
         {displayMode === "simplified" ? (
           <section className="space-y-6">
-            {/* BANNER DE CABECERA ESTILO CARTEL DE GANADORES */}
             <div className="bg-gradient-to-r from-[#1a103c] via-[#0f2557] to-[#1a103c] border-2 border-amber-400/70 rounded-3xl p-6 text-center shadow-[0_0_35px_rgba(251,191,36,0.2)] relative overflow-hidden">
               <span className="inline-block bg-amber-400 text-slate-950 font-black text-xs px-4 py-1 rounded-full uppercase tracking-widest mb-2 shadow">
                 10,000 Simulaciones Montecarlo + Distribución de Poisson
@@ -305,17 +296,17 @@ export default function EcuaPronosticoDashboard() {
                 CARTELERA DE GANADORES PROYECTADOS
               </h2>
               <p className="text-xs md:text-sm text-slate-300 mt-1 max-w-2xl mx-auto">
-                Directo al grano: sin cuotas confusas ni fórmulas complicadas. Aquí tienes el <strong className="text-amber-300">Probable Ganador</strong> de cada partido y su <strong className="text-green-400">porcentaje exacto de victoria</strong> frente al rival.
+                Directo al grano: sin cuotas confusas. Aquí tienes el <strong className="text-amber-300">Probable Ganador</strong> de cada partido y su <strong className="text-green-400">porcentaje exacto de victoria</strong> frente al rival.
               </p>
             </div>
 
             {isLoadingMatches ? (
               <div className="p-12 text-center bg-[#131d3b] border border-slate-700 rounded-3xl">
-                <p className="text-lg font-black text-amber-300 animate-pulse">Calculando Ganadores de la Semana en Pantalla Grande...</p>
+                <p className="text-lg font-black text-amber-300 animate-pulse">Calculando Ganadores de la Semana...</p>
               </div>
             ) : matches.length === 0 ? (
               <div className="p-8 text-center bg-[#131d3b] border border-slate-700 rounded-3xl">
-                <p className="text-base font-bold text-amber-300">No hay partidos programados en esta liga para los próximos 8 días.</p>
+                <p className="text-base font-bold text-amber-300">No hay partidos programados en los próximos 8 días para esta competición.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-5">
@@ -325,14 +316,12 @@ export default function EcuaPronosticoDashboard() {
                   const awayProb = Number(m.probAwaySim || 30);
                   const drawProb = Number(m.probDrawSim || 20);
 
-                  // Determinar Probable Ganador y Probable Perdedor directo (sin empate)
                   const isHomeWinner = homeProb >= awayProb;
                   const winnerName = isHomeWinner ? m.home : m.away;
                   const winnerInitials = isHomeWinner ? m.homeInitials : m.awayInitials;
                   const loserName = isHomeWinner ? m.away : m.home;
                   const loserInitials = isHomeWinner ? m.awayInitials : m.homeInitials;
 
-                  // Porcentaje directo de victoria del ganador (y porcentaje sin empate / cabeza a cabeza)
                   const rawWinProb = isHomeWinner ? homeProb : awayProb;
                   const rawLoseProb = isHomeWinner ? awayProb : homeProb;
                   const headToHeadWinProb = Number(((rawWinProb / Math.max(1, rawWinProb + rawLoseProb)) * 100).toFixed(1));
@@ -343,7 +332,6 @@ export default function EcuaPronosticoDashboard() {
                       key={m.id}
                       className="relative rounded-3xl overflow-hidden border-2 border-slate-700/90 bg-gradient-to-r from-[#0e1730] via-[#16264c] to-[#0e1730] shadow-2xl transition-all hover:border-amber-400/80"
                     >
-                      {/* BARRA SUPERIOR DE FECHA Y TORNEO */}
                       <div className="bg-[#091024] px-5 py-2.5 border-b border-slate-800 flex flex-wrap justify-between items-center gap-2">
                         <div className="flex items-center gap-2">
                           <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
@@ -383,8 +371,6 @@ export default function EcuaPronosticoDashboard() {
                         </div>
                       ) : (
                         <div className="p-5 md:p-7 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-                          
-                          {/* LADO IZQUIERDO (5 cols): PROBABLE GANADOR EN GIGANTE ESTILO CARTEL */}
                           <div className="lg:col-span-5 flex items-center gap-4 bg-gradient-to-r from-green-950/60 to-slate-900/80 p-4 rounded-2xl border-2 border-green-500/60 shadow-[0_0_25px_rgba(34,197,94,0.15)]">
                             <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-slate-900 border-4 border-amber-400 flex items-center justify-center font-black text-xl md:text-2xl text-white shrink-0 shadow-[0_0_15px_rgba(251,191,36,0.5)]">
                               {winnerInitials}
@@ -402,7 +388,6 @@ export default function EcuaPronosticoDashboard() {
                             </div>
                           </div>
 
-                          {/* CENTRO (3 cols): PORCENTAJE GIGANTE DE VICTORIA */}
                           <div className="lg:col-span-3 flex flex-col items-center justify-center text-center bg-slate-900/90 border-2 border-amber-400/50 rounded-2xl p-4 shadow-xl">
                             <span className="text-[10px] font-black uppercase tracking-widest text-amber-300">
                               PROBABILIDAD DE GANAR
@@ -415,7 +400,6 @@ export default function EcuaPronosticoDashboard() {
                             </span>
                           </div>
 
-                          {/* LADO DERECHO (4 cols): PROBABLE PERDEDOR + BOTÓN PARA VER DETALLE */}
                           <div className="lg:col-span-4 flex flex-col justify-between bg-slate-900/70 border border-red-500/30 rounded-2xl p-4 space-y-3">
                             <div className="flex items-center justify-between gap-3">
                               <div className="flex items-center gap-3 min-w-0">
@@ -437,7 +421,6 @@ export default function EcuaPronosticoDashboard() {
                               </div>
                             </div>
 
-                            {/* BARRA VISUAL DE DOMINIO GANADOR VS PERDEDOR */}
                             <div className="w-full h-2.5 bg-red-950 rounded-full overflow-hidden flex">
                               <div
                                 className="bg-gradient-to-r from-green-500 to-emerald-400 h-full"
@@ -460,7 +443,6 @@ export default function EcuaPronosticoDashboard() {
                               </button>
                             </div>
                           </div>
-
                         </div>
                       )}
                     </div>
@@ -470,11 +452,7 @@ export default function EcuaPronosticoDashboard() {
             )}
           </section>
         ) : (
-          /* ===================================================================== */
-          /* MODO 2: VISTA COMPLETA (INTOCA, TAL CUAL ESTABA FUNCIONANDO)         */
-          /* ===================================================================== */
           <>
-            {/* 1. GRILLA COMPLETA DE PARTIDOS POR JUGAR (PRÓXIMOS 8 DÍAS) */}
             <section className="mb-8 bg-[#131d3b] border border-slate-700/80 rounded-2xl overflow-hidden shadow-2xl">
               <div className="bg-[#1c2a52] px-4 py-3 border-b border-slate-700 flex flex-wrap justify-between items-center gap-2">
                 <div className="flex items-center gap-2">
@@ -488,7 +466,7 @@ export default function EcuaPronosticoDashboard() {
                 <div className="hidden lg:flex gap-16 text-[11px] font-bold text-slate-300 pr-6">
                   <span>Ganador 1 X 2 (Cuotas)</span>
                   <span>Total Goles (Más / Menos)</span>
-                  <span>Certeza Montecarlo</span>
+                  <span>Veredicto Honesto EV</span>
                 </div>
               </div>
 
@@ -514,7 +492,6 @@ export default function EcuaPronosticoDashboard() {
                       onClick={() => setSelectedMatchId(m.id)}
                       className={`p-3.5 md:px-5 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 cursor-pointer transition-all ${isSelected ? "bg-blue-950/80 border-l-4 border-amber-400" : "hover:bg-slate-800/50"}`}
                     >
-                      {/* EQUIPOS, FECHA Y HORA DE ECUADOR */}
                       <div className="flex items-center gap-3 w-full lg:w-1/3">
                         <div className="text-xs font-bold text-amber-400 w-20 shrink-0">
                           {m.date.split(",")[0].slice(0, 3).toUpperCase()} {m.date.match(/\d+/)?.[0]}<br />
@@ -535,7 +512,6 @@ export default function EcuaPronosticoDashboard() {
                         </span>
                       </div>
 
-                      {/* BOTONES DE CUOTAS 1X2 */}
                       <div className="grid grid-cols-3 gap-2 w-full lg:w-1/3">
                         <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-center">
                           <span className="block text-[10px] text-slate-400 truncate">Gana {m.homeInitials}</span>
@@ -551,7 +527,6 @@ export default function EcuaPronosticoDashboard() {
                         </div>
                       </div>
 
-                      {/* BOTONES MÁS/MENOS GOLES Y PROBABILIDAD MONTECARLO */}
                       <div className="grid grid-cols-3 gap-2 w-full lg:w-1/3 items-center">
                         <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-center">
                           <span className="block text-[10px] text-slate-400">Más de {m.lineGoals}</span>
@@ -576,12 +551,11 @@ export default function EcuaPronosticoDashboard() {
               </div>
             </section>
 
-            {/* 2. PANEL DE AUDITORÍA DEL PARTIDO SELECCIONADO */}
             {!isMatchUnlocked ? (
               <div className="rounded-2xl p-8 text-center bg-slate-800/60 border border-blue-500/40 shadow-2xl">
-                <h3 className="text-2xl font-black text-white mb-2">🔒 Pronóstico VIP Bloqueado para {currentMatch.home} vs {currentMatch.away}</h3>
+                <h3 className="text-2xl font-black text-white mb-2">🔒 Auditoría en Vivo Bloqueada para {currentMatch.home} vs {currentMatch.away}</h3>
                 <p className="text-slate-300 text-sm mb-6 max-w-xl mx-auto">
-                  Desbloquea la simulación completa de Poisson y Montecarlo (10,000 iteraciones), la Cuota Mínima Rentable y los marcadores más probables para toda la fecha de {currentMatch.leagueTitle}.
+                  Desbloquea el veredicto real calculado con Distribución de Poisson y 10,000 Simulaciones de Montecarlo para saber en qué partidos sí hay ventaja y en cuáles no debes arriesgar tu dinero.
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
                   <button onClick={() => setShowLoginModal(true)} className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl text-sm shadow-lg">Iniciar Sesión VIP</button>
@@ -591,10 +565,7 @@ export default function EcuaPronosticoDashboard() {
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
-                {/* COLUMNA IZQUIERDA Y CENTRAL (2/3) */}
                 <div className="lg:col-span-2 space-y-6">
-                  
-                  {/* ENCABEZADO DEL PARTIDO */}
                   <div className="rounded-2xl p-5 bg-gradient-to-r from-slate-800 via-[#152247] to-slate-800 border border-slate-600 shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="flex flex-col items-center text-center sm:w-1/3">
                       <div className="w-16 h-16 bg-slate-900 text-white font-black text-lg rounded-full flex items-center justify-center mb-2 border-2 border-blue-400 shadow-lg">{currentMatch.homeInitials}</div>
@@ -626,10 +597,9 @@ export default function EcuaPronosticoDashboard() {
                     </div>
                   </div>
 
-                  {/* LOS 4 CUADROS PRINCIPALES */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div className="bg-slate-800/90 border border-amber-400/50 rounded-xl p-3.5 text-center">
-                      <p className="text-amber-300 text-[10px] uppercase font-black">1. Jugada Más Sólida</p>
+                      <p className="text-amber-300 text-[10px] uppercase font-black">1. Opción Analizada</p>
                       <p className="text-xs md:text-sm text-white font-black mt-1">{currentMatch.bestMarketName}</p>
                       <p className="text-[11px] text-amber-300 mt-0.5">Cuota Ref: <strong>{currentMatch.bestOdd}</strong></p>
                     </div>
@@ -652,7 +622,6 @@ export default function EcuaPronosticoDashboard() {
                     </div>
                   </div>
 
-                  {/* CAJÓN DE REPORTE DE DATOS OFICIALES */}
                   <div className="bg-slate-800/90 border border-amber-400/40 rounded-2xl p-4 space-y-2 shadow-lg">
                     <div className="flex items-center justify-between">
                       <h4 className="text-xs font-black uppercase text-amber-300">📋 Datos Oficiales del Calendario y Regla de Inversión</h4>
@@ -666,7 +635,6 @@ export default function EcuaPronosticoDashboard() {
                     </p>
                   </div>
 
-                  {/* BARRA DE PESTAÑAS DE MERCADOS */}
                   <div className="bg-[#131d3b] border border-slate-700 rounded-2xl overflow-hidden">
                     <div className="flex overflow-x-auto bg-[#1c2a52] border-b border-slate-700 p-1.5 gap-1.5 text-xs font-bold">
                       {[
@@ -799,7 +767,6 @@ export default function EcuaPronosticoDashboard() {
                     </div>
                   </div>
 
-                  {/* CAJÓN DEL COMENTARISTA DEPORTIVO HONESTO */}
                   <div className="bg-blue-950/40 border-2 border-blue-500/50 p-5 rounded-2xl space-y-2 shadow-xl">
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-ping"></span>
@@ -812,10 +779,7 @@ export default function EcuaPronosticoDashboard() {
 
                 </div>
 
-                {/* COLUMNA DERECHA (1/3): CUPÓN SIMULADOR DE GANANCIA + CHAT IA */}
                 <div className="space-y-6">
-                  
-                  {/* CUPÓN INTELIGENTE */}
                   <div className="bg-[#131d3b] border-2 border-amber-400/70 rounded-2xl overflow-hidden shadow-2xl">
                     <div className="bg-amber-400 text-slate-950 px-4 py-2.5 font-black text-xs uppercase flex justify-between items-center">
                       <span>🎟️ Calculadora de Ganancia</span>
@@ -855,7 +819,6 @@ export default function EcuaPronosticoDashboard() {
                     </div>
                   </div>
 
-                  {/* ASISTENTE IA MULTIMERCADO */}
                   <div className="bg-slate-900 border border-blue-500/40 rounded-2xl overflow-hidden flex flex-col h-[380px] shadow-xl">
                     <div className="bg-slate-800 px-4 py-3 border-b border-slate-700 flex justify-between items-center">
                       <h3 className="text-white font-bold text-xs uppercase">Pregúntale al Auditor en Vivo</h3>
