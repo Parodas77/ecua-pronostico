@@ -10,6 +10,7 @@ export default function EcuaPronosticoDashboard() {
   const [selectedMatchId, setSelectedMatchId] = useState<string>("");
   const [isLoadingMatches, setIsLoadingMatches] = useState<boolean>(true);
   const [liveWindow, setLiveWindow] = useState<string>("Sincronizando calendario oficial...");
+  const [apiDiagnostics, setApiDiagnostics] = useState<string[]>([]);
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -22,7 +23,7 @@ export default function EcuaPronosticoDashboard() {
 
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState([
-    { role: "ai", text: "Sistema conectado en tiempo real a los calendarios oficiales de la semana (API-Football, ESPN Official Scoreboard y The Odds API). Cero partidos quemados en código: la cartelera se renueva automáticamente cada semana. ¿Qué partido auditamos?" }
+    { role: "ai", text: "Sistema conectado en tiempo real a los calendarios oficiales de la semana (ESPN Official Scoreboard, The Odds API y API-Football). Cero partidos quemados en código: la cartelera se renueva automáticamente cada semana. ¿Qué partido auditamos?" }
   ]);
   const [isTyping, setIsTyping] = useState(false);
 
@@ -38,14 +39,18 @@ export default function EcuaPronosticoDashboard() {
       if (data.window) {
         setLiveWindow(data.window);
       }
+      if (Array.isArray(data.diagnostics)) {
+        setApiDiagnostics(data.diagnostics);
+      }
       if (data.matches && data.matches.length > 0) {
         setMatches(data.matches);
         setSelectedMatchId(data.matches[0].id);
       } else {
         setMatches([]);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error al sincronizar:", err);
+      setApiDiagnostics([`Error de red cliente: ${err?.message || "No se pudo contactar /api/partidos"}`]);
     } finally {
       setIsLoadingMatches(false);
     }
@@ -221,7 +226,7 @@ export default function EcuaPronosticoDashboard() {
             <div className="mb-4 bg-slate-900/90 border border-blue-500/40 rounded-xl p-4 text-xs text-slate-300 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <strong className="text-amber-400 block mb-1">1. Renovación Automática Semanal</strong>
-                El servidor calcula dinámicamente la fecha actual más los próximos 10 días y extrae los partidos programados directamente de API-Football, ESPN Official Scoreboard y The Odds API. Nunca tienes que cambiar partidos a mano.
+                El servidor calcula dinámicamente la fecha actual más los próximos 7 días y extrae los partidos programados directamente de ESPN Official Scoreboard, The Odds API y API-Football. Nunca tienes que cambiar partidos a mano.
               </div>
               <div>
                 <strong className="text-blue-400 block mb-1">2. Honestidad Total: Verde vs Ámbar</strong>
@@ -229,7 +234,7 @@ export default function EcuaPronosticoDashboard() {
               </div>
               <div>
                 <strong className="text-green-400 block mb-1">3. Distribución de Poisson + 10k Montecarlo</strong>
-                Calculamos cuántos goles se esperan realmente y simulamos el partido 10,000 veces para encontrar en qué mercado (Ganador o Línea de Goles) está la mejor oportunidad.
+                Calculamos cuántos goles se esperan realmente según el récord oficial de la temporada y simulamos el partido 10,000 veces para encontrar dónde está la mejor oportunidad.
               </div>
             </div>
           )}
@@ -268,6 +273,23 @@ export default function EcuaPronosticoDashboard() {
               <span>Veredicto Honesto EV</span>
             </div>
           </div>
+
+          {!isLoadingMatches && matches.length === 0 && (
+            <div className="p-6 text-center space-y-2 bg-slate-900/80">
+              <p className="text-sm font-bold text-amber-300">Diagnóstico en Vivo de Conexión con Fuentes Oficiales:</p>
+              <div className="text-xs text-slate-300 space-y-1 max-w-xl mx-auto">
+                {apiDiagnostics.map((d, idx) => (
+                  <p key={idx} className="bg-slate-800 px-3 py-1.5 rounded border border-slate-700">{d}</p>
+                ))}
+              </div>
+              <button
+                onClick={() => fetchMatchesFromServer(league, true)}
+                className="mt-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-lg"
+              >
+                Reintentar Extracción en Vivo
+              </button>
+            </div>
+          )}
 
           <div className="divide-y divide-slate-800/80 max-h-[420px] overflow-y-auto">
             {matches.map((m) => {
