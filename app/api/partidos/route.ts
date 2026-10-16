@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
 
-// ============================================================================
-// CACHÉ PROGRAMADO DIARIO (SE RENUEVA 1 SOLA VEZ AL DÍA CON VENTANA DE 8+ DÍAS)
-// ============================================================================
 const dailyLeagueCache: Record<string, { syncedDateKey: string; syncedAtIso: string; payload: any }> = {};
 
 function getNext8DaysWindow() {
@@ -28,7 +25,6 @@ function getNext8DaysWindow() {
   };
 }
 
-// 1. DESMARGENIZACIÓN MATEMÁTICA REAL (Proportional De-vigging)
 function removeBookmakerMargin(odd1: number, oddX: number, odd2: number) {
   const raw1 = 1 / odd1;
   const rawX = 1 / oddX;
@@ -42,7 +38,6 @@ function removeBookmakerMargin(odd1: number, oddX: number, odd2: number) {
   };
 }
 
-// 2. DISTRIBUCIÓN DE POISSON + 10,000 SIMULACIONES DE MONTECARLO REALES
 function factorial(n: number): number {
   if (n <= 1) return 1;
   let r = 1;
@@ -137,16 +132,7 @@ function parseAmericanOddToDecimal(oddStrOrNum: any): number | null {
   return Number((100 / Math.abs(num) + 1).toFixed(2));
 }
 
-// MAPA ESTRICTO POR LIGA INDIVIDUAL
-const LEAGUE_CONFIG: Record<
-  string,
-  {
-    espnSlug: string;
-    espnName: string;
-    oddsApiSportKey: string;
-    apiFootballLeagueId: number;
-  }
-> = {
+const LEAGUE_CONFIG: Record<string, { espnSlug: string; espnName: string; oddsApiSportKey: string; apiFootballLeagueId: number }> = {
   ligapro: {
     espnSlug: "ecu.1",
     espnName: "LigaPro de Ecuador (Primera A)",
@@ -185,7 +171,7 @@ export async function GET(request: Request) {
 
   const diagnostics: string[] = [];
   const browserHeaders = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
     "Accept": "application/json",
   };
 
@@ -239,12 +225,11 @@ export async function GET(request: Request) {
           }
         }
       } catch (e: any) {
-        diagnostics.push(`Aviso ESPN general (${config.espnSlug}): ${e?.message}`);
+        diagnostics.push(`Aviso ESPN (${config.espnSlug}): ${e?.message}`);
       }
     }
 
     rawUpcomingEspnEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    diagnostics.push(`Calendario Oficial ESPN (${config.espnSlug}): ${rawUpcomingEspnEvents.length} partidos por jugar extraídos entre ${fromIso} y ${toIso}.`);
 
     let liveOddsEvents: any[] = [];
     try {
@@ -254,15 +239,13 @@ export async function GET(request: Request) {
       );
       if (oddsRes.ok) {
         const oddsData = await oddsRes.json();
-        if (Array.isArray(oddsData)) {
-          liveOddsEvents = oddsData;
-        }
+        if (Array.isArray(oddsData)) liveOddsEvents = oddsData;
       }
     } catch {
-      // Continúa con cálculo estadístico
+      // Ignorar
     }
 
-    let standingsStatsMap: Record<string, { goalsForAvg: number; goalsAgainstAvg: number; form: string }> = {};
+    let standingsStatsMap: Record<string, { goalsForAvg: number; goalsAgainstAvg: number }> = {};
     try {
       const stdRes = await fetch(
         `https://v3.football.api-sports.io/standings?league=${config.apiFootballLeagueId}&season=${currentYear}`,
@@ -270,23 +253,22 @@ export async function GET(request: Request) {
       );
       if (stdRes.ok) {
         const stdData = await stdRes.json();
-        const standingsGroups = stdData?.response?.[0]?.league?.standings || [];
-        for (const group of standingsGroups) {
-          for (const row of group || []) {
-            const tName = normalizeTeamName(row.team?.name || "");
-            const played = row.all?.played || 0;
-            if (tName && played > 0) {
-              standingsStatsMap[tName] = {
-                goalsForAvg: Number((row.all.goals.for / played).toFixed(2)),
-                goalsAgainstAvg: Number((row.all.goals.against / played).toFixed(2)),
-                form: row.form || "Activa",
+        const groups = stdData?.response?.[0]?.league?.standings || [];
+        for (const g of groups) {
+          for (const r of g || []) {
+            const t = normalizeTeamName(r.team?.name || "");
+            const p = r.all?.played || 0;
+            if (t && p > 0) {
+              standingsStatsMap[t] = {
+                goalsForAvg: Number((r.all.goals.for / p).toFixed(2)),
+                goalsAgainstAvg: Number((r.all.goals.against / p).toFixed(2)),
               };
             }
           }
         }
       }
     } catch {
-      // Usa estadísticas de ESPN
+      // Ignorar
     }
 
     const processedMatches = rawUpcomingEspnEvents.map((ev, idx) => {
@@ -301,10 +283,8 @@ export async function GET(request: Request) {
       const venueCity = comp?.venue?.address?.city || "";
       const fullVenue = venueCity ? `${venueName}, ${venueCity}` : venueName;
 
-      const homeRecord = homeComp?.records?.[0]?.summary || "Sin récord";
-      const awayRecord = awayComp?.records?.[0]?.summary || "Sin récord";
-      const homeFormStr = homeComp?.form || `Récord: ${homeRecord}`;
-      const awayFormStr = awayComp?.form || `Récord: ${awayRecord}`;
+      const homeRecord = homeComp?.records?.[0]?.summary || "0-0-0";
+      const awayRecord = awayComp?.records?.[0]?.summary || "0-0-0";
 
       const normH = normalizeTeamName(homeName);
       const normA = normalizeTeamName(awayName);
@@ -386,11 +366,11 @@ export async function GET(request: Request) {
       if (apiHomeStats && apiAwayStats) {
         xgHome = Number(((apiHomeStats.goalsForAvg + apiAwayStats.goalsAgainstAvg) / 2).toFixed(2));
         xgAway = Number(((apiAwayStats.goalsForAvg + apiAwayStats.goalsAgainstAvg) / 2).toFixed(2));
-        fuenteEstadistica = `Promedios reales de gol en liga (API-Football: ${homeName} ${apiHomeStats.goalsForAvg} GF vs ${awayName} ${apiAwayStats.goalsForAvg} GF)`;
+        fuenteEstadistica = `Promedios reales de gol (API-Football: ${homeName} ${apiHomeStats.goalsForAvg} GF vs ${awayName} ${apiAwayStats.goalsForAvg} GF)`;
       } else if (hRate !== null && aRate !== null) {
         xgHome = Number(Math.max(0.85, Math.min(2.45, 0.95 + hRate * 1.45)).toFixed(2));
         xgAway = Number(Math.max(0.65, Math.min(2.15, 0.70 + aRate * 1.25)).toFixed(2));
-        fuenteEstadistica = `Rendimiento oficial en tabla (${homeName}: ${homeRecord} | ${awayName}: ${awayRecord})`;
+        fuenteEstadistica = `Rendimiento real en tabla (${homeName}: ${homeRecord} | ${awayName}: ${awayRecord})`;
       } else if (hasLiveOdds) {
         const tempDevig = removeBookmakerMargin(cuotaLocal, cuotaEmpate || 3.25, cuotaVisita);
         const refP1 = pinnacleProbs ? pinnacleProbs.p1 : tempDevig.cleanProb1;
@@ -399,11 +379,11 @@ export async function GET(request: Request) {
         const homeShare = (refP1 + 0.5 * refPX) / (refP1 + refPX + refP2);
         xgHome = Number((2.55 * homeShare).toFixed(2));
         xgAway = Number((2.55 * (1 - homeShare)).toFixed(2));
-        fuenteEstadistica = `Consenso en vivo de ${bookmakerCount} casas de apuestas internacionales`;
+        fuenteEstadistica = `Consenso de ${bookmakerCount} casas internacionales`;
       } else {
         xgHome = 1.48;
         xgAway = 1.12;
-        fuenteEstadistica = `Calendario oficial ESPN (${config.espnName}) — Racha: ${homeName} (${homeFormStr}) vs ${awayName} (${awayFormStr})`;
+        fuenteEstadistica = `Calendario oficial ESPN (${config.espnName})`;
       }
 
       const sim = runRealPoissonMontecarlo(xgHome, xgAway, 10000);
@@ -419,7 +399,7 @@ export async function GET(request: Request) {
       const candidateMarkets = [
         {
           name: `Gana ${homeName}`,
-          explanation: `Apostar directo a la victoria de ${homeName}`,
+          explanation: `Victoria de ${homeName}`,
           odd: c1,
           houseImplied: Number(((1 / c1) * 100).toFixed(1)),
           realProb: sim.probHome,
@@ -427,7 +407,7 @@ export async function GET(request: Request) {
         },
         {
           name: `Gana ${awayName}`,
-          explanation: `Apostar directo a la victoria de ${awayName}`,
+          explanation: `Victoria de ${awayName}`,
           odd: c2,
           houseImplied: Number(((1 / c2) * 100).toFixed(1)),
           realProb: sim.probAway,
@@ -435,7 +415,7 @@ export async function GET(request: Request) {
         },
         {
           name: `Más de ${lineGoals} Goles`,
-          explanation: `Que hay ${lineGoals === 3.5 ? "4" : "3"} goles o más en total en el partido`,
+          explanation: `Más de ${lineGoals} goles en total`,
           odd: cOver,
           houseImplied: Number(((1 / cOver) * 100).toFixed(1)),
           realProb: lineGoals === 3.5 ? sim.probOver35 : sim.probOver25,
@@ -443,7 +423,7 @@ export async function GET(request: Request) {
         },
         {
           name: `Menos de ${lineGoals} Goles`,
-          explanation: `Que hay máximo ${lineGoals === 3.5 ? "3" : "2"} goles en total en el partido`,
+          explanation: `Máximo ${lineGoals} goles en total`,
           odd: cUnder,
           houseImplied: Number(((1 / cUnder) * 100).toFixed(1)),
           realProb: lineGoals === 3.5 ? sim.probUnder35 : sim.probUnder25,
@@ -457,15 +437,8 @@ export async function GET(request: Request) {
       const minFairOddForTopPick = Number((100 / Math.max(1, topPick.realProb)).toFixed(2));
       const hasRealPositiveEdge = topPick.ev >= 1.0;
 
-      const reporteVerificado = `${fuenteEstadistica}. Estadio: ${fullVenue}. ${
-        hasLiveOdds
-          ? `Cuotas en vivo cruzadas con ${bookmakerCount} casas de apuestas.`
-          : `Cuota mínima justa calculada por Montecarlo para '${topPick.name}': ${minFairOddForTopPick} (si tu casa de apuestas paga más de ${minFairOddForTopPick}, tienes ventaja matemática real).`
-      }`;
-
-      const veredictoHonesto = hasRealPositiveEdge
-        ? `✅ SÍ HAY VENTAJA MATEMÁTICA REAL (+${topPick.ev}% EV): La jugada '${topPick.name}' (${topPick.explanation}) a cuota ${topPick.odd} supera la probabilidad implícita de la casa (${topPick.realProb}% en nuestras 10,000 simulaciones vs ${topPick.houseImplied}% del mercado).`
-        : `🔍 COMPARA EN TU CASA DE APUESTAS (Cuota Mínima Rentable: ${minFairOddForTopPick}): Nuestra simulación de Montecarlo le da un ${topPick.realProb}% de probabilidad real a '${topPick.name}'. Si en tu casa de apuestas local la cuota para '${topPick.name}' está por encima de ${minFairOddForTopPick}, entra con confianza; si pagan menos de ${minFairOddForTopPick}, NO apuestes porque la comisión de la casa te deja en desventaja.`;
+      const reporteVerificado = `${fuenteEstadistica}. Sede: ${fullVenue}. Probabilidad estimada por Montecarlo: ${topPick.realProb}%.`;
+      const veredictoHonesto = `El modelo proyecta un ${topPick.realProb}% de probabilidad para '${topPick.name}' con ${sim.expectedTotalGoals} goles esperados. Cuota mínima justa: ${minFairOddForTopPick}.`;
 
       const dateObj = new Date(ev.date);
 
@@ -473,7 +446,7 @@ export async function GET(request: Request) {
         id: `espn-${ev.id || idx}`,
         isFreeSample: idx === 0,
         leagueTitle: config.espnName,
-        dataSource: `ESPN Calendario Oficial (${config.espnSlug})${hasLiveOdds ? ` + The Odds API (${bookmakerCount} casas)` : ""}`,
+        dataSource: `ESPN (${config.espnSlug})`,
         hasLiveOdds,
         home: homeName,
         homeInitials: getTeamInitials(homeName),
@@ -482,12 +455,8 @@ export async function GET(request: Request) {
         awayInitials: getTeamInitials(awayName),
         awayAlt: `Visita - ${awayFormStr}`,
         jornada: `${config.espnName.toUpperCase()} — PARTIDO POR JUGAR`,
-        date: isNaN(dateObj.getTime())
-          ? "Fecha Programada"
-          : dateObj.toLocaleDateString("es-EC", { timeZone: "America/Guayaquil", weekday: "long", day: "numeric", month: "long", year: "numeric" }),
-        time: isNaN(dateObj.getTime())
-          ? "Hora Oficial"
-          : dateObj.toLocaleTimeString("es-EC", { timeZone: "America/Guayaquil", hour: "2-digit", minute: "2-digit" }) + " ECT",
+        date: isNaN(dateObj.getTime()) ? "Próxima Fecha" : dateObj.toLocaleDateString("es-EC", { timeZone: "America/Guayaquil", weekday: "long", day: "numeric", month: "long" }),
+        time: isNaN(dateObj.getTime()) ? "Hora Oficial" : dateObj.toLocaleTimeString("es-EC", { timeZone: "America/Guayaquil", hour: "2-digit", minute: "2-digit" }) + " ECT",
         cuotaLocal: c1,
         cuotaEmpate: cX,
         cuotaVisita: c2,
@@ -522,40 +491,23 @@ export async function GET(request: Request) {
         ev: topPick.ev,
         hasRealEdge: hasRealPositiveEdge,
         reportePlantilla: reporteVerificado,
-        cuotaMejoradaCasa: "No entrar en combinadas de 3 o más condiciones del mismo partido (el margen acumulado de la casa supera el 20%).",
-        analisisDinamico: `¡Calendario Oficial de ${config.espnName} Extraído en Vivo! (Ventana de 8 días: ${fromIso} al ${toIso}).
-Al evaluar el partido con la Distribución de Poisson y 10,000 Simulaciones de Montecarlo (${xgHome} goles proyectados para ${homeName} vs ${xgAway} para ${awayName}), los marcadores más probables son ${sim.topScores.map((s) => `${s.score} (${s.prob}%)`).join(", ")}.
-
-📋 Estadísticas y Sede Oficial: ${reporteVerificado}
-
-💰 Veredicto Financiero para tu Apuesta:
-${veredictoHonesto}`,
+        cuotaMejoradaCasa: "Evita combinadas de más de 3 eventos.",
+        analisisDinamico: `Predicción Montecarlo (${xgHome} vs ${xgAway} goles): ${topPick.name} con ${topPick.realProb}% de certeza real.`,
       };
     });
 
-    const syncedAtIso = new Date().toLocaleTimeString("es-EC", { timeZone: "America/Guayaquil", hour: "2-digit", minute: "2-digit" });
     const payload = {
       source: "DAILY_SCHEDULED_ESPN_CALENDAR_SYNC",
       leagueName: config.espnName,
-      window: `${fromIso} al ${toIso} (Sincronizado hoy ${todayKey} a las ${syncedAtIso} ECT)`,
+      window: `${fromIso} al ${toIso}`,
       diagnostics,
       matches: processedMatches,
     };
 
-    dailyLeagueCache[leagueParam] = {
-      syncedDateKey: todayKey,
-      syncedAtIso,
-      payload,
-    };
-
+    dailyLeagueCache[leagueParam] = { syncedDateKey: todayKey, syncedAtIso: new Date().toISOString(), payload };
     return NextResponse.json(payload);
   } catch (err: any) {
-    return NextResponse.json({
-      source: "ERROR_LIVE_FETCH",
-      window: `${fromIso} al ${toIso}`,
-      diagnostics: [...diagnostics, err?.message || "Error de conexión"],
-      matches: [],
-    });
+    return NextResponse.json({ source: "ERROR", diagnostics: [err?.message || "Error"], matches: [] });
   }
 }
 
@@ -564,54 +516,11 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { question, currentMatch, allMatches } = body;
     const rawQ = String(question || "");
-    const q = rawQ.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     const list: any[] = Array.isArray(allMatches) && allMatches.length > 0 ? allMatches : currentMatch ? [currentMatch] : [];
 
-    const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-    if (geminiKey && geminiKey.length > 10) {
-      try {
-        const summary = list
-          .map((m: any, i: number) => `${i + 1}. ${m.home} vs ${m.away} (${m.date}) -> Jugada: '${m.bestMarketName}' (${m.probReal}% Montecarlo, Cuota Mínima: ${m.minFairOddForTopPick})`)
-          .join("\n");
-
-        const aiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              system_instruction: {
-                parts: [{ text: "Eres el Auditor Cuantitativo en Vivo de EcuaPronóstico. Responde exactamente a lo que pide el usuario sin Markdown." }]
-              },
-              contents: [{ parts: [{ text: `LIGA: ${currentMatch?.leagueTitle}\nPARTIDO: ${currentMatch?.home} vs ${currentMatch?.away}\n\nLISTA:\n${summary}\n\nPREGUNTA: ${rawQ}` }] }]
-            })
-          }
-        );
-        if (aiRes.ok) {
-          const aiData = await aiRes.json();
-          const aiText = aiData?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (aiText) return NextResponse.json({ reply: aiText.trim() });
-        }
-      } catch {
-        // Fallback local
-      }
-    }
-
-    const mentionedMatch = list.find((m: any) => {
-      const h = normalizeTeamName(m.home);
-      const a = normalizeTeamName(m.away);
-      return h.includes(q.slice(0, 4)) || a.includes(q.slice(0, 4));
-    });
-
-    if (mentionedMatch) {
-      return NextResponse.json({
-        reply: `Para ${mentionedMatch.home} vs ${mentionedMatch.away}: La opción recomendada es '${mentionedMatch.bestMarketName}' con ${mentionedMatch.probReal}% de probabilidad real en Montecarlo. Cuota mínima rentable: ${mentionedMatch.minFairOddForTopPick}.`
-      });
-    }
-
-    const ranked = [...list].sort((a: any, b: any) => (b.probReal || 0) - (a.probReal || 0));
-    const top3 = ranked.slice(0, 3);
-    const lines = top3.map((m: any, i: number) => `${i + 1}) ${m.home} vs ${m.away}: '${m.bestMarketName}' (${m.probReal}% Montecarlo, Cuota Mínima: ${m.minFairOddForTopPick})`);
+    const sorted = [...list].sort((a: any, b: any) => (b.probReal || 0) - (a.probReal || 0));
+    const top3 = sorted.slice(0, 3);
+    const lines = top3.map((m: any, i: number) => `${i + 1}) ${m.home} vs ${m.away}: ${m.bestMarketName} con ${m.probReal}% de certeza Montecarlo (Cuota mínima rentable: ${m.minFairOddForTopPick}).`);
 
     return NextResponse.json({
       reply: `Top 3 partidos más sólidos de ${currentMatch?.leagueTitle || "la semana"}:\n\n${lines.join("\n")}`
