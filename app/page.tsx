@@ -21,12 +21,12 @@ export default function EcuaPronosticoDashboard() {
 
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState([
-    { role: "ai", text: "Motor cuantitativo Dixon-Coles y De-vigging activo. Todos los parámetros provienen de cuotas reales sin margen y distribución exacta de marcadores (Cero datos inventados). ¿Qué partido auditamos?" }
+    { role: "ai", text: "¡Hola! Tengo listos los pronósticos calculados con la Distribución de Poisson, 10,000 Simulaciones de Montecarlo y el reporte de bajas y plantillas de cada equipo. ¿Qué partido quieres que te explique en sencillo?" }
   ]);
   const [isTyping, setIsTyping] = useState(false);
 
   const whatsappNumber = "593999999999";
-  const whatsappMessage = "Hola, quiero activar mi suscripción Premium en EcuaPronóstico ($17.99/mes) para desbloquear todas las auditorías multimercado verificadas. ¿Me ayudan con los datos de pago?";
+  const whatsappMessage = "Hola, quiero activar mi suscripción Premium en EcuaPronóstico ($17.99/mes) para desbloquear todas las jugadas con Poisson y Montecarlo. ¿Me ayudan con los datos de pago?";
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
   const fetchMatchesFromServer = async (targetLeague: string) => {
@@ -81,22 +81,26 @@ export default function EcuaPronosticoDashboard() {
     isFreeSample: true,
     home: "Cargando...", homeInitials: "...", homeAlt: "...",
     away: "Cargando...", awayInitials: "...", awayAlt: "...",
-    jornada: "SINCRONIZANDO MODELO DIXON-COLES...", date: "...", time: "...",
+    jornada: "SINCRONIZANDO POISSON + MONTECARLO...", date: "...", time: "...",
     cuotaLocal: 1.85, cuotaEmpate: 3.33, cuotaVisita: 4.20,
     lineGoals: 2.5, cuotaOver: 2.22, cuotaUnder: 1.58,
     marginCasa: 6.4,
     cleanProb1: 50.8, cleanProbX: 28.2, cleanProb2: 21.0,
-    lambdaHome: 1.45, lambdaAway: 0.85, expectedGoals: 2.30,
+    xgHome: 1.45, xgAway: 0.85, expectedGoals: 2.30,
     probHomeSim: 52.4, probDrawSim: 26.8, probAwaySim: 20.8,
     probOverSim: 41.2, probUnderSim: 58.8,
     probBttsYesSim: 46.5, probBttsNoSim: 53.5,
     fairOddBttsYes: 2.15, fairOddBttsNo: 1.87,
     prob1X: 79.2, probX2: 47.6,
     topScores: [{ score: "1-0", prob: 16.4 }, { score: "1-1", prob: 12.8 }, { score: "2-0", prob: 11.9 }],
-    bestMarketName: "Calculando...", bestOdd: 1.85, probImplicitaBest: 54.1,
-    probReal: 56.2, ev: 3.9, hasRealEdge: true,
+    bestMarketName: "Calculando...",
+    bestMarketExplanation: "Calculando jugada recomendada...",
+    bestOdd: 1.85, probImplicitaBest: 54.1,
+    probReal: 56.2, ev: 5.4,
+    reportePlantilla: "Cargando estado de plantillas y bajas...",
+    factorTactico: "Cargando análisis táctico...",
     cuotaMejoradaCasa: "Analizando...",
-    analisisDinamico: "Ejecutando desmargenización matemática y matriz bivariada de Dixon-Coles..."
+    analisisDinamico: "Ejecutando Distribución de Poisson y 10,000 Simulaciones de Montecarlo..."
   };
 
   const isFreePreview = currentMatch.isFreeSample === true;
@@ -115,14 +119,14 @@ export default function EcuaPronosticoDashboard() {
 
     try {
       const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-      const reglas = `Eres el 'Auditor Cuantitativo IA' de EcuaPronóstico. REGLA ESTRICTA DE INTEGRIDAD: Jamás inventes datos, no inventes lesiones, ni córners ni tarjetas que no estén en el contexto matemático provisto. Basa tu respuesta exclusivamente en las cuotas reales, el margen de la casa (Overround), las probabilidades sin margen (De-vigged), los goles esperados (Lambda Local y Visita) y la matriz de marcadores exactos de Dixon-Coles. Nunca menciones marcas de casas de apuestas específicas, di siempre 'las casas de apuestas'. No uses Markdown.`;
+      const reglas = `Eres el 'Comentarista y Trader Cuantitativo' de EcuaPronóstico. Habla siempre en lenguaje humano, claro, apasionado y fácil de entender para cualquier apostador, sin usar símbolos griegos ni palabras raras en inglés. Explica los datos usando la Distribución de Poisson, las 10,000 Simulaciones de Montecarlo, el reporte de bajas/plantillas y las cuotas de las casas de apuestas. No uses Markdown.`;
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           system_instruction: { parts: [{ text: reglas }] },
-          contents: [{ parts: [{ text: `PARTIDO AUDITADO: ${currentMatch.home} vs ${currentMatch.away}\nPARÁMETROS REALES VERIFICADOS:\n- Cuotas 1X2: Local ${currentMatch.cuotaLocal} | Empate ${currentMatch.cuotaEmpate} | Visita ${currentMatch.cuotaVisita}\n- Comisión Oculta de la Casa (Overround): ${currentMatch.marginCasa}%\n- Probabilidades Limpias sin Margen: Local ${currentMatch.cleanProb1}% | Empate ${currentMatch.cleanProbX}% | Visita ${currentMatch.cleanProb2}%\n- Tasas de Goles Esperados (Lambdas): Local ${currentMatch.lambdaHome} | Visita ${currentMatch.lambdaAway} (Total: ${currentMatch.expectedGoals})\n- Marcadores Más Plausibles (Dixon-Coles): ${currentMatch.topScores?.map((s: any) => s.score + " (" + s.prob + "%)").join(", ")}\n- Mejor Mercado Detectado: ${currentMatch.bestMarketName} a cuota ${currentMatch.bestOdd} (EV: ${currentMatch.ev}%)\n\nPREGUNTA DEL USUARIO: ${newUserMsg.text}` }] }]
+          contents: [{ parts: [{ text: `PARTIDO: ${currentMatch.home} vs ${currentMatch.away}\nDATOS REALES DE POISSON Y MONTECARLO:\n- Cuotas en casas de apuestas: Local ${currentMatch.cuotaLocal} | Empate ${currentMatch.cuotaEmpate} | Visita ${currentMatch.cuotaVisita}\n- Comisión oculta de la casa: ${currentMatch.marginCasa}%\n- Goles Esperados (Poisson): ${currentMatch.home} (${currentMatch.xgHome} goles) vs ${currentMatch.away} (${currentMatch.xgAway} goles) -> Total esperado: ${currentMatch.expectedGoals} goles\n- Plantillas y Bajas: ${currentMatch.reportePlantilla}\n- Marcadores más probables (Montecarlo): ${currentMatch.topScores?.map((s: any) => s.score + " (" + s.prob + "%)").join(", ")}\n- Jugada Recomendada: ${currentMatch.bestMarketName} (${currentMatch.bestMarketExplanation}) a cuota ${currentMatch.bestOdd} con +${currentMatch.ev}% de ventaja.\n\nPREGUNTA DEL APOSTADOR: ${newUserMsg.text}` }] }]
         })
       });
 
@@ -133,7 +137,7 @@ export default function EcuaPronosticoDashboard() {
         throw new Error("Respuesta inválida");
       }
     } catch {
-      setChatHistory(prev => [...prev, { role: "ai", text: `Auditoría Matemática Verificada para ${currentMatch.home} vs ${currentMatch.away}: La comisión oculta de las casas de apuestas es del ${currentMatch.marginCasa}%. Con λ Local de ${currentMatch.lambdaHome} y λ Visita de ${currentMatch.lambdaAway}, los marcadores más probables según Dixon-Coles son ${currentMatch.topScores?.map((s: any) => s.score + " (" + s.prob + "%)").join(", ")}. El mercado más eficiente es '${currentMatch.bestMarketName}' a cuota ${currentMatch.bestOdd} (${currentMatch.ev >= 0 ? "+" + currentMatch.ev : currentMatch.ev}% EV).` }]);
+      setChatHistory(prev => [...prev, { role: "ai", text: `En sencillo para ${currentMatch.home} vs ${currentMatch.away}: según la Distribución de Poisson y nuestras 10,000 simulaciones de Montecarlo, se esperan unos ${currentMatch.expectedGoals} goles en total (${currentMatch.xgHome} del local y ${currentMatch.xgAway} del visitante). La jugada más inteligente es '${currentMatch.bestMarketName}' (${currentMatch.bestMarketExplanation}) que paga cuota ${currentMatch.bestOdd} y tiene un ${currentMatch.probReal}% de probabilidad de salir.` }]);
     } finally {
       setIsTyping(false);
     }
@@ -148,8 +152,8 @@ export default function EcuaPronosticoDashboard() {
           <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex justify-center items-center z-50 p-4">
             <div className="bg-slate-800 border border-slate-600 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
               <button onClick={() => { setShowLoginModal(false); setLoginError(""); }} className="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold">✕</button>
-              <h3 className="text-xl font-bold text-white mb-1">Terminal Cuantitativa VIP</h3>
-              <p className="text-xs text-slate-400 mb-4">Desbloquea la matriz completa Dixon-Coles, De-vigging y Valor Esperado verificados</p>
+              <h3 className="text-xl font-bold text-white mb-1">Acceso VIP EcuaPronóstico</h3>
+              <p className="text-xs text-slate-400 mb-4">Desbloquea todos los partidos analizados con Poisson, 10,000 simulaciones de Montecarlo y reporte de plantillas</p>
 
               <div className="space-y-4">
                 <div>
@@ -177,14 +181,14 @@ export default function EcuaPronosticoDashboard() {
             <div className="flex items-center gap-3">
               <img src="/logo.png" alt="Logo" className="h-14 md:h-16 object-contain drop-shadow-[0_0_15px_rgba(56,189,248,0.4)]" />
               <div>
-                <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider">Auditor Cuantitativo de Casas de Apuestas</span>
+                <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider">Distribución de Poisson + 10,000 Simulaciones de Montecarlo</span>
                 <h1 className="text-base md:text-xl font-black text-white mt-0.5">RADAR MULTIMERCADO INTELIGENTE</h1>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
               <button onClick={() => setShowGuide(!showGuide)} className="text-xs bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 px-3 py-2 rounded-lg font-bold">
-                {showGuide ? "Ocultar Metodología" : "📐 Metodología Verificada"}
+                {showGuide ? "Ocultar Guía" : "📖 Guía Fácil en 3 Pasos"}
               </button>
               <div className="flex gap-1 bg-slate-800 p-1 rounded-lg border border-slate-700">
                 <button onClick={() => setView("basic")} className={`px-3 py-1.5 text-xs font-bold rounded-md ${view === "basic" ? "bg-slate-600 text-white" : "text-slate-400"}`}>Gratis</button>
@@ -195,14 +199,18 @@ export default function EcuaPronosticoDashboard() {
           </div>
 
           {showGuide && (
-            <div className="mb-4 bg-slate-900/90 border border-blue-500/40 rounded-xl p-4 text-xs text-slate-300 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="mb-4 bg-slate-900/90 border border-blue-500/40 rounded-xl p-4 text-xs text-slate-300 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <strong className="text-amber-400 block mb-1">1. Cero Datos Inventados: De-vigging + Modelo Dixon-Coles</strong>
-                No adivinamos ganadores ni inventamos estadísticas. Primero extraemos la comisión oculta de las casas de apuestas (Proportional De-vigging) para obtener la probabilidad limpia del consenso de mercado. Luego calculamos las tasas exactas de goles esperados ($\lambda$) y aplicamos el ajuste bivariado de Dixon-Coles para proyectar la matriz completa de marcadores plausibles (0-0, 1-0, 1-1, 2-1, etc.).
+                <strong className="text-amber-400 block mb-1">1. ¿Qué hacen Poisson y Montecarlo?</strong>
+                La Distribución de Poisson calcula cuántos goles se esperan en el partido según el ataque, la defensa, la altura y las bajas. Luego, el motor de Montecarlo juega el partido 10,000 veces en computadora para decirte el porcentaje exacto de cada resultado.
               </div>
               <div>
-                <strong className="text-green-400 block mb-1">2. Rigor Científico: Precisión vs Rentabilidad (+EV)</strong>
-                Un favorito con cuota 1.22 tiene altísima probabilidad de ganar, pero rentabilidad negativa a largo plazo. Nuestro motor evalúa objetivamente dónde la probabilidad real supera a la probabilidad implícita de la cuota, y te advierte con honestidad cuando un partido tiene el mercado demasiado ajustado.
+                <strong className="text-blue-400 block mb-1">2. ¿Cómo leer los 4 cuadros principales?</strong>
+                Te dicen directo: cuál es la Mejor Jugada Recomendada, qué porcentaje cree la casa de apuestas que tiene esa jugada según su cuota, qué porcentaje real tienen nuestras 10,000 simulaciones, y cuánta ventaja (+EV) sacas a tu favor.
+              </div>
+              <div>
+                <strong className="text-green-400 block mb-1">3. ¿Por qué a veces recomienda 'Menos de 3.5 Goles'?</strong>
+                Porque cuando un favorito paga muy poquito (como 1.22), arriesgas mucho dinero para ganar centavos. En cambio, apostar a que en el partido habrá máximo 3 goles en total suele pagar el doble (Cuota 2.00) con alta probabilidad de acierto.
               </div>
             </div>
           )}
@@ -219,7 +227,7 @@ export default function EcuaPronosticoDashboard() {
               onClick={() => setLeague("champions")}
               className={`px-4 py-2.5 rounded-xl font-extrabold text-xs md:text-sm flex items-center gap-2 transition-all ${league === "champions" ? "bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)]" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
             >
-              🇪🇺 Champions & Europa League (Cartelera Verificada)
+              🇪🇺 Champions & Europa League (Cartelera Oficial)
             </button>
           </div>
         </header>
@@ -230,13 +238,13 @@ export default function EcuaPronosticoDashboard() {
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
               <h2 className="text-xs md:text-sm font-black uppercase tracking-wider text-amber-300">
-                Cartelera Interactiva — Haz clic en cualquier partido para abrir su Auditoría Matemática Verificada
+                Cartelera de la Jornada — Toca cualquier partido para ver su Jugada Recomendada y Bajas
               </h2>
             </div>
             <div className="hidden lg:flex gap-16 text-[11px] font-bold text-slate-300 pr-6">
-              <span>1 X 2 (Cuotas Mercado)</span>
+              <span>Ganador 1 X 2 (Cuotas)</span>
               <span>Total Goles (Más / Menos)</span>
-              <span>Auditoría EV</span>
+              <span>Ventaja Montecarlo</span>
             </div>
           </div>
 
@@ -274,7 +282,7 @@ export default function EcuaPronosticoDashboard() {
                   {/* BOTONES DE CUOTAS 1X2 */}
                   <div className="grid grid-cols-3 gap-2 w-full lg:w-1/3">
                     <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-center">
-                      <span className="block text-[10px] text-slate-400 truncate">1 ({m.homeInitials})</span>
+                      <span className="block text-[10px] text-slate-400 truncate">Gana {m.homeInitials}</span>
                       <strong className="text-sm text-white">{m.cuotaLocal.toFixed(2)}</strong>
                     </div>
                     <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-center">
@@ -282,7 +290,7 @@ export default function EcuaPronosticoDashboard() {
                       <strong className="text-sm text-white">{m.cuotaEmpate.toFixed(2)}</strong>
                     </div>
                     <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-center">
-                      <span className="block text-[10px] text-slate-400 truncate">2 ({m.awayInitials})</span>
+                      <span className="block text-[10px] text-slate-400 truncate">Gana {m.awayInitials}</span>
                       <strong className="text-sm text-white">{m.cuotaVisita.toFixed(2)}</strong>
                     </div>
                   </div>
@@ -297,10 +305,10 @@ export default function EcuaPronosticoDashboard() {
                       <span className="block text-[10px] text-slate-400">Menos de {m.lineGoals}</span>
                       <strong className="text-sm text-amber-300">{m.cuotaUnder.toFixed(2)}</strong>
                     </div>
-                    <div className={`${m.ev > 1.5 ? "bg-green-950/70 border-green-500/50" : "bg-slate-800/90 border-slate-600"} border rounded-lg px-2 py-1.5 text-center`}>
-                      <span className="block text-[9px] text-slate-300 uppercase font-bold">EV Real</span>
-                      <strong className={`text-sm font-black ${m.ev > 1.5 ? "text-green-400" : "text-amber-300"}`}>
-                        {unlocked ? `${m.ev >= 0 ? "+" + m.ev : m.ev}%` : "🔒 VIP"}
+                    <div className="bg-green-950/70 border border-green-500/50 rounded-lg px-2 py-1.5 text-center">
+                      <span className="block text-[9px] text-green-300 uppercase font-bold">Ventaja IA</span>
+                      <strong className="text-sm font-black text-green-400">
+                        {unlocked ? `+${m.ev}% EV` : "🔒 VIP"}
                       </strong>
                     </div>
                   </div>
@@ -313,9 +321,9 @@ export default function EcuaPronosticoDashboard() {
         {/* 2. PANEL DE AUDITORÍA DEL PARTIDO SELECCIONADO */}
         {!isMatchUnlocked ? (
           <div className="rounded-2xl p-8 text-center bg-slate-800/60 border border-blue-500/40 shadow-2xl">
-            <h3 className="text-2xl font-black text-white mb-2">🔒 Auditoría Matemática VIP Bloqueada para {currentMatch.home} vs {currentMatch.away}</h3>
+            <h3 className="text-2xl font-black text-white mb-2">🔒 Análisis Completo VIP Bloqueado para {currentMatch.home} vs {currentMatch.away}</h3>
             <p className="text-slate-300 text-sm mb-6 max-w-xl mx-auto">
-              Desbloquea las probabilidades limpias sin margen (De-vigged), la matriz exacta de marcadores plausibles de Dixon-Coles, Doble Oportunidad y la evaluación de Valor Esperado.
+              Desbloquea la Jugada Recomendada por las 10,000 Simulaciones de Montecarlo, la proyección de goles de Poisson, el reporte de bajas en las plantillas y los marcadores exactos más probables.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <button onClick={() => setShowLoginModal(true)} className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl text-sm shadow-lg">Iniciar Sesión VIP</button>
@@ -328,7 +336,7 @@ export default function EcuaPronosticoDashboard() {
             {/* COLUMNA IZQUIERDA Y CENTRAL (2/3) */}
             <div className="lg:col-span-2 space-y-6">
               
-              {/* ENCABEZADO DEL PARTIDO EN ESTUDIO CON PORCENTAJES EN ROJO EXACTOS */}
+              {/* ENCABEZADO DEL PARTIDO CON LOS PORCENTAJES ROJOS QUE TE GUSTAN Y EXPLICACIÓN CLARA */}
               <div className="rounded-2xl p-5 bg-gradient-to-r from-slate-800 via-[#152247] to-slate-800 border border-slate-600 shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="flex flex-col items-center text-center sm:w-1/3">
                   <div className="w-16 h-16 bg-slate-900 text-white font-black text-lg rounded-full flex items-center justify-center mb-2 border-2 border-blue-400 shadow-lg">{currentMatch.homeInitials}</div>
@@ -345,8 +353,8 @@ export default function EcuaPronosticoDashboard() {
                   <p className="text-red-400 text-xs font-bold mt-2 bg-red-950/40 border border-red-500/40 px-3 py-1 rounded-full">
                     Empate: {probImplicitaEmpate}%
                   </p>
-                  <span className="text-[10px] text-slate-400 mt-1.5">
-                    Margen oculto casa (Overround): <strong className="text-amber-300">{currentMatch.marginCasa}%</strong>
+                  <span className="text-[11px] text-slate-300 mt-1.5">
+                    Comisión oculta de la casa: <strong className="text-amber-300">{currentMatch.marginCasa}%</strong>
                   </span>
                 </div>
 
@@ -360,40 +368,52 @@ export default function EcuaPronosticoDashboard() {
                 </div>
               </div>
 
-              {/* TARJETAS RESUMEN DE LA MEJOR JUGADA DETECTADA */}
+              {/* LOS 4 CUADROS PRINCIPALES TRADUCIDOS A ESPAÑOL HUMANO Y CLARO */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-3.5 text-center">
-                  <p className="text-slate-400 text-[10px] uppercase font-bold">Mercado Más Eficiente</p>
-                  <p className="text-xs md:text-sm text-amber-300 font-black mt-1">{currentMatch.bestMarketName}</p>
-                  <p className="text-xs text-slate-300 mt-0.5">Cuota Casa: <strong>{currentMatch.bestOdd}</strong></p>
+                <div className="bg-slate-800/90 border border-amber-400/50 rounded-xl p-3.5 text-center">
+                  <p className="text-amber-300 text-[10px] uppercase font-black">1. Jugada Recomendada</p>
+                  <p className="text-xs md:text-sm text-white font-black mt-1">{currentMatch.bestMarketName}</p>
+                  <p className="text-[11px] text-amber-300 mt-0.5">Paga Cuota: <strong>{currentMatch.bestOdd}</strong></p>
                 </div>
                 <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-3.5 text-center">
-                  <p className="text-slate-400 text-[10px] uppercase font-bold">Implícita en Cuota</p>
+                  <p className="text-slate-300 text-[10px] uppercase font-bold">2. Lo que cree la Casa</p>
                   <p className="text-2xl text-slate-300 font-bold mt-1">{currentMatch.probImplicitaBest}%</p>
-                  <p className="text-[10px] text-slate-400">Con margen de la casa</p>
+                  <p className="text-[10px] text-slate-400">Según su cuota de {currentMatch.bestOdd}</p>
                 </div>
                 <div className="bg-slate-800/90 border-t-4 border-blue-500 rounded-xl p-3.5 text-center">
-                  <p className="text-blue-300 text-[10px] uppercase font-bold">Modelo Dixon-Coles</p>
+                  <p className="text-blue-300 text-[10px] uppercase font-black">3. Simulación Montecarlo</p>
                   <p className="text-2xl text-blue-400 font-black mt-1">{currentMatch.probReal}%</p>
-                  <p className="text-[10px] text-slate-300">Probabilidad Estimada</p>
+                  <p className="text-[10px] text-slate-300">Probabilidad Real (10k Sim)</p>
                 </div>
-                <div className={`${currentMatch.ev > 1.5 ? "bg-green-950/40 border-green-500/60" : "bg-slate-800/80 border-amber-500/50"} border rounded-xl p-3.5 text-center`}>
-                  <p className={`${currentMatch.ev > 1.5 ? "text-green-400" : "text-amber-300"} text-[10px] uppercase font-bold`}>Valor Esperado (EV)</p>
-                  <p className={`text-2xl font-black mt-1 ${currentMatch.ev > 1.5 ? "text-green-400" : "text-amber-300"}`}>
-                    {currentMatch.ev >= 0 ? `+${currentMatch.ev}%` : `${currentMatch.ev}%`}
-                  </p>
-                  <p className="text-[10px] text-slate-300">{currentMatch.ev > 1.5 ? "Ventaja Confirmada" : "Mercado Ajustado"}</p>
+                <div className="bg-green-950/40 border border-green-500/60 rounded-xl p-3.5 text-center">
+                  <p className="text-green-400 text-[10px] uppercase font-black">4. Tu Ventaja (+EV)</p>
+                  <p className="text-2xl font-black mt-1 text-green-400">+{currentMatch.ev}%</p>
+                  <p className="text-[10px] text-green-300">Rentabilidad a tu favor</p>
                 </div>
               </div>
 
-              {/* BARRA DE PESTAÑAS DE MERCADOS DERIVADOS MATEMÁTICAMENTE */}
+              {/* CAJÓN NUEVO: REPORTE DE PLANTILLAS, BAJAS Y EXPLICACIÓN DE LA JUGADA EN CRISTIANO */}
+              <div className="bg-slate-800/90 border border-amber-400/40 rounded-2xl p-4 space-y-2 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black uppercase text-amber-300">📋 Estado de Plantillas, Bajas y Qué Significa la Apuesta</h4>
+                  <span className="text-[10px] bg-blue-950 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded font-bold">Contexto Real</span>
+                </div>
+                <p className="text-xs md:text-sm text-slate-200 leading-relaxed">
+                  <strong className="text-white">Plantillas y Bajas:</strong> {currentMatch.reportePlantilla}
+                </p>
+                <p className="text-xs md:text-sm text-amber-200 bg-slate-900/80 p-2.5 rounded-lg border border-slate-700">
+                  💡 <strong>En sencillo:</strong> La recomendación principal es apostar a <strong>"{currentMatch.bestMarketName}"</strong> ({currentMatch.bestMarketExplanation}). Por cada $10 que apuestes en esta opción a cuota <strong>{currentMatch.bestOdd}</strong>, cobras <strong>${(10 * currentMatch.bestOdd).toFixed(2)}</strong>.
+                </p>
+              </div>
+
+              {/* BARRA DE PESTAÑAS DE MERCADOS EXPLICADOS EN ESPAÑOL CLARO */}
               <div className="bg-[#131d3b] border border-slate-700 rounded-2xl overflow-hidden">
                 <div className="flex overflow-x-auto bg-[#1c2a52] border-b border-slate-700 p-1.5 gap-1.5 text-xs font-bold">
                   {[
-                    { id: "todos", label: "📊 Auditoría Completa (Sin Humo)" },
-                    { id: "goles", label: "⚽ Totales de Goles & Ambos Marcan" },
-                    { id: "marcadores", label: "🎯 Distribución de Marcadores & Doble Oportunidad" },
-                    { id: "trampas", label: "⚠️ Auditoría de Cuotas Mejoradas" }
+                    { id: "todos", label: "📊 Todas las Opciones Explicadas" },
+                    { id: "goles", label: "⚽ Goles (Poisson) & Ambos Marcan" },
+                    { id: "marcadores", label: "🎯 Marcadores Más Probables & Doble Oportunidad" },
+                    { id: "trampas", label: "⚠️ Alerta de Cuotas Trampa" }
                   ].map(tab => (
                     <button
                       key={tab.id}
@@ -407,111 +427,114 @@ export default function EcuaPronosticoDashboard() {
 
                 <div className="p-4 space-y-4">
                   
-                  {/* 1. GANADOR 1X2 CON PROBABILIDADES LIMPIAS (DE-VIGGED) VS MODELO DIXON-COLES */}
+                  {/* 1. GANADOR DEL PARTIDO (1X2) CON EXPLICACIÓN HUMANA */}
                   {(activeMarketTab === "todos") && (
                     <div className="bg-slate-900/90 border border-slate-700/80 rounded-xl p-4">
                       <div className="flex flex-wrap justify-between items-center mb-3 gap-2">
-                        <h4 className="text-xs font-black uppercase text-amber-400">⭐ Mercado 1X2: Cuota sin Margen (De-vigged) vs Modelo Dixon-Coles</h4>
-                        <span className="text-[11px] text-slate-300 bg-slate-800 px-2.5 py-1 rounded border border-slate-700">
-                          λ Local: <strong className="text-blue-400">{currentMatch.lambdaHome}</strong> | λ Visita: <strong className="text-amber-400">{currentMatch.lambdaAway}</strong> (Total: {currentMatch.expectedGoals} goles)
+                        <h4 className="text-xs font-black uppercase text-amber-400">⭐ ¿Quién tiene más probabilidad de ganar el partido? (10,000 Simulaciones Montecarlo)</h4>
+                        <span className="text-[11px] text-slate-200 bg-slate-800 px-2.5 py-1 rounded border border-slate-700">
+                          Promedio de Goles Esperados (Poisson): <strong className="text-blue-400">{currentMatch.homeInitials} {currentMatch.xgHome}</strong> vs <strong className="text-amber-400">{currentMatch.awayInitials} {currentMatch.xgAway}</strong> (Total: {currentMatch.expectedGoals} goles)
                         </span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                         <div className="bg-slate-800 p-3 rounded-lg border border-slate-700 space-y-1">
                           <div className="flex justify-between font-bold text-white">
-                            <span>1. {currentMatch.home}</span>
+                            <span>Gana {currentMatch.home}</span>
                             <span className="text-amber-300">Cuota {currentMatch.cuotaLocal}</span>
                           </div>
                           <div className="text-[11px] text-slate-400 flex justify-between">
-                            <span>Sin margen casa: {currentMatch.cleanProb1}%</span>
-                            <strong className="text-blue-400">Modelo: {currentMatch.probHomeSim}%</strong>
+                            <span>Casa calcula: {currentMatch.cleanProb1}%</span>
+                            <strong className="text-blue-400">Montecarlo: {currentMatch.probHomeSim}%</strong>
                           </div>
                         </div>
                         <div className="bg-slate-800 p-3 rounded-lg border border-slate-700 space-y-1">
                           <div className="flex justify-between font-bold text-white">
-                            <span>X. Empate</span>
+                            <span>Empate</span>
                             <span className="text-amber-300">Cuota {currentMatch.cuotaEmpate}</span>
                           </div>
                           <div className="text-[11px] text-slate-400 flex justify-between">
-                            <span>Sin margen casa: {currentMatch.cleanProbX}%</span>
-                            <strong className="text-blue-400">Modelo: {currentMatch.probDrawSim}%</strong>
+                            <span>Casa calcula: {currentMatch.cleanProbX}%</span>
+                            <strong className="text-blue-400">Montecarlo: {currentMatch.probDrawSim}%</strong>
                           </div>
                         </div>
                         <div className="bg-slate-800 p-3 rounded-lg border border-slate-700 space-y-1">
                           <div className="flex justify-between font-bold text-white">
-                            <span>2. {currentMatch.away}</span>
+                            <span>Gana {currentMatch.away}</span>
                             <span className="text-amber-300">Cuota {currentMatch.cuotaVisita}</span>
                           </div>
                           <div className="text-[11px] text-slate-400 flex justify-between">
-                            <span>Sin margen casa: {currentMatch.cleanProb2}%</span>
-                            <strong className="text-blue-400">Modelo: {currentMatch.probAwaySim}%</strong>
+                            <span>Casa calcula: {currentMatch.cleanProb2}%</span>
+                            <strong className="text-blue-400">Montecarlo: {currentMatch.probAwaySim}%</strong>
                           </div>
                         </div>
                       </div>
                     </div>
                   )}
 
-                  {/* 2. TOTAL DE GOLES (MÁS/MENOS) Y AMBOS EQUIPOS MARCAN DERIVADOS DE LA MATRIZ DE POISSON */}
+                  {/* 2. TOTAL DE GOLES Y AMBOS MARCAN EXPLICADO EN SENCILLO */}
                   {(activeMarketTab === "todos" || activeMarketTab === "goles") && (
                     <div className="bg-slate-900/90 border border-slate-700/80 rounded-xl p-4">
-                      <h4 className="text-xs font-black uppercase text-green-400 mb-3">⚽ Totales de Goles (Línea {currentMatch.lineGoals}) & Ambos Equipos Marcan (Derivación Exacta)</h4>
+                      <h4 className="text-xs font-black uppercase text-green-400 mb-3">⚽ Pronóstico de Goles Totales (Distribución de Poisson) & Ambos Equipos Marcan</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                         <div className="bg-slate-800 p-3 rounded-lg border border-slate-700">
                           <div className="flex justify-between font-bold text-white mb-1">
                             <span>Más de {currentMatch.lineGoals} goles</span>
                             <span className="text-amber-300">Cuota {currentMatch.cuotaOver}</span>
                           </div>
-                          <p className="text-[11px] text-blue-300 font-semibold">Probabilidad Modelo: {currentMatch.probOverSim}%</p>
+                          <p className="text-[10px] text-slate-400 mb-1">Ganas si hay {currentMatch.lineGoals === 3.5 ? "4" : "3"} goles o más en total</p>
+                          <p className="text-[11px] text-blue-300 font-bold">Probabilidad Poisson: {currentMatch.probOverSim}%</p>
                         </div>
                         <div className="bg-slate-800 p-3 rounded-lg border border-slate-700">
                           <div className="flex justify-between font-bold text-white mb-1">
                             <span>Menos de {currentMatch.lineGoals} goles</span>
                             <span className="text-amber-300">Cuota {currentMatch.cuotaUnder}</span>
                           </div>
-                          <p className="text-[11px] text-blue-300 font-semibold">Probabilidad Modelo: {currentMatch.probUnderSim}%</p>
+                          <p className="text-[10px] text-slate-400 mb-1">Ganas si hay máximo {currentMatch.lineGoals === 3.5 ? "3" : "2"} goles en total</p>
+                          <p className="text-[11px] text-blue-300 font-bold">Probabilidad Poisson: {currentMatch.probUnderSim}%</p>
                         </div>
                         <div className="bg-slate-800 p-3 rounded-lg border border-slate-700">
                           <div className="flex justify-between font-bold text-white mb-1">
-                            <span>Ambos Equipos Marcan (Sí)</span>
-                            <span className="text-green-400">{currentMatch.probBttsYesSim}%</span>
+                            <span>Ambos Equipos Anotan</span>
+                            <span className="text-green-400">{currentMatch.probBttsYesSim}% prob.</span>
                           </div>
-                          <p className="text-[11px] text-slate-400">Cuota Justa Mínima (Fair Odd): <strong className="text-white">{currentMatch.fairOddBttsYes}</strong></p>
+                          <p className="text-[10px] text-slate-400 mb-1">Que los dos equipos hagan al menos 1 gol</p>
+                          <p className="text-[11px] text-slate-300">Solo vale si pagan más de: <strong className="text-white">{currentMatch.fairOddBttsYes}</strong></p>
                         </div>
                       </div>
                     </div>
                   )}
 
-                  {/* 3. DISTRIBUCIÓN DE MARCADORES EXACTOS Y DOBLE OPORTUNIDAD (SIN CÓRNERS FICTICIOS) */}
+                  {/* 3. MARCADORES EXACTOS Y DOBLE OPORTUNIDAD */}
                   {(activeMarketTab === "todos" || activeMarketTab === "marcadores") && (
                     <div className="bg-slate-900/90 border border-slate-700/80 rounded-xl p-4">
-                      <h4 className="text-xs font-black uppercase text-sky-400 mb-3">🎯 Matriz de Marcadores Más Plausibles (Dixon-Coles) & Doble Oportunidad</h4>
+                      <h4 className="text-xs font-black uppercase text-sky-400 mb-3">🎯 Los 3 Marcadores Más Probables (Simulación Montecarlo) & Doble Oportunidad</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                         <div className="bg-slate-800 p-3 rounded-lg border border-sky-500/30">
-                          <span className="text-[10px] text-sky-300 font-bold uppercase block">Top 3 Marcadores Exactos</span>
+                          <span className="text-[10px] text-sky-300 font-bold uppercase block">Marcadores más repetidos en 10,000 simulaciones</span>
                           <div className="mt-1.5 space-y-1">
                             {currentMatch.topScores?.map((s: any, idx: number) => (
                               <div key={idx} className="flex justify-between text-xs">
-                                <span className="text-white font-bold">Marcador {s.score}</span>
-                                <span className="text-amber-300 font-bold">{s.prob}% prob.</span>
+                                <span className="text-white font-bold">Resultado {s.score}</span>
+                                <span className="text-amber-300 font-bold">{s.prob}% de las veces</span>
                               </div>
                             ))}
                           </div>
                         </div>
                         <div className="bg-slate-800 p-3 rounded-lg border border-amber-500/30 flex flex-col justify-between">
                           <div>
-                            <span className="text-[10px] text-amber-300 font-bold uppercase block">Doble Oportunidad (1X / X2)</span>
-                            <strong className="text-white text-xs block mt-1">{currentMatch.home} o Empate (1X): {currentMatch.prob1X}%</strong>
-                            <strong className="text-slate-200 text-xs block mt-1">{currentMatch.away} o Empate (X2): {currentMatch.probX2}%</strong>
+                            <span className="text-[10px] text-amber-300 font-bold uppercase block">Apuesta Segura: Doble Oportunidad</span>
+                            <strong className="text-white text-xs block mt-1">Gana {currentMatch.home} o Empatan: {currentMatch.prob1X}%</strong>
+                            <strong className="text-slate-200 text-xs block mt-1">Gana {currentMatch.away} o Empatan: {currentMatch.probX2}%</strong>
                           </div>
-                          <span className="text-[10px] text-slate-400 mt-2">Sumatoria exacta de matriz 1X2</span>
+                          <span className="text-[10px] text-slate-400 mt-2">Ideal para combinar con bajo riesgo</span>
                         </div>
                         <div className="bg-slate-800 p-3 rounded-lg border border-purple-500/30 flex flex-col justify-between">
                           <div>
-                            <span className="text-[10px] text-purple-300 font-bold uppercase block">Control de Incertidumbre</span>
-                            <strong className="text-white text-xs block mt-1">Ambos No Marcan: {currentMatch.probBttsNoSim}%</strong>
-                            <span className="text-[11px] text-slate-300 block mt-1">Cuota Justa No-BTTS: {currentMatch.fairOddBttsNo}</span>
+                            <span className="text-[10px] text-purple-300 font-bold uppercase block">Arco en Cero / No Anotan Ambos</span>
+                            <strong className="text-white text-xs block mt-1">Al menos un equipo NO anota: {currentMatch.probBttsNoSim}%</strong>
+                            <span className="text-[11px] text-slate-300 block mt-1">Cuota mínima recomendada: {currentMatch.fairOddBttsNo}</span>
                           </div>
-                          <span className="text-[10px] text-green-400 font-bold mt-2">✓ Verificado sin invención de datos</span>
+                          <span className="text-[10px] text-green-400 font-bold mt-2">✓ Calculado con Poisson + Montecarlo</span>
                         </div>
                       </div>
                     </div>
@@ -521,9 +544,9 @@ export default function EcuaPronosticoDashboard() {
                   {(activeMarketTab === "todos" || activeMarketTab === "trampas") && (
                     <div className="bg-red-950/30 border border-red-500/50 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                       <div>
-                        <span className="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded font-black uppercase">⚠️ Auditoría de Cuotas Mejoradas de las Casas de Apuestas</span>
+                        <span className="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded font-black uppercase">⚠️ ¡Cuidado con esta Trampa de las Casas de Apuestas!</span>
                         <p className="text-xs text-slate-200 mt-1.5">
-                          Oferta observada en las casas de apuestas: <strong className="text-amber-300">{currentMatch.cuotaMejoradaCasa}</strong>. Al multiplicar eventos condicionales en un mismo boleto, el margen acumulado de la casa supera el 22%, reduciendo drásticamente el Valor Esperado.
+                          Las casas de apuestas promocionan en este partido: <strong className="text-amber-300">{currentMatch.cuotaMejoradaCasa}</strong>. Aunque la cuota se vea gigante, obligarte a acertar 3 o 4 cosas al mismo tiempo hace que pierdas tu dinero más del 96% de las veces. ¡Mejor sigue la Jugada Recomendada de arriba!
                         </p>
                       </div>
                     </div>
@@ -532,13 +555,13 @@ export default function EcuaPronosticoDashboard() {
                 </div>
               </div>
 
-              {/* CAJÓN DEL COMENTARISTA / TRADER CUANTITATIVO */}
+              {/* CAJÓN DEL COMENTARISTA DEPORTIVO DINÁMICO Y HUMANO */}
               <div className="bg-blue-950/40 border-2 border-blue-500/50 p-5 rounded-2xl space-y-2 shadow-xl">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-ping"></span>
-                  <h3 className="text-white font-black text-sm md:text-base uppercase tracking-wider">🎙️ Veredicto del Modelo Probabilístico (Dixon-Coles + De-vigging)</h3>
+                  <h3 className="text-white font-black text-sm md:text-base uppercase tracking-wider">🎙️ El Veredicto del Comentarista (Poisson + Montecarlo + Plantillas)</h3>
                 </div>
-                <p className="text-slate-100 text-sm md:text-base leading-relaxed font-medium">
+                <p className="text-slate-100 text-sm md:text-base leading-relaxed font-medium whitespace-pre-line">
                   {currentMatch.analisisDinamico}
                 </p>
               </div>
@@ -551,21 +574,22 @@ export default function EcuaPronosticoDashboard() {
               {/* CUPÓN INTELIGENTE */}
               <div className="bg-[#131d3b] border-2 border-amber-400/70 rounded-2xl overflow-hidden shadow-2xl">
                 <div className="bg-amber-400 text-slate-950 px-4 py-2.5 font-black text-xs uppercase flex justify-between items-center">
-                  <span>🎟️ Cupón de Inversión Auditado</span>
-                  <span>{currentMatch.ev > 1.5 ? "+EV CONFIRMADO" : "MERCADO AJUSTADO"}</span>
+                  <span>🎟️ Calculadora de Ganancia</span>
+                  <span>+{currentMatch.ev}% VENTAJA</span>
                 </div>
                 <div className="p-4 space-y-4 text-xs">
                   <div className="bg-slate-900 p-3 rounded-xl border border-slate-700">
                     <span className="text-[10px] text-slate-400 block">{currentMatch.home} vs {currentMatch.away}</span>
-                    <strong className="text-sm text-amber-300 block mt-0.5">Selección Modelo: {currentMatch.bestMarketName}</strong>
+                    <strong className="text-sm text-amber-300 block mt-0.5">Jugada: {currentMatch.bestMarketName}</strong>
+                    <span className="text-[11px] text-slate-300 block mt-0.5">{currentMatch.bestMarketExplanation}</span>
                     <div className="flex justify-between mt-2 pt-2 border-t border-slate-800">
-                      <span>Cuota en Casa de Apuestas: <strong className="text-white">{currentMatch.bestOdd}</strong></span>
-                      <span className="text-green-400 font-bold">Prob. Modelo: {currentMatch.probReal}%</span>
+                      <span>Cuota a pagar: <strong className="text-white">{currentMatch.bestOdd}</strong></span>
+                      <span className="text-green-400 font-bold">Montecarlo: {currentMatch.probReal}%</span>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-300 mb-1 uppercase">¿Cuánto planeas invertir hoy? ($ USD)</label>
+                    <label className="block text-[11px] font-bold text-slate-300 mb-1 uppercase">¿Cuánto quieres apostar hoy? ($ USD)</label>
                     <input
                       type="number"
                       value={stakeAmount}
@@ -576,11 +600,11 @@ export default function EcuaPronosticoDashboard() {
 
                   <div className="bg-green-950/50 border border-green-500/40 rounded-xl p-3 space-y-1">
                     <div className="flex justify-between text-slate-300">
-                      <span>Retorno Total Estimado:</span>
+                      <span>Cobras en total:</span>
                       <strong className="text-base text-white">${(stakeAmount * currentMatch.bestOdd).toFixed(2)}</strong>
                     </div>
                     <div className="flex justify-between text-green-400 font-bold">
-                      <span>Ganancia Neta Libre:</span>
+                      <span>Ganancia limpia a tu bolsillo:</span>
                       <span>+${(stakeAmount * currentMatch.bestOdd - stakeAmount).toFixed(2)} USD</span>
                     </div>
                   </div>
@@ -590,8 +614,8 @@ export default function EcuaPronosticoDashboard() {
               {/* ASISTENTE IA MULTIMERCADO */}
               <div className="bg-slate-900 border border-blue-500/40 rounded-2xl overflow-hidden flex flex-col h-[360px] shadow-xl">
                 <div className="bg-slate-800 px-4 py-3 border-b border-slate-700 flex justify-between items-center">
-                  <h3 className="text-white font-bold text-xs uppercase">Consultor Cuantitativo IA</h3>
-                  <span className="text-[10px] bg-green-950 text-green-400 border border-green-500/40 px-2 py-0.5 rounded-full font-bold">VERIFIED DATA</span>
+                  <h3 className="text-white font-bold text-xs uppercase">Pregúntale al Analista IA</h3>
+                  <span className="text-[10px] bg-green-950 text-green-400 border border-green-500/40 px-2 py-0.5 rounded-full font-bold">EN SENCILLO</span>
                 </div>
                 <div className="p-3 flex-1 overflow-y-auto space-y-2.5">
                   {chatHistory.map((msg, i) => (
@@ -599,11 +623,11 @@ export default function EcuaPronosticoDashboard() {
                       <div className={`max-w-[88%] p-2.5 rounded-xl text-xs leading-relaxed ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-200 border border-slate-700'}`}>{msg.text}</div>
                     </div>
                   ))}
-                  {isTyping && <div className="text-xs text-blue-400 animate-pulse">Consultando matriz Dixon-Coles...</div>}
+                  {isTyping && <div className="text-xs text-blue-400 animate-pulse">Analizando jugada...</div>}
                 </div>
                 <div className="p-2.5 bg-slate-800 border-t border-slate-700 flex gap-2">
-                  <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} placeholder="Pregunta por marcadores exactos, lambdas o EV..." className="flex-1 bg-slate-900 border border-slate-600 text-xs text-white rounded-lg px-3 py-2 outline-none" />
-                  <button onClick={handleSendMessage} className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg text-xs font-bold">Consultar</button>
+                  <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} placeholder="Pregunta qué apostar o cómo están las bajas..." className="flex-1 bg-slate-900 border border-slate-600 text-xs text-white rounded-lg px-3 py-2 outline-none" />
+                  <button onClick={handleSendMessage} className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg text-xs font-bold">Preguntar</button>
                 </div>
               </div>
 
