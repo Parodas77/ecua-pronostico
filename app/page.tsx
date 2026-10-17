@@ -370,74 +370,85 @@ export default function EcuaPronosticoDashboard() {
                           </div>
                         </div>
                       ) : (
-                        <div className="p-5 md:p-7 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-                          <div className="lg:col-span-5 flex items-center gap-4 bg-gradient-to-r from-green-950/60 to-slate-900/80 p-4 rounded-2xl border-2 border-green-500/60 shadow-[0_0_25px_rgba(34,197,94,0.15)]">
+                        <div className="p-5 md:p-7 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                          {/* IZQUIERDA (4 cols): CIRCULO + EQUIPO + A GANAR */}
+                          <div className="lg:col-span-4 flex items-center gap-4 bg-gradient-to-r from-green-950/60 to-slate-900/80 p-5 rounded-2xl border-2 border-green-500/60 shadow-[0_0_25px_rgba(34,197,94,0.15)]">
                             <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-slate-900 border-4 border-amber-400 flex items-center justify-center font-black text-xl md:text-2xl text-white shrink-0 shadow-[0_0_15px_rgba(251,191,36,0.5)]">
                               {winnerInitials}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <span className="inline-block bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 font-black text-[11px] px-3 py-0.5 rounded-md uppercase tracking-wider mb-1 shadow">
-                                🏆 A GANAR (FAVORITO IA)
-                              </span>
-                              <h3 className="text-xl md:text-2xl font-black text-white uppercase truncate">
+                              <h3 className="text-xl md:text-2xl font-black text-white uppercase leading-tight break-words">
                                 {winnerName}
                               </h3>
-                              <p className="text-xs text-green-300 font-bold mt-0.5">
-                                Con empate cubierto: {safeDoubleProb}% de seguridad
-                              </p>
+                              <span className="inline-block mt-2 bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 font-black text-xs md:text-sm px-3.5 py-1 rounded-lg uppercase tracking-wider shadow">
+                                🏆 A GANAR
+                              </span>
                             </div>
                           </div>
 
-                          <div className="lg:col-span-3 flex flex-col items-center justify-center text-center bg-slate-900/90 border-2 border-amber-400/50 rounded-2xl p-4 shadow-xl">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-amber-300">
+                          {/* CENTRO (4 cols): CAJA DE PROBABILIDAD DE GANAR (DIRECTO Y CON EMPATE) */}
+                          <div className="lg:col-span-4 flex flex-col justify-center bg-slate-900/95 border-2 border-amber-400/60 rounded-2xl p-5 shadow-xl">
+                            <span className="text-xs font-black uppercase tracking-widest text-amber-300 text-center border-b border-slate-800 pb-2 mb-3">
                               PROBABILIDAD DE GANAR
                             </span>
-                            <div className="text-4xl md:text-5xl font-black text-green-400 my-1 drop-shadow-[0_0_12px_rgba(74,222,128,0.4)]">
-                              {headToHeadWinProb}%
+                            <div className="space-y-2.5">
+                              <div className="flex items-baseline justify-between bg-slate-800/80 px-3.5 py-2 rounded-xl border border-slate-700">
+                                <span className="text-2xl md:text-3xl font-black text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.3)]">
+                                  {rawWinProb}%
+                                </span>
+                                <span className="text-xs md:text-sm font-extrabold text-white uppercase tracking-wide">
+                                  Directo
+                                </span>
+                              </div>
+                              <div className="flex items-baseline justify-between bg-slate-800/80 px-3.5 py-2 rounded-xl border border-slate-700">
+                                <span className="text-2xl md:text-3xl font-black text-amber-300">
+                                  {headToHeadWinProb}%
+                                </span>
+                                <span className="text-xs md:text-sm font-extrabold text-slate-200 uppercase tracking-wide">
+                                  Con empate
+                                </span>
+                              </div>
                             </div>
-                            <span className="text-[11px] text-slate-300 font-semibold">
-                              Directo en 90 min: <strong className="text-white">{rawWinProb}%</strong> (Empate {drawProb}%)
-                            </span>
                           </div>
 
-                          <div className="lg:col-span-4 flex flex-col justify-between bg-slate-900/70 border border-red-500/30 rounded-2xl p-4 space-y-3">
-                            <div className="flex items-center justify-between gap-3">
-                              <div className="flex items-center gap-3 min-w-0">
-                                <div className="w-11 h-11 rounded-full bg-slate-800 border border-red-500/40 flex items-center justify-center font-bold text-xs text-slate-300 shrink-0">
-                                  {loserInitials}
-                                </div>
-                                <div className="min-w-0">
-                                  <span className="text-[10px] font-black uppercase text-red-400 block">
-                                    ❌ PROBABLE PERDEDOR
-                                  </span>
-                                  <p className="text-sm md:text-base font-bold text-slate-200 truncate">
-                                    {loserName}
-                                  </p>
-                                </div>
+                          {/* DERECHA (4 cols): EQUIPO A PERDER Y DETALLES */}
+                          <div className="lg:col-span-4 flex flex-col justify-between bg-slate-900/80 border-2 border-red-500/30 rounded-2xl p-5 space-y-3">
+                            <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-2.5">
+                              <div className="min-w-0">
+                                <h4 className="text-base md:text-lg font-black text-slate-200 uppercase truncate">
+                                  {loserName}
+                                </h4>
+                                <span className="inline-block mt-1 bg-red-950/80 border border-red-500/40 text-red-400 font-black text-[11px] px-2.5 py-0.5 rounded uppercase tracking-wider">
+                                  ❌ A PERDER
+                                </span>
                               </div>
-                              <div className="text-right shrink-0">
-                                <span className="text-lg font-black text-red-400">{ (100 - headToHeadWinProb).toFixed(1) }%</span>
-                                <span className="block text-[9px] text-slate-400">En 90m: {rawLoseProb}%</span>
+                              <div className="w-12 h-12 rounded-full bg-slate-800 border border-red-500/40 flex items-center justify-center font-black text-sm text-slate-300 shrink-0">
+                                {loserInitials}
                               </div>
                             </div>
 
-                            <div className="w-full h-2.5 bg-red-950 rounded-full overflow-hidden flex">
-                              <div
-                                className="bg-gradient-to-r from-green-500 to-emerald-400 h-full"
-                                style={{ width: `${headToHeadWinProb}%` }}
-                              ></div>
+                            <div className="space-y-1 text-xs text-slate-300 font-medium">
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">Prob. de ganar en 90m:</span>
+                                <strong className="text-red-400">{rawLoseProb}%</strong>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">Prob. de empate:</span>
+                                <strong className="text-slate-200">{drawProb}%</strong>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">Goles esperados (Poisson):</span>
+                                <strong className="text-amber-300">{m.expectedGoals} goles</strong>
+                              </div>
                             </div>
 
-                            <div className="flex justify-between items-center pt-1">
-                              <span className="text-[11px] text-amber-300 font-bold">
-                                ⚽ Goles esperados: {m.expectedGoals}
-                              </span>
+                            <div className="pt-1 flex justify-end">
                               <button
                                 onClick={() => {
                                   setSelectedMatchId(m.id);
                                   setDisplayMode("full");
                                 }}
-                                className="text-[11px] bg-slate-800 hover:bg-blue-600 text-blue-300 hover:text-white px-3 py-1 rounded-lg font-bold transition-all border border-slate-700"
+                                className="w-full text-center text-xs bg-slate-800 hover:bg-blue-600 text-blue-300 hover:text-white py-2 px-3 rounded-xl font-bold transition-all border border-slate-700"
                               >
                                 Ver análisis completo →
                               </button>
