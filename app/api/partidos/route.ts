@@ -86,7 +86,7 @@ function runRealPoissonMontecarlo(xgHome: number, xgAway: number, iterations = 1
   for (let x = 0; x <= 5; x++) {
     for (let y = 0; y <= 5; y++) {
       const p = poissonPmf(x, xgHome) * poissonPmf(y, xgAway);
-      scoreMatrix.push({ score: x + "-" + y, prob: Number((p * 100).toFixed(1)) });
+      scoreMatrix.push({ score: `${x}-${y}`, prob: Number((p * 100).toFixed(1)) });
     }
   }
   scoreMatrix.sort((a, b) => b.prob - a.prob);
@@ -285,7 +285,6 @@ export async function GET(request: Request) {
 
       const homeRecord = homeComp?.records?.[0]?.summary || "0-0-0";
       const awayRecord = awayComp?.records?.[0]?.summary || "0-0-0";
-      const awayFormStr = awayComp?.form || `Récord: ${awayRecord}`;
 
       const normH = normalizeTeamName(homeName);
       const normA = normalizeTeamName(awayName);
@@ -366,7 +365,7 @@ export async function GET(request: Request) {
 
       if (apiHomeStats && apiAwayStats) {
         xgHome = Number(((apiHomeStats.goalsForAvg + apiAwayStats.goalsAgainstAvg) / 2).toFixed(2));
-        xgAway = Number(((apiAwayStats.goalsForAvg + apiHomeStats.goalsAgainstAvg) / 2).toFixed(2));
+        xgAway = Number(((apiAwayStats.goalsForAvg + apiAwayStats.goalsAgainstAvg) / 2).toFixed(2));
         fuenteEstadistica = `Promedios reales de gol (API-Football: ${homeName} ${apiHomeStats.goalsForAvg} GF vs ${awayName} ${apiAwayStats.goalsForAvg} GF)`;
       } else if (hRate !== null && aRate !== null) {
         xgHome = Number(Math.max(0.85, Math.min(2.45, 0.95 + hRate * 1.45)).toFixed(2));
@@ -521,17 +520,10 @@ export async function POST(request: Request) {
 
     const sorted = [...list].sort((a: any, b: any) => (b.probReal || 0) - (a.probReal || 0));
     const top3 = sorted.slice(0, 3);
-    
-    let linesText = "";
-    top3.forEach((m: any, i: number) => {
-      linesText += (i + 1) + ") " + m.home + " vs " + m.away + ": " + m.bestMarketName + " con " + m.probReal + "% de certeza Montecarlo (Cuota mínima rentable: " + m.minFairOddForTopPick + ").
-";
-    });
+    const lines = top3.map((m: any, i: number) => `${i + 1}) ${m.home} vs ${m.away}: ${m.bestMarketName} con ${m.probReal}% de certeza Montecarlo (Cuota mínima rentable: ${m.minFairOddForTopPick}).`);
 
     return NextResponse.json({
-      reply: "Top 3 partidos más sólidos de " + (currentMatch?.leagueTitle || "la semana") + ":
-
-" + linesText
+      reply: `Top 3 partidos más sólidos de ${currentMatch?.leagueTitle || "la semana"}:\n\n${lines.join("\n")}`
     });
   } catch {
     return NextResponse.json({ reply: "Consulta procesada con éxito." });

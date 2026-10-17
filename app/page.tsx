@@ -30,12 +30,12 @@ export default function EcuaPronosticoDashboard() {
 
   const whatsappNumber = "593999999999";
   const whatsappMessage = "Hola, quiero activar mi suscripción Premium en EcuaPronóstico ($17.99/mes) para desbloquear todas las jugadas de la semana. ¿Me ayudan con los datos de pago?";
-  const whatsappLink = "https://wa.me/" + whatsappNumber + "?text=" + encodeURIComponent(whatsappMessage);
+  const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
   const fetchMatchesFromServer = async (targetLeague: string, force = false) => {
     setIsLoadingMatches(true);
     try {
-      const res = await fetch("/api/partidos?league=" + targetLeague + (force ? "&refresh=true" : ""));
+      const res = await fetch(`/api/partidos?league=${targetLeague}${force ? "&refresh=true" : ""}`);
       const data = await res.json();
       if (data.window) {
         setLiveWindow(data.window);
@@ -51,7 +51,7 @@ export default function EcuaPronosticoDashboard() {
       }
     } catch (err: any) {
       console.error("Error al sincronizar:", err);
-      setApiDiagnostics(["Error de red cliente: " + (err?.message || "No se pudo contactar /api/partidos")]);
+      setApiDiagnostics([`Error de red cliente: ${err?.message || "No se pudo contactar /api/partidos"}`]);
     } finally {
       setIsLoadingMatches(false);
     }
@@ -153,7 +153,7 @@ export default function EcuaPronosticoDashboard() {
         ...prev,
         {
           role: "ai",
-          text: "Para " + currentMatch.home + " vs " + currentMatch.away + ", la opción más fuerte es '" + currentMatch.bestMarketName + "' con " + currentMatch.probReal + "% de probabilidad real."
+          text: `Para ${currentMatch.home} vs ${currentMatch.away}, la opción más fuerte es '${currentMatch.bestMarketName}' con ${currentMatch.probReal}% de probabilidad real (Cuota mínima rentable: ${currentMatch.minFairOddForTopPick}).`
         }
       ]);
     } finally {
