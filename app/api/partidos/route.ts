@@ -515,19 +515,23 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { currentMatch, allMatches } = body;
+    const { question, currentMatch, allMatches } = body;
+    const rawQ = String(question || "");
     const list: any[] = Array.isArray(allMatches) && allMatches.length > 0 ? allMatches : currentMatch ? [currentMatch] : [];
 
     const sorted = [...list].sort((a: any, b: any) => (b.probReal || 0) - (a.probReal || 0));
     const top3 = sorted.slice(0, 3);
-
+    
     let linesText = "";
     top3.forEach((m: any, i: number) => {
-      linesText += (i + 1) + ") " + m.home + " vs " + m.away + ": " + m.bestMarketName + " con " + m.probReal + "% de certeza Montecarlo (Cuota mínima rentable: " + m.minFairOddForTopPick + ").\n";
+      linesText += (i + 1) + ") " + m.home + " vs " + m.away + ": " + m.bestMarketName + " con " + m.probReal + "% de certeza Montecarlo (Cuota mínima rentable: " + m.minFairOddForTopPick + ").
+";
     });
 
     return NextResponse.json({
-      reply: "Top 3 partidos más sólidos de " + (currentMatch?.leagueTitle || "la semana") + ":\n\n" + linesText,
+      reply: "Top 3 partidos más sólidos de " + (currentMatch?.leagueTitle || "la semana") + ":
+
+" + linesText
     });
   } catch {
     return NextResponse.json({ reply: "Consulta procesada con éxito." });
