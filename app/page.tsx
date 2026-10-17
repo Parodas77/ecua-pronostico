@@ -71,15 +71,25 @@ export default function EcuaPronosticoDashboard() {
         }
       }
       const nowMs = Date.now();
+      
+      // Ordenamiento estricto: Prioridad absoluta a partidos de hoy o más cercanos (dentro de las primeras 36 horas)
       allCombined.sort((a, b) => {
-        const timeA = a.dateIso ? new Date(a.dateIso).getTime() : nowMs + 86400000;
-        const timeB = b.dateIso ? new Date(b.dateIso).getTime() : nowMs + 86400000;
-        const diffHoursA = Math.abs(timeA - nowMs) / (1000 * 60 * 60);
-        const diffHoursB = Math.abs(timeB - nowMs) / (1000 * 60 * 60);
-        const scoreA = (1000 / (diffHoursA + 2)) + (a.probReal || 50);
-        const scoreB = (1000 / (diffHoursB + 2)) + (b.probReal || 50);
+        const timeA = a.dateIso ? new Date(a.dateIso).getTime() : nowMs + 86400000 * 5;
+        const timeB = b.dateIso ? new Date(b.dateIso).getTime() : nowMs + 86400000 * 5;
+        
+        const hoursA = (timeA - nowMs) / (1000 * 60 * 60);
+        const hoursB = (timeB - nowMs) / (1000 * 60 * 60);
+
+        // Si el partido ya pasó o es de hace unas horas, penalizamos. Si es futuro cercano (0 a 36 horas), damos máxima bonificación.
+        const weightA = hoursA >= 0 && hoursA <= 36 ? 5000 : (hoursA > 36 && hoursA <= 72 ? 2000 : 100);
+        const weightB = hoursB >= 0 && hoursB <= 36 ? 5000 : (hoursB > 36 && hoursB <= 72 ? 2000 : 100);
+
+        const scoreA = weightA + (a.probReal || 50);
+        const scoreB = weightB + (b.probReal || 50);
+
         return scoreB - scoreA;
       });
+
       setTop4Matches(allCombined.slice(0, 4));
     } catch {
       setTop4Matches(matches.slice(0, 4));
