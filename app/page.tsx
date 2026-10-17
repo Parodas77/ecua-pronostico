@@ -112,13 +112,13 @@ export default function EcuaPronosticoDashboard() {
 
   const handleLogin = () => {
     const validUser = username.trim().toLowerCase();
-    if ((validUser === "vip" || validUser === "admin" || validUser === "pedro") && password === "quant2026") {
+    if ((validUser === "vip" || validUser === "admin" || validUser === "pedro") && password === "ecuapronostico2026@") {
       setIsAuthenticated(true);
       setView("premium");
       setShowLoginModal(false);
       setLoginError("");
     } else {
-      setLoginError("Credenciales inválidas. Verifica tu suscripción o solicita acceso vía WhatsApp.");
+      setLoginError("Credenciales inválidas. Usa el usuario admin y la clave ecuapronostico2026@.");
     }
   };
 
