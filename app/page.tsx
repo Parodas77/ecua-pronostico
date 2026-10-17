@@ -5,9 +5,10 @@ export default function EcuaPronosticoDashboard() {
   const [view, setView] = useState("basic");
   const [league, setLeague] = useState("ligapro");
   const [activeMarketTab, setActiveMarketTab] = useState("todos");
-  const [displayMode, setDisplayMode] = useState<"full" | "simplified">("full");
+  const [displayMode, setDisplayMode] = useState<"full" | "simplified" | "top4">("full");
   
   const [matches, setMatches] = useState<any[]>([]);
+  const [top4Matches, setTop4Matches] = useState<any[]>([]);
   const [selectedMatchId, setSelectedMatchId] = useState<string>("");
   const [isLoadingMatches, setIsLoadingMatches] = useState<boolean>(true);
   const [liveWindow, setLiveWindow] = useState<string>("Sincronizando corte diario de 8 días...");
@@ -29,7 +30,7 @@ export default function EcuaPronosticoDashboard() {
   const [isTyping, setIsTyping] = useState(false);
 
   const whatsappNumber = "593999999999";
-  const whatsappMessage = "Hola, quiero activar mi suscripción Premium en EcuaPronóstico ($17.99/mes) para desbloquear todas las jugadas de la semana. ¿Me ayudan con los datos de pago?";
+  const whatsappMessage = "Hola, quiero activar mi suscripción Premium en EcuaPronóstico ($17.99/mes) para desbloquear las 4 Fijas del Día. ¿Me ayudan con los datos de pago?";
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
   const fetchMatchesFromServer = async (targetLeague: string, force = false) => {
@@ -46,6 +47,9 @@ export default function EcuaPronosticoDashboard() {
       if (data.matches && data.matches.length > 0) {
         setMatches(data.matches);
         setSelectedMatchId(data.matches[0].id);
+
+        // También extraemos las 4 fijas barriendo las 3 ligas principales si estamos en modo top4
+        fetchAllLeaguesForTop4();
       } else {
         setMatches([]);
       }
@@ -54,6 +58,25 @@ export default function EcuaPronosticoDashboard() {
       setApiDiagnostics([`Error de red cliente: ${err?.message || "No se pudo contactar /api/partidos"}`]);
     } finally {
       setIsLoadingMatches(false);
+    }
+  };
+
+  const fetchAllLeaguesForTop4 = async () => {
+    try {
+      const leagues = ["ligapro", "champions", "europa"];
+      let allCombined: any[] = [];
+      for (const l of leagues) {
+        const r = await fetch(`/api/partidos?league=${l}`);
+        const d = await r.json();
+        if (Array.isArray(d.matches)) {
+          allCombined = [...allCombined, ...d.matches];
+        }
+      }
+      // Ordenamos por probabilidad real de Montecarlo (certeza)
+      allCombined.sort((a, b) => (b.probReal || 0) - (a.probReal || 0));
+      setTop4Matches(allCombined.slice(0, 4));
+    } catch {
+      setTop4Matches(matches.slice(0, 4));
     }
   };
 
@@ -170,7 +193,7 @@ export default function EcuaPronosticoDashboard() {
             <div className="bg-slate-800 border border-slate-600 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
               <button onClick={() => { setShowLoginModal(false); setLoginError(""); }} className="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold">✕</button>
               <h3 className="text-xl font-bold text-white mb-1">Acceso VIP EcuaPronóstico</h3>
-              <p className="text-xs text-slate-400 mb-4">Desbloquea todos los ganadores y porcentajes de los próximos 8 días</p>
+              <p className="text-xs text-slate-400 mb-4">Desbloquea Las 4 Fijas del Día y todas las predicciones VIP</p>
 
               <div className="space-y-4">
                 <div>
@@ -225,27 +248,28 @@ export default function EcuaPronosticoDashboard() {
           {showGuide && (
             <div className="mb-4 bg-slate-900/90 border border-blue-500/40 rounded-xl p-4 text-xs text-slate-300 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <strong className="text-amber-400 block mb-1">1. Corte Diario de 8 Días (ESPN Oficial)</strong>
-                El servidor recorre los próximos 8 días del calendario oficial de ESPN para cada liga por separado (solo partidos por jugar, descartando los ya terminados).
+                <strong className="text-amber-400 block mb-1">1. Las 4 Fijas del Día</strong>
+                El botón dorado superior extrae automáticamente las 4 apuestas más seguras y rentables de todas las ligas para que las compartas en tus grupos de WhatsApp y Telegram.
               </div>
               <div>
-                <strong className="text-blue-400 block mb-1">2. Dos Modos de Visualización</strong>
-                Usa la 'Vista Simplificada (Solo Ganadores)' para ver qué equipo va a ganar con su porcentaje exacto, o el 'Modo Completo' para ver cuotas y goles.
+                <strong className="text-blue-400 block mb-1">2. Vista Simplificada (Solo Ganadores %)</strong>
+                Visualiza el equipo probable ganador y su porcentaje exacto de victoria frente al rival sin enredos de cuotas.
               </div>
               <div>
                 <strong className="text-green-400 block mb-1">3. Respaldo Matemático Real</strong>
-                Detrás de cada ganador proyectado corren la Distribución de Poisson y 10,000 Simulaciones de Montecarlo.
+                10,000 simulaciones de Montecarlo y Distribución de Poisson respaldan cada pronóstico diario.
               </div>
             </div>
           )}
 
-          <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-3">
+          {/* BARRA SUPERIOR: LIGAS + BOTONES DE VISTA (INCLUYENDO LAS 4 FIJAS) */}
+          <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-3">
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setLeague("ligapro")}
                 className={`px-4 py-2.5 rounded-xl font-extrabold text-xs md:text-sm flex items-center gap-2 transition-all ${league === "ligapro" ? "bg-amber-400 text-slate-950 shadow-[0_0_20px_rgba(251,191,36,0.4)]" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
               >
-                🇪🇨 LigaPro Ecuador (Primera A)
+                🇪🇨 LigaPro Ecuador
               </button>
               <button
                 onClick={() => setLeague("champions")}
@@ -261,32 +285,176 @@ export default function EcuaPronosticoDashboard() {
               </button>
             </div>
 
-            <div className="flex bg-slate-900 p-1.5 rounded-2xl border-2 border-amber-400/60 shadow-[0_0_25px_rgba(251,191,36,0.2)]">
+            <div className="flex flex-wrap gap-2 bg-slate-900 p-1.5 rounded-2xl border-2 border-amber-400/60 shadow-[0_0_25px_rgba(251,191,36,0.2)]">
+              <button
+                onClick={() => { setDisplayMode("top4"); fetchAllLeaguesForTop4(); }}
+                className={`px-4 py-2.5 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                  displayMode === "top4"
+                    ? "bg-gradient-to-r from-emerald-400 via-green-300 to-emerald-500 text-slate-950 shadow-[0_0_20px_rgba(34,197,94,0.6)] scale-[1.02]"
+                    : "text-green-300 hover:bg-slate-800"
+                }`}
+              >
+                🏆 LAS 4 FIJAS DEL DÍA
+              </button>
               <button
                 onClick={() => setDisplayMode("simplified")}
-                className={`flex-1 lg:flex-initial px-5 py-2.5 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                className={`px-4 py-2.5 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
                   displayMode === "simplified"
                     ? "bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 shadow-[0_0_20px_rgba(251,191,36,0.6)] scale-[1.02]"
                     : "text-amber-300 hover:bg-slate-800"
                 }`}
               >
-                🔥 Vista Simplificada (Solo Ganadores %)
+                🔥 Vista Simplificada
               </button>
               <button
                 onClick={() => setDisplayMode("full")}
-                className={`flex-1 lg:flex-initial px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-2 ${
+                className={`px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-2 ${
                   displayMode === "full"
                     ? "bg-blue-600 text-white shadow-lg"
                     : "text-slate-400 hover:text-white hover:bg-slate-800"
                 }`}
               >
-                📊 Vista Completa (Auditoría)
+                📊 Vista Completa
               </button>
             </div>
           </div>
         </header>
 
-        {displayMode === "simplified" ? (
+        {/* ===================================================================== */}
+        {/* MODO 0: LAS 4 FIJAS DEL DÍA (TOP 4 DE TODAS LAS LIGAS UNIFICADAS) */}
+        {/* ===================================================================== */}
+        {displayMode === "top4" ? (
+          <section className="space-y-6">
+            <div className="bg-gradient-to-r from-[#064e3b] via-[#0f2557] to-[#064e3b] border-2 border-green-400/80 rounded-3xl p-6 text-center shadow-[0_0_35px_rgba(34,197,94,0.3)] relative overflow-hidden">
+              <span className="inline-block bg-green-400 text-slate-950 font-black text-xs px-4 py-1 rounded-full uppercase tracking-widest mb-2 shadow">
+                El Reporte Estelar para Grupos de WhatsApp y Telegram
+              </span>
+              <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-green-200 to-green-400 drop-shadow">
+                🏆 LAS 4 FIJAS DEL DÍA (MÁXIMA CERTEZA)
+              </h2>
+              <p className="text-xs md:text-sm text-slate-200 mt-1 max-w-2xl mx-auto">
+                Estas son las <strong className="text-amber-300">4 mejores predicciones</strong> seleccionadas de todo el radar multiligas (LigaPro, Champions y Europa League) con mayor porcentaje de acierto en las 10,000 simulaciones de Montecarlo. ¡Listas para copiar, mandar y ganar!
+              </p>
+            </div>
+
+            {isLoadingMatches ? (
+              <div className="p-12 text-center bg-[#131d3b] border border-slate-700 rounded-3xl">
+                <p className="text-lg font-black text-green-300 animate-pulse">Seleccionando Las 4 Fijas de todas las ligas...</p>
+              </div>
+            ) : top4Matches.length === 0 ? (
+              <div className="p-8 text-center bg-[#131d3b] border border-slate-700 rounded-3xl">
+                <p className="text-base font-bold text-amber-300">No hay suficientes partidos futuros para armar las 4 fijas en este momento.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-5">
+                {top4Matches.map((m, idx) => {
+                  const unlocked = view === "premium" || m.isFreeSample;
+                  const homeProb = Number(m.probHomeSim || 50);
+                  const awayProb = Number(m.probAwaySim || 30);
+                  const drawProb = Number(m.probDrawSim || 20);
+
+                  const isHomeWinner = homeProb >= awayProb;
+                  const winnerName = isHomeWinner ? m.home : m.away;
+                  const winnerInitials = isHomeWinner ? m.homeInitials : m.awayInitials;
+                  const loserName = isHomeWinner ? m.away : m.home;
+                  const loserInitials = isHomeWinner ? m.awayInitials : m.homeInitials;
+
+                  const rawWinProb = isHomeWinner ? homeProb : awayProb;
+                  const headToHeadWinProb = Number(((rawWinProb / Math.max(1, rawWinProb + (isHomeWinner ? awayProb : homeProb))) * 100).toFixed(1));
+                  const safeDoubleProb = isHomeWinner ? m.prob1X : m.probX2;
+
+                  return (
+                    <div
+                      key={m.id || idx}
+                      className="relative rounded-3xl overflow-hidden border-2 border-green-500/70 bg-gradient-to-r from-[#064e3b]/40 via-[#16264c] to-[#064e3b]/40 shadow-2xl transition-all hover:scale-[1.01]"
+                    >
+                      <div className="bg-[#091024] px-5 py-2.5 border-b border-slate-800 flex flex-wrap justify-between items-center gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="w-3 h-3 rounded-full bg-green-400 animate-ping"></span>
+                          <span className="text-xs font-black uppercase tracking-wider text-green-300">
+                            FIJA #{idx + 1} • {m.leagueTitle}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs md:text-sm font-bold text-white">
+                            📅 {m.date} • ⏰ <strong className="text-amber-300">{m.time}</strong>
+                          </span>
+                          <span className="text-[10px] bg-green-950 text-green-400 border border-green-500/40 px-2.5 py-0.5 rounded-full font-black">
+                            🔥 TOP RECOMENDADA
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-5 md:p-7 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                        <div className="lg:col-span-4 flex items-center gap-4 bg-gradient-to-r from-green-950/80 to-slate-900/90 p-5 rounded-2xl border-2 border-green-500/80 shadow-[0_0_25px_rgba(34,197,94,0.2)]">
+                          <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-slate-900 border-4 border-amber-400 flex items-center justify-center font-black text-xl md:text-2xl text-white shrink-0 shadow-[0_0_15px_rgba(251,191,36,0.5)]">
+                            {winnerInitials}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-xl md:text-2xl font-black text-white uppercase leading-tight truncate">
+                              {winnerName}
+                            </h3>
+                            <span className="inline-block mt-2 bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 font-black text-xs px-3 py-1 rounded-lg uppercase tracking-wider shadow">
+                              🏆 FIJA A GANAR
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="lg:col-span-4 flex flex-col justify-center bg-slate-900/95 border-2 border-green-400/60 rounded-2xl p-5 shadow-xl text-center">
+                          <span className="text-xs font-black uppercase tracking-widest text-green-300 border-b border-slate-800 pb-2 mb-3">
+                            CERTEZA MONTECARLO
+                          </span>
+                          <div className="text-4xl md:text-5xl font-black text-green-400 my-1 drop-shadow-[0_0_12px_rgba(74,222,128,0.4)]">
+                            {headToHeadWinProb}%
+                          </div>
+                          <span className="text-xs text-slate-300 font-bold mt-1">
+                            Seguridad con empate (1X/X2): <strong className="text-amber-300">{safeDoubleProb}%</strong>
+                          </span>
+                        </div>
+
+                        <div className="lg:col-span-4 flex flex-col justify-between bg-slate-900/80 border-2 border-slate-700 rounded-2xl p-5 space-y-3">
+                          <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-2.5">
+                            <div className="min-w-0">
+                              <span className="text-[10px] font-black uppercase text-slate-400 block">Rival a enfrentar</span>
+                              <h4 className="text-base md:text-lg font-black text-slate-200 uppercase truncate">
+                                {loserName}
+                              </h4>
+                            </div>
+                            <div className="w-11 h-11 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-slate-300 shrink-0">
+                              {loserInitials}
+                            </div>
+                          </div>
+
+                          <div className="space-y-1 text-xs text-slate-300 font-medium">
+                            <div className="flex justify-between">
+                              <span className="text-slate-400">Jugada recomendada:</span>
+                              <strong className="text-amber-300">{m.bestMarketName}</strong>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-400">Cuota mínima justa:</span>
+                              <strong className="text-green-400">{m.minFairOddForTopPick}</strong>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => {
+                              setLeague(m.leagueTitle.toLowerCase().includes("champions") ? "champions" : m.leagueTitle.toLowerCase().includes("europa") ? "europa" : "ligapro");
+                              setSelectedMatchId(m.id);
+                              setDisplayMode("full");
+                            }}
+                            className="w-full text-center text-xs bg-slate-800 hover:bg-green-600 text-green-300 hover:text-white py-2 px-3 rounded-xl font-bold transition-all border border-slate-700"
+                          >
+                            Ver análisis de esta fija →
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        ) : displayMode === "simplified" ? (
           <section className="space-y-6">
             <div className="bg-gradient-to-r from-[#1a103c] via-[#0f2557] to-[#1a103c] border-2 border-amber-400/70 rounded-3xl p-6 text-center shadow-[0_0_35px_rgba(251,191,36,0.2)] relative overflow-hidden">
               <span className="inline-block bg-amber-400 text-slate-950 font-black text-xs px-4 py-1 rounded-full uppercase tracking-widest mb-2 shadow">
