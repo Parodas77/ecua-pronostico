@@ -47,8 +47,6 @@ export default function EcuaPronosticoDashboard() {
       if (data.matches && data.matches.length > 0) {
         setMatches(data.matches);
         setSelectedMatchId(data.matches[0].id);
-
-        // También extraemos las 4 fijas barriendo las 3 ligas principales si estamos en modo top4
         fetchAllLeaguesForTop4();
       } else {
         setMatches([]);
@@ -72,8 +70,16 @@ export default function EcuaPronosticoDashboard() {
           allCombined = [...allCombined, ...d.matches];
         }
       }
-      // Ordenamos por probabilidad real de Montecarlo (certeza)
-      allCombined.sort((a, b) => (b.probReal || 0) - (a.probReal || 0));
+      const nowMs = Date.now();
+      allCombined.sort((a, b) => {
+        const timeA = a.dateIso ? new Date(a.dateIso).getTime() : nowMs + 86400000;
+        const timeB = b.dateIso ? new Date(b.dateIso).getTime() : nowMs + 86400000;
+        const diffHoursA = Math.abs(timeA - nowMs) / (1000 * 60 * 60);
+        const diffHoursB = Math.abs(timeB - nowMs) / (1000 * 60 * 60);
+        const scoreA = (1000 / (diffHoursA + 2)) + (a.probReal || 50);
+        const scoreB = (1000 / (diffHoursB + 2)) + (b.probReal || 50);
+        return scoreB - scoreA;
+      });
       setTop4Matches(allCombined.slice(0, 4));
     } catch {
       setTop4Matches(matches.slice(0, 4));
@@ -262,7 +268,6 @@ export default function EcuaPronosticoDashboard() {
             </div>
           )}
 
-          {/* BARRA SUPERIOR: LIGAS + BOTONES DE VISTA (INCLUYENDO LAS 4 FIJAS) */}
           <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-3">
             <div className="flex flex-wrap gap-2">
               <button
@@ -320,9 +325,6 @@ export default function EcuaPronosticoDashboard() {
           </div>
         </header>
 
-        {/* ===================================================================== */}
-        {/* MODO 0: LAS 4 FIJAS DEL DÍA (TOP 4 DE TODAS LAS LIGAS UNIFICADAS) */}
-        {/* ===================================================================== */}
         {displayMode === "top4" ? (
           <section className="space-y-6">
             <div className="bg-gradient-to-r from-[#064e3b] via-[#0f2557] to-[#064e3b] border-2 border-green-400/80 rounded-3xl p-6 text-center shadow-[0_0_35px_rgba(34,197,94,0.3)] relative overflow-hidden">
@@ -333,13 +335,13 @@ export default function EcuaPronosticoDashboard() {
                 🏆 LAS 4 FIJAS DEL DÍA (MÁXIMA CERTEZA)
               </h2>
               <p className="text-xs md:text-sm text-slate-200 mt-1 max-w-2xl mx-auto">
-                Estas son las <strong className="text-amber-300">4 mejores predicciones</strong> seleccionadas de todo el radar multiligas (LigaPro, Champions y Europa League) con mayor porcentaje de acierto en las 10,000 simulaciones de Montecarlo. ¡Listas para copiar, mandar y ganar!
+                Estas son las <strong className="text-amber-300">4 mejores predicciones</strong> seleccionadas de todo el radar multiligas (LigaPro, Champions y Europa League) con mayor porcentaje de acierto en las 10,000 simulaciones de Montecarlo.
               </p>
             </div>
 
             {isLoadingMatches ? (
               <div className="p-12 text-center bg-[#131d3b] border border-slate-700 rounded-3xl">
-                <p className="text-lg font-black text-green-300 animate-pulse">Seleccionando Las 4 Fijas de todas las ligas...</p>
+                <p className="text-lg font-black text-green-300 animate-pulse">Seleccionando Las 4 Fijas de hoy...</p>
               </div>
             ) : top4Matches.length === 0 ? (
               <div className="p-8 text-center bg-[#131d3b] border border-slate-700 rounded-3xl">
