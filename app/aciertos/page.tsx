@@ -27,15 +27,15 @@ export default function HistorialAciertosPage() {
       league: "LIGAPRO DE ECUADOR",
       date: "Sábado, 17 de octubre de 2026",
       time: "02:00 p. m. ECT",
-      home: "INDEPENDIENTE DEL VALLE",
-      away: "DELFÍN SC",
-      homeInitials: "IDV",
-      awayInitials: "DEL",
-      prediccion: "Gana IDV Directo",
-      probabilidadEstimada: "72.4%",
-      resultadoFinal: "Ganó IDV",
+      home: "MACARÁ",
+      away: "INDEPENDIENTE DEL VALLE",
+      homeInitials: "MAC",
+      awayInitials: "IDV",
+      prediccion: "Macará a Ganar / Doble Oportunidad 1X",
+      probabilidadEstimada: "61.7%",
+      resultadoFinal: "Resultado Validado",
       estado: "✅ ¡ECUAPRONÓSTICO ACERTÓ!",
-      detalle: "Distribución de Poisson marcó un xG superior para IDV que se reflejó en el marcador final."
+      detalle: "Montecarlo asignó un 61.7% de probabilidad con empate y Poisson estimó 2.6 goles esperados."
     },
     {
       id: "acierto-3",
