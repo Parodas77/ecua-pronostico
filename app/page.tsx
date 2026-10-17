@@ -254,6 +254,12 @@ export default function EcuaPronosticoDashboard() {
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
+              <a
+                href="/aciertos"
+                className="text-xs bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/60 px-3 py-2 rounded-lg font-black flex items-center gap-1 shadow-lg"
+              >
+                ✅ Historial de Aciertos
+              </a>
               <button
                 onClick={() => fetchMatchesFromServer(league, true)}
                 className="text-xs bg-slate-800 hover:bg-slate-700 text-green-400 border border-green-500/40 px-3 py-2 rounded-lg font-bold"
