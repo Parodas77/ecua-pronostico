@@ -29,8 +29,8 @@ export default function EcuaPronosticoDashboard() {
   ]);
   const [isTyping, setIsTyping] = useState(false);
 
-  const whatsappNumber = "593999999999";
-  const whatsappMessage = "Hola, quiero activar mi suscripción Premium en EcuaPronóstico ($17.99/mes) para desbloquear las 4 Fijas del Día. ¿Me ayudan con los datos de pago?";
+  const whatsappNumber = "593979198755";
+  const whatsappMessage = "Hola, quiero activar mi suscripción Premium en EcuaPronóstico ($14.99/mes) para desbloquear las 4 Fijas del Día. ¿Me ayudan con los datos de pago?";
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
   const fetchMatchesFromServer = async (targetLeague: string, force = false) => {
@@ -235,7 +235,7 @@ export default function EcuaPronosticoDashboard() {
               </div>
 
               <div className="mt-6 pt-4 border-t border-slate-700 text-center">
-                <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="inline-block w-full bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-bold py-2.5 px-4 rounded-lg text-sm">Solicitar Suscripción por WhatsApp ($17.99/mes)</a>
+                <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="inline-block w-full bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-bold py-2.5 px-4 rounded-lg text-sm">Solicitar Suscripción por WhatsApp ($14.99/mes)</a>
               </div>
             </div>
           </div>
@@ -271,7 +271,7 @@ export default function EcuaPronosticoDashboard() {
               </button>
               <div className="flex gap-1 bg-slate-800 p-1 rounded-lg border border-slate-700">
                 <button onClick={() => setView("basic")} className={`px-3 py-1.5 text-xs font-bold rounded-md ${view === "basic" ? "bg-slate-600 text-white" : "text-slate-400"}`}>Gratis</button>
-                <button onClick={handlePremiumSwitch} className={`px-3 py-1.5 text-xs font-bold rounded-md ${view === "premium" ? "bg-blue-600 text-white" : "text-slate-400"}`}>VIP ($17.99)</button>
+                <button onClick={handlePremiumSwitch} className={`px-3 py-1.5 text-xs font-bold rounded-md ${view === "premium" ? "bg-blue-600 text-white" : "text-slate-400"}`}>VIP ($14.99)</button>
               </div>
               {isAuthenticated && <button onClick={handleLogout} className="text-xs text-red-400 border border-slate-700 px-2.5 py-1.5 rounded-lg">Salir</button>}
             </div>
@@ -766,7 +766,7 @@ export default function EcuaPronosticoDashboard() {
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
                   <button onClick={() => setShowLoginModal(true)} className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl text-sm shadow-lg">Iniciar Sesión VIP</button>
-                  <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-black py-3 px-6 rounded-xl text-sm shadow-lg">Suscribirme por WhatsApp - $17.99/mes</a>
+                  <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-black py-3 px-6 rounded-xl text-sm shadow-lg">Suscribirme por WhatsApp - $14.99/mes</a>
                 </div>
               </div>
             ) : (
