@@ -61,36 +61,46 @@ export default function EcuaPronosticoDashboard() {
 
   const fetchAllLeaguesForTop4 = async () => {
     try {
-      const leagues = ["ligapro", "champions", "europa"];
-      let allCombined: any[] = [];
-      for (const l of leagues) {
-        const r = await fetch(`/api/partidos?league=${l}`);
-        const d = await r.json();
-        if (Array.isArray(d.matches)) {
-          allCombined = [...allCombined, ...d.matches];
-        }
-      }
+      const ligaproRes = await fetch(`/api/partidos?league=ligapro`);
+      const ligaproData = await ligaproRes.json();
+      const ligaproMatches = Array.isArray(ligaproData.matches) ? ligaproData.matches : [];
+
+      const champRes = await fetch(`/api/partidos?league=champions`);
+      const champData = await champRes.json();
+      const champMatches = Array.isArray(champData.matches) ? champData.matches : [];
+
+      const euroRes = await fetch(`/api/partidos?league=europa`);
+      const euroData = await euroRes.json();
+      const euroMatches = Array.isArray(euroData.matches) ? euroData.matches : [];
+
       const nowMs = Date.now();
-      
-      // Ordenamiento estricto: Prioridad absoluta a partidos de hoy o más cercanos (dentro de las primeras 36 horas)
-      allCombined.sort((a, b) => {
+      const sortFn = (a: any, b: any) => {
         const timeA = a.dateIso ? new Date(a.dateIso).getTime() : nowMs + 86400000 * 5;
         const timeB = b.dateIso ? new Date(b.dateIso).getTime() : nowMs + 86400000 * 5;
-        
-        const hoursA = (timeA - nowMs) / (1000 * 60 * 60);
-        const hoursB = (timeB - nowMs) / (1000 * 60 * 60);
+        const diffA = Math.abs(timeA - nowMs);
+        const diffB = Math.abs(timeB - nowMs);
+        return diffA - diffB - (b.probReal || 50) * 1000;
+      };
 
-        // Si el partido ya pasó o es de hace unas horas, penalizamos. Si es futuro cercano (0 a 36 horas), damos máxima bonificación.
-        const weightA = hoursA >= 0 && hoursA <= 36 ? 5000 : (hoursA > 36 && hoursA <= 72 ? 2000 : 100);
-        const weightB = hoursB >= 0 && hoursB <= 36 ? 5000 : (hoursB > 36 && hoursB <= 72 ? 2000 : 100);
+      ligaproMatches.sort(sortFn);
+      champMatches.sort(sortFn);
+      euroMatches.sort(sortFn);
 
-        const scoreA = weightA + (a.probReal || 50);
-        const scoreB = weightB + (b.probReal || 50);
+      const selectedTop4: any[] = [];
+      if (ligaproMatches.length > 0) selectedTop4.push(ligaproMatches[0]);
+      if (ligaproMatches.length > 1) selectedTop4.push(ligaproMatches[1]);
+      if (champMatches.length > 0) selectedTop4.push(champMatches[0]);
+      if (champMatches.length > 1) selectedTop4.push(champMatches[1]);
 
-        return scoreB - scoreA;
-      });
+      if (selectedTop4.length < 4) {
+        const rest = [...ligaproMatches.slice(2), ...champMatches.slice(2), ...euroMatches];
+        rest.sort(sortFn);
+        while (selectedTop4.length < 4 && rest.length > 0) {
+          selectedTop4.push(rest.shift());
+        }
+      }
 
-      setTop4Matches(allCombined.slice(0, 4));
+      setTop4Matches(selectedTop4.slice(0, 4));
     } catch {
       setTop4Matches(matches.slice(0, 4));
     }
