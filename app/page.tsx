@@ -719,37 +719,59 @@ export default function EcuaPronosticoDashboard() {
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-2 w-full lg:w-1/3">
-                        <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-center">
-                          <span className="block text-[10px] text-slate-400 truncate">Gana {m.homeInitials}</span>
-                          <strong className="text-sm text-white">{m.cuotaLocal.toFixed(2)}</strong>
+                      {/* BLOQUE GANADOR 1X2 */}
+                      <div className="w-full lg:w-1/3 flex flex-col justify-between">
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1.5 text-center">
+                            <span className="block text-[10px] text-slate-400 truncate">Gana {m.homeInitials}</span>
+                            <strong className="text-sm text-white">{m.cuotaLocal.toFixed(2)}</strong>
+                          </div>
+                          <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1.5 text-center">
+                            <span className="block text-[10px] text-slate-400">Empate</span>
+                            <strong className="text-sm text-white">{m.cuotaEmpate.toFixed(2)}</strong>
+                          </div>
+                          <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1.5 text-center">
+                            <span className="block text-[10px] text-slate-400 truncate">Gana {m.awayInitials}</span>
+                            <strong className="text-sm text-white">{m.cuotaVisita.toFixed(2)}</strong>
+                          </div>
                         </div>
-                        <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-center">
-                          <span className="block text-[10px] text-slate-400">Empate</span>
-                          <strong className="text-sm text-white">{m.cuotaEmpate.toFixed(2)}</strong>
-                        </div>
-                        <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-center">
-                          <span className="block text-[10px] text-slate-400 truncate">Gana {m.awayInitials}</span>
-                          <strong className="text-sm text-white">{m.cuotaVisita.toFixed(2)}</strong>
-                        </div>
+                        <p className="text-[10px] text-slate-400 mt-1.5 text-center leading-tight">
+                          Multiplica tu dinero: cobras tu apuesta × cuota si aciertas quién gana o empate
+                        </p>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-2 w-full lg:w-1/3 items-center">
-                        <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-center">
-                          <span className="block text-[10px] text-slate-400">Más de {m.lineGoals}</span>
-                          <strong className="text-sm text-amber-300">{m.cuotaOver.toFixed(2)}</strong>
+                      {/* BLOQUE TOTAL GOLES Y VEREDICTO MONTECARLO */}
+                      <div className="w-full lg:w-1/3 grid grid-cols-3 gap-2 items-start">
+                        {/* 2 CUADROS DE GOLES */}
+                        <div className="col-span-2 flex flex-col justify-between">
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1.5 text-center">
+                              <span className="block text-[10px] text-slate-400">Más de {m.lineGoals}</span>
+                              <strong className="text-sm text-amber-300">{m.cuotaOver.toFixed(2)}</strong>
+                            </div>
+                            <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1.5 text-center">
+                              <span className="block text-[10px] text-slate-400">Menos de {m.lineGoals}</span>
+                              <strong className="text-sm text-amber-300">{m.cuotaUnder.toFixed(2)}</strong>
+                            </div>
+                          </div>
+                          <p className="text-[10px] text-slate-400 mt-1.5 text-center leading-tight">
+                            Más: 3 o más goles | Menos: máximo 2 goles
+                          </p>
                         </div>
-                        <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-center">
-                          <span className="block text-[10px] text-slate-400">Menos de {m.lineGoals}</span>
-                          <strong className="text-sm text-amber-300">{m.cuotaUnder.toFixed(2)}</strong>
-                        </div>
-                        <div className={`${!unlocked ? "bg-slate-800 border-slate-600" : isProfitable ? "bg-green-950/70 border-green-500/50" : "bg-blue-950/70 border-blue-500/50"} border rounded-lg px-2 py-1.5 text-center`}>
-                          <span className="block text-[9px] text-slate-300 uppercase font-bold">
-                            {!unlocked ? "Análisis IA" : isProfitable ? `+${m.ev}% EV` : "Montecarlo"}
-                          </span>
-                          <strong className={`text-xs md:text-sm font-black ${!unlocked ? "text-amber-300" : isProfitable ? "text-green-400" : "text-blue-300"}`}>
-                            {unlocked ? `${m.probReal}% Real` : "🔒 VIP"}
-                          </strong>
+
+                        {/* 1 CUADRO DE MONTECARLO */}
+                        <div className="col-span-1 flex flex-col justify-between">
+                          <div className={`${!unlocked ? "bg-slate-800 border-slate-600" : isProfitable ? "bg-green-950/70 border-green-500/50" : "bg-blue-950/70 border-blue-500/50"} border rounded-lg px-2 py-1.5 text-center flex-1 flex flex-col justify-center`}>
+                            <span className="block text-[9px] text-slate-300 uppercase font-bold">
+                              {!unlocked ? "Análisis IA" : isProfitable ? `+${m.ev}% EV` : "Montecarlo"}
+                            </span>
+                            <strong className={`text-xs md:text-sm font-black ${!unlocked ? "text-amber-300" : isProfitable ? "text-green-400" : "text-blue-300"}`}>
+                              {unlocked ? `${m.probReal}% Real` : "🔒 VIP"}
+                            </strong>
+                          </div>
+                          <p className="text-[10px] text-slate-400 mt-1.5 text-center leading-tight">
+                            Certeza real (10k simulaciones IA)
+                          </p>
                         </div>
                       </div>
                     </div>
