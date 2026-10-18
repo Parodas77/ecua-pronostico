@@ -234,7 +234,7 @@ export default function EcuaPronosticoDashboard() {
 
   return (
     <div className="min-h-screen bg-[#0b132b] text-slate-50 p-3 md:p-6 font-sans">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-[1440px] w-full mx-auto">
         
         {showLoginModal && (
           <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex justify-center items-center z-50 p-4">
@@ -722,19 +722,25 @@ export default function EcuaPronosticoDashboard() {
         ) : (
           <>
             <section className="mb-8 bg-[#131d3b] border border-slate-700/80 rounded-2xl overflow-hidden shadow-2xl">
-              <div className="bg-[#1c2a52] px-4 py-3 border-b border-slate-700 flex flex-wrap justify-between items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-ping"></span>
-                  <h2 className="text-xs md:text-sm font-black uppercase tracking-wider text-amber-300">
-                    {isLoadingMatches
-                      ? "Consultando calendario oficial de ESPN para los próximos 8 días..."
-                      : `${currentMatch.leagueTitle} — ${matches.length} Partidos Por Jugar (Próximos 8 Días)`}
-                  </h2>
+              <div className="bg-[#1c2a52] px-4 md:px-6 py-3.5 border-b border-slate-700">
+                <div className="flex flex-wrap justify-between items-center gap-2 mb-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-ping"></span>
+                    <h2 className="text-xs md:text-sm font-black uppercase tracking-wider text-amber-300">
+                      {isLoadingMatches
+                        ? "Consultando calendario oficial de ESPN para los próximos 8 días..."
+                        : `${currentMatch.leagueTitle} — ${matches.length} Partidos Por Jugar (Próximos 8 Días)`}
+                    </h2>
+                  </div>
+                  <span className="text-[11px] text-slate-300 font-bold bg-slate-800/80 px-2.5 py-1 rounded-md border border-slate-700">
+                    Datos en vivo: API-Football, The Odds API & ESPN
+                  </span>
                 </div>
-                <div className="hidden lg:flex gap-16 text-[11px] font-bold text-slate-300 pr-6">
-                  <span>Ganador 1 X 2 (Cuotas)</span>
-                  <span>Total Goles (Más / Menos)</span>
-                  <span>Veredicto Honesto EV</span>
+
+                <div className="hidden lg:grid grid-cols-12 gap-6 text-xs font-black uppercase tracking-wider text-slate-300 pt-2 border-t border-slate-700/60">
+                  <div className="col-span-4">Partido, Fecha y Estado</div>
+                  <div className="col-span-4 text-center">Mercado Ganador 1 X 2 (Cuotas)</div>
+                  <div className="col-span-4 text-center">Total Goles & Veredicto EV Pos-Devigging</div>
                 </div>
               </div>
 
@@ -749,7 +755,7 @@ export default function EcuaPronosticoDashboard() {
                 </div>
               )}
 
-              <div className="divide-y divide-slate-800/80 max-h-[460px] overflow-y-auto">
+              <div className="divide-y divide-slate-800/80 max-h-[640px] overflow-y-auto">
                 {matches.map((m) => {
                   const isSelected = m.id === currentMatch.id;
                   const unlocked = view === "premium" || m.isFreeSample;
@@ -758,106 +764,159 @@ export default function EcuaPronosticoDashboard() {
                     <div
                       key={m.id}
                       onClick={() => setSelectedMatchId(m.id)}
-                      className={`p-3.5 md:px-5 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 cursor-pointer transition-all ${isSelected ? "bg-blue-950/80 border-l-4 border-amber-400" : "hover:bg-slate-800/50"}`}
+                      className={`p-4 md:px-6 md:py-4 transition-all cursor-pointer ${
+                        isSelected
+                          ? "bg-blue-950/70 border-l-4 border-l-amber-400"
+                          : "hover:bg-slate-800/40"
+                      }`}
                     >
-                      <div className="flex items-center gap-3 w-full lg:w-1/3">
-                        <div className="text-xs font-bold text-amber-400 w-20 shrink-0">
-                          {m.date.split(",")[0].slice(0, 3).toUpperCase()} {m.date.match(/\d+/)?.[0]}<br />
-                          <span className="text-white text-[11px]">{m.time.replace(" ECT", "")}</span>
-                        </div>
-                        <div className="space-y-1 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-full bg-slate-700 text-[10px] font-black flex items-center justify-center border border-blue-400/40">{m.homeInitials}</span>
-                            <span className="font-bold text-sm text-white">{m.home}</span>
+                      {/* FILA PRINCIPAL: 3 BLOQUES PERFECTAMENTE BALANCEADOS (4 COLS C/U) */}
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-center">
+                        {/* 1. EQUIPOS Y HORARIO (4 COLS) */}
+                        <div className="lg:col-span-4 flex items-center gap-3">
+                          <div className="text-xs font-bold text-amber-400 w-24 shrink-0 bg-slate-900/80 p-2 rounded-xl border border-slate-800 text-center">
+                            <span className="block uppercase tracking-wider">{m.date.split(",")[0].slice(0, 3)} {m.date.match(/\d+/)?.[0]}</span>
+                            <span className="text-white font-black text-xs">{m.time.replace(" ECT", "")}</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-full bg-slate-700 text-[10px] font-black flex items-center justify-center border border-amber-400/40">{m.awayInitials}</span>
-                            <span className="font-bold text-sm text-slate-200">{m.away}</span>
-                          </div>
-                        </div>
-                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${unlocked ? "bg-green-950 text-green-400 border border-green-500/40" : "bg-slate-800 text-amber-400 border border-amber-500/30"}`}>
-                          {m.isFreeSample ? "🔓 ABIERTA" : unlocked ? "🔓 VIP" : "🔒 VIP"}
-                        </span>
-                      </div>
 
-                      {/* BLOQUE GANADOR 1X2 */}
-                      <div className="w-full lg:w-1/3 flex flex-col justify-between">
-                        <div className="grid grid-cols-3 gap-2">
-                          <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1.5 text-center">
-                            <span className="block text-[10px] text-slate-400 truncate">Gana {m.homeInitials}</span>
-                            <strong className="text-sm text-white">{m.cuotaLocal.toFixed(2)}</strong>
-                          </div>
-                          <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1.5 text-center">
-                            <span className="block text-[10px] text-slate-400">Empate</span>
-                            <strong className="text-sm text-white">{m.cuotaEmpate.toFixed(2)}</strong>
-                          </div>
-                          <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1.5 text-center">
-                            <span className="block text-[10px] text-slate-400 truncate">Gana {m.awayInitials}</span>
-                            <strong className="text-sm text-white">{m.cuotaVisita.toFixed(2)}</strong>
-                          </div>
-                        </div>
-                        <p className="text-[10px] text-slate-400 mt-1.5 text-center leading-tight">
-                          Multiplica tu dinero: cobras tu apuesta × cuota si aciertas quién gana o empate
-                        </p>
-                      </div>
-
-                      {/* BLOQUE TOTAL GOLES Y VEREDICTO MONTECARLO */}
-                      <div className="w-full lg:w-1/3 grid grid-cols-3 gap-2 items-start">
-                        {/* 2 CUADROS DE GOLES */}
-                        <div className="col-span-2 flex flex-col justify-between">
-                          <div className="grid grid-cols-2 gap-2">
-                            <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1.5 text-center">
-                              <span className="block text-[10px] text-slate-400">Más de {m.lineGoals}</span>
-                              <strong className="text-sm text-amber-300">{m.cuotaOver.toFixed(2)}</strong>
+                          <div className="space-y-1.5 flex-1 min-w-0">
+                            <div className="flex items-center gap-2.5">
+                              <span className="w-7 h-7 rounded-full bg-slate-800 text-xs font-black flex items-center justify-center text-blue-300 border border-blue-400/40 shrink-0">
+                                {m.homeInitials}
+                              </span>
+                              <span className="font-bold text-sm md:text-base text-white tracking-tight truncate">
+                                {m.home}
+                              </span>
                             </div>
-                            <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1.5 text-center">
-                              <span className="block text-[10px] text-slate-400">Menos de {m.lineGoals}</span>
-                              <strong className="text-sm text-amber-300">{m.cuotaUnder.toFixed(2)}</strong>
+                            <div className="flex items-center gap-2.5">
+                              <span className="w-7 h-7 rounded-full bg-slate-800 text-xs font-black flex items-center justify-center text-amber-300 border border-amber-400/40 shrink-0">
+                                {m.awayInitials}
+                              </span>
+                              <span className="font-bold text-sm md:text-base text-slate-200 tracking-tight truncate">
+                                {m.away}
+                              </span>
                             </div>
                           </div>
-                          <p className="text-[10px] text-slate-400 mt-1.5 text-center leading-tight">
-                            Más: 3 o más goles | Menos: máximo 2 goles
+
+                          <span className={`text-[11px] px-2.5 py-1 rounded-lg font-black shrink-0 tracking-wider ${
+                            unlocked
+                              ? "bg-emerald-950/90 text-emerald-400 border border-emerald-500/50"
+                              : "bg-slate-900 text-amber-400 border border-amber-500/40"
+                          }`}>
+                            {m.isFreeSample ? "🔓 ABIERTA" : unlocked ? "🔓 VIP" : "🔒 VIP"}
+                          </span>
+                        </div>
+
+                        {/* 2. BLOQUE GANADOR 1X2 (4 COLS) */}
+                        <div className="lg:col-span-4 flex flex-col justify-between">
+                          <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+                            <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
+                              <span className="block text-xs font-bold text-slate-300 truncate">
+                                Gana {m.homeInitials}
+                              </span>
+                              <strong className="text-base md:text-lg font-black text-white font-mono">
+                                {m.cuotaLocal.toFixed(2)}
+                              </strong>
+                            </div>
+
+                            <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
+                              <span className="block text-xs font-bold text-slate-300">
+                                Empate
+                              </span>
+                              <strong className="text-base md:text-lg font-black text-white font-mono">
+                                {m.cuotaEmpate.toFixed(2)}
+                              </strong>
+                            </div>
+
+                            <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
+                              <span className="block text-xs font-bold text-slate-300 truncate">
+                                Gana {m.awayInitials}
+                              </span>
+                              <strong className="text-base md:text-lg font-black text-white font-mono">
+                                {m.cuotaVisita.toFixed(2)}
+                              </strong>
+                            </div>
+                          </div>
+
+                          <p className="text-xs text-slate-400 mt-2 text-center leading-snug">
+                            Multiplica tu dinero: cobras tu apuesta × cuota si aciertas quién gana o empate
                           </p>
                         </div>
 
-                        {/* 1 CUADRO DE VALOR ESPERADO EV */}
-                        <div className="col-span-1 flex flex-col justify-between">
-                          <div className={`${!unlocked ? "bg-slate-800 border-slate-600" : isProfitable ? "bg-emerald-950/80 border-emerald-500/70 shadow-[0_0_12px_rgba(16,185,129,0.3)]" : "bg-slate-800/90 border-slate-700"} border rounded-lg px-2 py-1.5 text-center flex-1 flex flex-col justify-center`}>
-                            <span className="block text-[9px] text-slate-300 uppercase font-bold">
-                              {!unlocked ? "Auditoría EV" : isProfitable ? "VALOR +EV" : "MERCADO EV"}
-                            </span>
-                            <strong className={`text-xs md:text-sm font-black ${!unlocked ? "text-amber-300" : isProfitable ? "text-emerald-400" : "text-slate-300"}`}>
-                              {unlocked ? (m.ev > 0 ? `+${m.ev}% EV` : `${m.ev}% EV`) : "🔒 VIP"}
-                            </strong>
+                        {/* 3. BLOQUE TOTAL GOLES Y VALOR ESPERADO EV (4 COLS) */}
+                        <div className="lg:col-span-4 grid grid-cols-3 gap-2 sm:gap-2.5 items-start">
+                          {/* 2 CUADROS DE GOLES */}
+                          <div className="col-span-2 flex flex-col justify-between">
+                            <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+                              <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
+                                <span className="block text-xs font-bold text-slate-300">
+                                  Más de {m.lineGoals}
+                                </span>
+                                <strong className="text-base md:text-lg font-black text-amber-300 font-mono">
+                                  {m.cuotaOver.toFixed(2)}
+                                </strong>
+                              </div>
+                              <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
+                                <span className="block text-xs font-bold text-slate-300">
+                                  Menos de {m.lineGoals}
+                                </span>
+                                <strong className="text-base md:text-lg font-black text-amber-300 font-mono">
+                                  {m.cuotaUnder.toFixed(2)}
+                                </strong>
+                              </div>
+                            </div>
+                            <p className="text-xs text-slate-400 mt-2 text-center leading-snug">
+                              Más: 3 o más goles | Menos: máx. 2 goles
+                            </p>
                           </div>
-                          <p className="text-[10px] text-slate-400 mt-1.5 text-center leading-tight">
-                            Valor esperado pos-devigging
-                          </p>
+
+                          {/* 1 CUADRO DE VALOR ESPERADO EV */}
+                          <div className="col-span-1 flex flex-col justify-between">
+                            <div className={`rounded-xl px-2 py-2 text-center flex flex-col justify-center transition-all shadow-sm border ${
+                              !unlocked
+                                ? "bg-slate-900/90 border-slate-700"
+                                : isProfitable
+                                ? "bg-emerald-950/90 border-emerald-500/80 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                                : "bg-slate-900/90 border-slate-700"
+                            }`}>
+                              <span className="block text-[10px] sm:text-xs text-slate-300 uppercase font-black tracking-tight">
+                                {!unlocked ? "Auditoría EV" : isProfitable ? "VALOR +EV" : "MERCADO EV"}
+                              </span>
+                              <strong className={`text-sm md:text-base font-black font-mono mt-0.5 ${
+                                !unlocked ? "text-amber-300" : isProfitable ? "text-emerald-400" : "text-slate-300"
+                              }`}>
+                                {unlocked ? (m.ev > 0 ? `+${m.ev}% EV` : `${m.ev}% EV`) : "🔒 VIP"}
+                              </strong>
+                            </div>
+                            <p className="text-xs text-slate-400 mt-2 text-center leading-snug">
+                              Valor pos-devigging
+                            </p>
+                          </div>
                         </div>
                       </div>
 
-                      {/* BANDEJA CONTEXTUAL DUAL: NOVATO (Semántica) vs PROFESIONAL (Cuantitativa xG) */}
-                      <div className="w-full mt-3 pt-2.5 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                      {/* BANDEJA CONTEXTUAL DUAL COMPLETA: NOVATO (Semántica) vs PROFESIONAL (Cuantitativa xG) */}
+                      <div className="w-full mt-3.5 pt-3 border-t border-slate-800/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5 text-xs">
                         {/* LADO NOVATO: Alertas Semánticas de APIs */}
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="bg-slate-900 text-sky-300 border border-sky-500/30 px-2 py-0.5 rounded-md font-medium flex items-center gap-1">
-                            👨‍⚖️ <strong>Árbitro:</strong> {m.refereeName || "Oficial"} ({m.refereeCardsAvg || "4.8"} tarj/p)
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="bg-slate-900/90 text-sky-300 border border-sky-500/40 px-3 py-1 rounded-lg font-medium flex items-center gap-1.5 shadow-sm">
+                            👨‍⚖️ <strong>Árbitro:</strong> {m.refereeName || "Oficial"} <span className="text-sky-400 font-bold">({m.refereeCardsAvg || "4.8"} tarj/p)</span>
                           </span>
-                          <span className="bg-slate-900 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-md font-medium flex items-center gap-1">
-                            📋 {m.lineupStatus || "Alineación verificada"}
+                          <span className="bg-slate-900/90 text-amber-300 border border-amber-500/40 px-3 py-1 rounded-lg font-medium flex items-center gap-1.5 shadow-sm">
+                            📋 <strong>Alineación:</strong> {m.lineupStatus || "Alineación verificada en planilla"}
                           </span>
-                          <span className="bg-slate-900 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-md font-medium hidden md:flex items-center gap-1">
-                            📈 {m.marketTrend ? m.marketTrend.slice(0, 42) + "..." : "Mercado en vivo"}
+                          <span className="bg-slate-900/90 text-slate-300 border border-slate-700 px-3 py-1 rounded-lg font-medium hidden xl:flex items-center gap-1.5 shadow-sm">
+                            📈 <strong>Mercado:</strong> {m.marketTrend ? (m.marketTrend.length > 55 ? m.marketTrend.slice(0, 52) + "..." : m.marketTrend) : "Consenso en vivo"}
                           </span>
                         </div>
 
                         {/* LADO PROFESIONAL: Métricas Cuantitativas xG y De-vigging */}
-                        <div className="flex items-center gap-2 text-[10px]">
-                          <span className="bg-blue-950/70 text-blue-300 border border-blue-500/40 px-2 py-0.5 rounded-md font-bold font-mono">
-                            ΔxG: {m.xgDiff > 0 ? `+${m.xgDiff}` : m.xgDiff} ({m.xgHome} vs {m.xgAway})
+                        <div className="flex flex-wrap items-center gap-2 font-mono">
+                          <span className="bg-blue-950/80 text-blue-300 border border-blue-500/50 px-3 py-1 rounded-lg font-bold shadow-sm flex items-center gap-1.5">
+                            📊 ΔxG: <span className="text-white">{m.xgDiff > 0 ? `+${m.xgDiff}` : m.xgDiff}</span> ({m.xgHome} vs {m.xgAway})
                           </span>
-                          <span className="bg-slate-900 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-md font-mono">
-                            Margen: {m.marginCasa}% | Clean: {m.cleanProb1}%-{m.cleanProbX}%-{m.cleanProb2}%
+                          <span className="bg-slate-900/90 text-slate-300 border border-slate-700/80 px-3 py-1 rounded-lg shadow-sm">
+                            ⚖️ Margen Casa: <strong className="text-slate-100">{m.marginCasa}%</strong> | Prob. Limpia: <strong className="text-emerald-400">{m.cleanProb1}% - {m.cleanProbX}% - {m.cleanProb2}%</strong>
                           </span>
                         </div>
                       </div>
