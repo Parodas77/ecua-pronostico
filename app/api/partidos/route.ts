@@ -1,10 +1,5 @@
 import { NextResponse } from "next/server";
 
-// ============================================================================
-// CACHÉ PROGRAMADO DIARIO (SE RENUEVA 1 SOLA VEZ AL DÍA CON VENTANA DE 8+ DÍAS)
-// ============================================================================
-const dailyLeagueCache: Record<string, { syncedDateKey: string; syncedAtIso: string; payload: any }> = {};
-
 function getNext8DaysWindow() {
   const now = new Date();
   const ecNow = new Date(now.getTime() - 5 * 60 * 60 * 1000);
@@ -170,15 +165,9 @@ const LEAGUE_CONFIG: Record<
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const leagueParam = searchParams.get("league") || "ligapro";
-  const forceRefresh = searchParams.get("refresh") === "true";
 
   const config = LEAGUE_CONFIG[leagueParam] || LEAGUE_CONFIG["ligapro"];
-  const { todayKey, fromIso, toIso, daysCompact, currentYear } = getNext8DaysWindow();
-
-  const cached = dailyLeagueCache[leagueParam];
-  if (!forceRefresh && cached && cached.syncedDateKey === todayKey && cached.payload?.matches?.length > 0) {
-    return NextResponse.json(cached.payload);
-  }
+  const { fromIso, toIso, daysCompact, currentYear } = getNext8DaysWindow();
 
   const apiFootballKey = process.env.API_FOOTBALL_KEY || process.env.NEXT_PUBLIC_API_FOOTBALL_KEY || "2ceb3637610213b4d82a91d894642826";
   const oddsApiKey = process.env.ODDS_API_KEY || process.env.NEXT_PUBLIC_ODDS_API_KEY || "e5d6dd7668f865a60b12ee09a670089a";
@@ -223,29 +212,10 @@ export async function GET(request: Request) {
       }
     }
 
-    if (rawUpcomingEspnEvents.length === 0) {
-      try {
-        const fallbackUrl = `https://site.api.espn.com/apis/site/v2/sports/soccer/${config.espnSlug}/scoreboard`;
-        const res = await fetch(fallbackUrl, { headers: browserHeaders, cache: "no-store" });
-        if (res.ok) {
-          const data = await res.json();
-          for (const ev of data?.events || []) {
-            const state = ev.status?.type?.state || ev.competitions?.[0]?.status?.type?.state;
-            const completed = ev.status?.type?.completed || ev.competitions?.[0]?.status?.type?.completed;
-            if (state !== "post" && completed !== true && !seenEventIds.has(String(ev.id))) {
-              seenEventIds.add(String(ev.id));
-              rawUpcomingEspnEvents.push(ev);
-            }
-          }
-        }
-      } catch (e: any) {
-        diagnostics.push(`Aviso ESPN general (${config.espnSlug}): ${e?.message}`);
-      }
-    }
-
     rawUpcomingEspnEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    diagnostics.push(`Calendario Oficial ESPN (${config.espnSlug}): ${rawUpcomingEspnEvents.length} partidos por jugar extraídos entre ${fromIso} y ${toIso}.`);
+    diagnostics.push(`Calendario Oficial ESPN (${config.espnSlug}): ${rawUpcomingEspnEvents.length} partidos por jugar extraídos.`);
 
+    // LLAMADA EN TIEMPO REAL A THE ODDS API (Sin caché estático)
     let liveOddsEvents: any[] = [];
     try {
       const oddsRes = await fetch(
@@ -286,7 +256,7 @@ export async function GET(request: Request) {
         }
       }
     } catch {
-      // Usa estadísticas de ESPN
+      // Usa estadísticas de respaldo
     }
 
     const processedMatches = rawUpcomingEspnEvents.map((ev, idx) => {
@@ -386,7 +356,7 @@ export async function GET(request: Request) {
       if (apiHomeStats && apiAwayStats) {
         xgHome = Number(((apiHomeStats.goalsForAvg + apiAwayStats.goalsAgainstAvg) / 2).toFixed(2));
         xgAway = Number(((apiAwayStats.goalsForAvg + apiAwayStats.goalsAgainstAvg) / 2).toFixed(2));
-        fuenteEstadistica = `Promedios reales de gol en liga (API-Football: ${homeName} ${apiHomeStats.goalsForAvg} GF vs ${awayName} ${apiAwayStats.goalsForAvg} GF)`;
+        fuenteEstadistica = `Promedios reales de gol en liga (${homeName} ${apiHomeStats.goalsForAvg} GF vs ${awayName} ${apiAwayStats.goalsForAvg} GF)`;
       } else if (hRate !== null && aRate !== null) {
         xgHome = Number(Math.max(0.85, Math.min(2.45, 0.95 + hRate * 1.45)).toFixed(2));
         xgAway = Number(Math.max(0.65, Math.min(2.15, 0.70 + aRate * 1.25)).toFixed(2));
@@ -459,13 +429,13 @@ export async function GET(request: Request) {
 
       const reporteVerificado = `${fuenteEstadistica}. Estadio: ${fullVenue}. ${
         hasLiveOdds
-          ? `Cuotas en vivo cruzadas con ${bookmakerCount} casas de apuestas.`
-          : `Cuota mínima justa calculada por Montecarlo para '${topPick.name}': ${minFairOddForTopPick} (si tu casa de apuestas paga más de ${minFairOddForTopPick}, tienes ventaja matemática real).`
+          ? `Cuotas en tiempo real obtenidas de The Odds API (${bookmakerCount} casas activas).`
+          : `Cuota mínima justa calculada por Montecarlo para '${topPick.name}':${minFairOddForTopPick}.`
       }`;
 
       const veredictoHonesto = hasRealPositiveEdge
-        ? `✅ SÍ HAY VENTAJA MATEMÁTICA REAL (+${topPick.ev}% EV): La jugada '${topPick.name}' (${topPick.explanation}) a cuota ${topPick.odd} supera la probabilidad implícita de la casa (${topPick.realProb}% en nuestras 10,000 simulaciones vs ${topPick.houseImplied}% del mercado).`
-        : `🔍 COMPARA EN TU CASA DE APUESTAS (Cuota Mínima Rentable: ${minFairOddForTopPick}): Nuestra simulación de Montecarlo le da un ${topPick.realProb}% de probabilidad real a '${topPick.name}'. Si en tu casa de apuestas local la cuota para '${topPick.name}' está por encima de ${minFairOddForTopPick}, entra con confianza; si pagan menos de ${minFairOddForTopPick}, NO apuestes porque la comisión de la casa te deja en desventaja.`;
+        ? `✅ SÍ HAY VENTAJA MATEMÁTICA REAL (+${topPick.ev}% EV): La jugada '${topPick.name}' (${topPick.explanation}) a cuota en vivo ${topPick.odd} supera la probabilidad implícita del mercado.`
+        : `🔍 COMPARA EN TU CASA DE APUESTAS (Cuota Mínima Rentable: ${minFairOddForTopPick}): Nuestra simulación le otorga un ${topPick.realProb}% de probabilidad real. Si la cuota actual en tu plataforma supera ${minFairOddForTopPick}, tienes valor esperado positivo.`;
 
       const dateObj = new Date(ev.date);
 
@@ -473,7 +443,7 @@ export async function GET(request: Request) {
         id: `espn-${ev.id || idx}`,
         isFreeSample: idx === 0,
         leagueTitle: config.espnName,
-        dataSource: `ESPN Calendario Oficial (${config.espnSlug})${hasLiveOdds ? ` + The Odds API (${bookmakerCount} casas)` : ""}`,
+        dataSource: `ESPN Calendario Oficial (${config.espnSlug})${hasLiveOdds ? ` + The Odds API (En Vivo)` : ""}`,
         hasLiveOdds,
         home: homeName,
         homeInitials: getTeamInitials(homeName),
@@ -481,7 +451,7 @@ export async function GET(request: Request) {
         away: awayName,
         awayInitials: getTeamInitials(awayName),
         awayAlt: `Visita - ${awayFormStr}`,
-        jornada: `${config.espnName.toUpperCase()} — PARTIDO POR JUGAR`,
+        jornada: `${config.espnName.toUpperCase()} — PARTIDO EN VIVO`,
         date: isNaN(dateObj.getTime())
           ? "Fecha Programada"
           : dateObj.toLocaleDateString("es-EC", { timeZone: "America/Guayaquil", weekday: "long", day: "numeric", month: "long", year: "numeric" }),
@@ -522,40 +492,34 @@ export async function GET(request: Request) {
         ev: topPick.ev,
         hasRealEdge: hasRealPositiveEdge,
         reportePlantilla: reporteVerificado,
-        cuotaMejoradaCasa: "No entrar en combinadas de 3 o más condiciones del mismo partido (el margen acumulado de la casa supera el 20%).",
-        analisisDinamico: `¡Calendario Oficial de ${config.espnName} Extraído en Vivo! (Ventana de 8 días: ${fromIso} al ${toIso}).
-Al evaluar el partido con la Distribución de Poisson y 10,000 Simulaciones de Montecarlo (${xgHome} goles proyectados para ${homeName} vs ${xgAway} para ${awayName}), los marcadores más probables son ${sim.topScores.map((s) => `${s.score} (${s.prob}%)`).join(", ")}.
+        cuotaMejoradaCasa: "Evita combinadas de 3 o más condiciones del mismo partido.",
+        analisisDinamico: `¡Terminal Sincronizada en Tiempo Real! (${fromIso} al ${toIso}).
+Poisson y Montecarlo (${xgHome} goles proyectados para ${homeName} vs ${xgAway} para ${awayName}). Marcadores probables: ${sim.topScores.map((s) => `${s.score} (${s.prob}%)`).join(", ")}.
 
-📋 Estadísticas y Sede Oficial: ${reporteVerificado}
+📋 Reporte: ${reporteVerificado}
 
-💰 Veredicto Financiero para tu Apuesta:
+💰 Veredicto Financiero:
 ${veredictoHonesto}`,
       };
     });
 
     const syncedAtIso = new Date().toLocaleTimeString("es-EC", { timeZone: "America/Guayaquil", hour: "2-digit", minute: "2-digit" });
     const payload = {
-      source: "DAILY_SCHEDULED_ESPN_CALENDAR_SYNC",
+      source: "REALTIME_LIVE_MARKET_SYNC",
       leagueName: config.espnName,
-      window: `${fromIso} al ${toIso} (Sincronizado hoy ${todayKey} a las ${syncedAtIso} ECT)`,
+      window: `${fromIso} al ${toIso} (Sincronizado en tiempo real a las ${syncedAtIso} ECT)`,
       diagnostics,
       matches: processedMatches,
     };
 
-    dailyLeagueCache[leagueParam] = {
-      syncedDateKey: todayKey,
-      syncedAtIso,
-      payload,
-    };
-
-    return NextResponse.json(payload);
+    return NextResponse.json(payload, { headers: { "Cache-Control": "no-store, max-age=0" } });
   } catch (err: any) {
     return NextResponse.json({
       source: "ERROR_LIVE_FETCH",
       window: `${fromIso} al ${toIso}`,
       diagnostics: [...diagnostics, err?.message || "Error de conexión"],
       matches: [],
-    });
+    }, { headers: { "Cache-Control": "no-store, max-age=0" } });
   }
 }
 
@@ -567,36 +531,6 @@ export async function POST(request: Request) {
     const q = rawQ.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     const list: any[] = Array.isArray(allMatches) && allMatches.length > 0 ? allMatches : currentMatch ? [currentMatch] : [];
 
-    const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-    if (geminiKey && geminiKey.length > 10) {
-      try {
-        const summary = list
-          .map((m: any, i: number) => `${i + 1}. ${m.home} vs ${m.away} (${m.date}) -> Jugada: '${m.bestMarketName}' (${m.probReal}% Montecarlo, Cuota Mínima: ${m.minFairOddForTopPick})`)
-          .join("\n");
-
-        const aiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              system_instruction: {
-                parts: [{ text: "Eres el Auditor Cuantitativo en Vivo de EcuaPronóstico. Responde exactamente a lo que pide el usuario sin Markdown." }]
-              },
-              contents: [{ parts: [{ text: `LIGA: ${currentMatch?.leagueTitle}\nPARTIDO: ${currentMatch?.home} vs ${currentMatch?.away}\n\nLISTA:\n${summary}\n\nPREGUNTA: ${rawQ}` }] }]
-            })
-          }
-        );
-        if (aiRes.ok) {
-          const aiData = await aiRes.json();
-          const aiText = aiData?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (aiText) return NextResponse.json({ reply: aiText.trim() });
-        }
-      } catch {
-        // Fallback local
-      }
-    }
-
     const mentionedMatch = list.find((m: any) => {
       const h = normalizeTeamName(m.home);
       const a = normalizeTeamName(m.away);
@@ -605,13 +539,13 @@ export async function POST(request: Request) {
 
     if (mentionedMatch) {
       return NextResponse.json({
-        reply: `Para ${mentionedMatch.home} vs ${mentionedMatch.away}: La opción recomendada es '${mentionedMatch.bestMarketName}' con ${mentionedMatch.probReal}% de probabilidad real en Montecarlo. Cuota mínima rentable: ${mentionedMatch.minFairOddForTopPick}.`
+        reply: `Para ${mentionedMatch.home} vs ${mentionedMatch.away}: La opción recomendada es '${mentionedMatch.bestMarketName}' a cuota en vivo ${mentionedMatch.bestOdd} (${mentionedMatch.probReal}% probabilidad en Montecarlo).`
       });
     }
 
     const ranked = [...list].sort((a: any, b: any) => (b.probReal || 0) - (a.probReal || 0));
     const top3 = ranked.slice(0, 3);
-    const lines = top3.map((m: any, i: number) => `${i + 1}) ${m.home} vs ${m.away}: '${m.bestMarketName}' (${m.probReal}% Montecarlo, Cuota Mínima: ${m.minFairOddForTopPick})`);
+    const lines = top3.map((m: any, i: number) => `${i + 1}) ${m.home} vs ${m.away}: '${m.bestMarketName}' (Cuota en vivo: ${m.bestOdd})`);
 
     return NextResponse.json({
       reply: `Top 3 partidos más sólidos de ${currentMatch?.leagueTitle || "la semana"}:\n\n${lines.join("\n")}`
