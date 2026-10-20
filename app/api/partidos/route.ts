@@ -26,13 +26,14 @@ function getNext8DaysWindow() {
 // 1. DESMARGENIZACIÓN MATEMÁTICA REAL (Proportional De-vigging)
 function removeBookmakerMargin(odd1: number, oddX: number, odd2: number) {
   const raw1 = 1 / Math.max(1.01, odd1);
-  const rawX = 1 / Math.max(1.01, oddX);
+  const hasDraw = oddX > 1.05;
+  const rawX = hasDraw ? 1 / Math.max(1.01, oddX) : 0;
   const raw2 = 1 / Math.max(1.01, odd2);
   const overround = raw1 + rawX + raw2;
   return {
     marginPercent: Number(((overround - 1) * 100).toFixed(1)),
     cleanProb1: Number(((raw1 / overround) * 100).toFixed(1)),
-    cleanProbX: Number(((rawX / overround) * 100).toFixed(1)),
+    cleanProbX: hasDraw ? Number(((rawX / overround) * 100).toFixed(1)) : 0,
     cleanProb2: Number(((raw2 / overround) * 100).toFixed(1)),
   };
 }
@@ -219,41 +220,335 @@ function getTeamElevation(teamName: string, defaultCity = ""): TeamElevationInfo
   return { city: defaultCity || "Sede Oficial", altitudeMeters: 100, region: "europa" };
 }
 
-// MAPA ESTRICTO POR LIGA INDIVIDUAL
+// MAPA ESTRICTO POR LIGA INDIVIDUAL (AMÉRICA DEL NORTE, AMÉRICA DEL SUR Y EUROPA)
 const LEAGUE_CONFIG: Record<
   string,
   {
+    espnSportPath: string;
     espnSlug: string;
     espnName: string;
     oddsApiSportKey: string;
     apiFootballLeagueId: number;
     defaultReferee: string;
     refereeSeverity: number; // cards per match
+    sportCategory: "football" | "basketball" | "hockey" | "baseball" | "soccer";
   }
 > = {
+  // ==========================================
+  // PESTAÑA 1: 🏈 AMÉRICA DEL NORTE (US/CA Sports)
+  // ==========================================
+  nfl: {
+    espnSportPath: "football/nfl",
+    espnSlug: "nfl",
+    espnName: "NFL (Fútbol Americano)",
+    oddsApiSportKey: "americanfootball_nfl",
+    apiFootballLeagueId: 0,
+    defaultReferee: "Carl Cheffers",
+    refereeSeverity: 3.0,
+    sportCategory: "football",
+  },
+  nba: {
+    espnSportPath: "basketball/nba",
+    espnSlug: "nba",
+    espnName: "NBA (Baloncesto)",
+    oddsApiSportKey: "basketball_nba",
+    apiFootballLeagueId: 0,
+    defaultReferee: "Scott Foster",
+    refereeSeverity: 2.5,
+    sportCategory: "basketball",
+  },
+  nhl: {
+    espnSportPath: "hockey/nhl",
+    espnSlug: "nhl",
+    espnName: "NHL (Hockey sobre Hielo)",
+    oddsApiSportKey: "icehockey_nhl",
+    apiFootballLeagueId: 0,
+    defaultReferee: "Wes McCauley",
+    refereeSeverity: 3.5,
+    sportCategory: "hockey",
+  },
+  mlb: {
+    espnSportPath: "baseball/mlb",
+    espnSlug: "mlb",
+    espnName: "MLB (Béisbol / Baseball)",
+    oddsApiSportKey: "baseball_mlb",
+    apiFootballLeagueId: 0,
+    defaultReferee: "Pat Hoberg",
+    refereeSeverity: 1.5,
+    sportCategory: "baseball",
+  },
+
+  // ==========================================
+  // PESTAÑA 2: ⚽ AMÉRICA DEL SUR (CONMEBOL)
+  // ==========================================
+  // Ligas Locales
+  argentina: {
+    espnSportPath: "soccer/arg.1",
+    espnSlug: "arg.1",
+    espnName: "Argentina: Liga Profesional",
+    oddsApiSportKey: "soccer_argentina_primera_division",
+    apiFootballLeagueId: 128,
+    defaultReferee: "Facundo Tello",
+    refereeSeverity: 5.8,
+    sportCategory: "soccer",
+  },
+  brasil: {
+    espnSportPath: "soccer/bra.1",
+    espnSlug: "bra.1",
+    espnName: "Brasil: Brasileirão Serie A",
+    oddsApiSportKey: "soccer_brazil_campeonato",
+    apiFootballLeagueId: 71,
+    defaultReferee: "Wilton Sampaio",
+    refereeSeverity: 5.5,
+    sportCategory: "soccer",
+  },
+  colombia: {
+    espnSportPath: "soccer/col.1",
+    espnSlug: "col.1",
+    espnName: "Colombia: Liga Dimayor",
+    oddsApiSportKey: "soccer_colombia_primera_a",
+    apiFootballLeagueId: 239,
+    defaultReferee: "Wilmar Roldán",
+    refereeSeverity: 5.4,
+    sportCategory: "soccer",
+  },
   ligapro: {
+    espnSportPath: "soccer/ecu.1",
     espnSlug: "ecu.1",
-    espnName: "LigaPro de Ecuador (Primera A)",
+    espnName: "Ecuador: LigaPro Serie A",
     oddsApiSportKey: "soccer_ecuador_primera_a",
     apiFootballLeagueId: 242,
     defaultReferee: "Augusto Aragón",
     refereeSeverity: 5.2,
+    sportCategory: "soccer",
   },
+  ecuador: {
+    espnSportPath: "soccer/ecu.1",
+    espnSlug: "ecu.1",
+    espnName: "Ecuador: LigaPro Serie A",
+    oddsApiSportKey: "soccer_ecuador_primera_a",
+    apiFootballLeagueId: 242,
+    defaultReferee: "Augusto Aragón",
+    refereeSeverity: 5.2,
+    sportCategory: "soccer",
+  },
+  // Competiciones CONMEBOL
+  libertadores: {
+    espnSportPath: "soccer/conmebol.libertadores",
+    espnSlug: "conmebol.libertadores",
+    espnName: "Copa Libertadores de América",
+    oddsApiSportKey: "soccer_conmebol_copa_libertadores",
+    apiFootballLeagueId: 13,
+    defaultReferee: "Esteban Ostojich",
+    refereeSeverity: 5.6,
+    sportCategory: "soccer",
+  },
+  sudamericana: {
+    espnSportPath: "soccer/conmebol.sudamericana",
+    espnSlug: "conmebol.sudamericana",
+    espnName: "Copa Sudamericana",
+    oddsApiSportKey: "soccer_conmebol_copa_sudamericana",
+    apiFootballLeagueId: 11,
+    defaultReferee: "Jesús Valenzuela",
+    refereeSeverity: 5.3,
+    sportCategory: "soccer",
+  },
+  recopa_sudamericana: {
+    espnSportPath: "soccer/conmebol.recopa",
+    espnSlug: "conmebol.recopa",
+    espnName: "Recopa Sudamericana",
+    oddsApiSportKey: "soccer_conmebol_copa_libertadores",
+    apiFootballLeagueId: 541,
+    defaultReferee: "Piero Maza",
+    refereeSeverity: 5.0,
+    sportCategory: "soccer",
+  },
+
+  // ==========================================
+  // PESTAÑA 3: 🇪🇺 EUROPA (Ligas y UEFA)
+  // ==========================================
+  // The Big Five + Históricas
+  espana: {
+    espnSportPath: "soccer/esp.1",
+    espnSlug: "esp.1",
+    espnName: "España: La Liga (Primera División)",
+    oddsApiSportKey: "soccer_spain_la_liga",
+    apiFootballLeagueId: 140,
+    defaultReferee: "Jesús Gil Manzano",
+    refereeSeverity: 4.8,
+    sportCategory: "soccer",
+  },
+  laliga: {
+    espnSportPath: "soccer/esp.1",
+    espnSlug: "esp.1",
+    espnName: "España: La Liga (Primera División)",
+    oddsApiSportKey: "soccer_spain_la_liga",
+    apiFootballLeagueId: 140,
+    defaultReferee: "Jesús Gil Manzano",
+    refereeSeverity: 4.8,
+    sportCategory: "soccer",
+  },
+  inglaterra: {
+    espnSportPath: "soccer/eng.1",
+    espnSlug: "eng.1",
+    espnName: "Inglaterra: Premier League",
+    oddsApiSportKey: "soccer_epl",
+    apiFootballLeagueId: 39,
+    defaultReferee: "Michael Oliver",
+    refereeSeverity: 4.0,
+    sportCategory: "soccer",
+  },
+  premier: {
+    espnSportPath: "soccer/eng.1",
+    espnSlug: "eng.1",
+    espnName: "Inglaterra: Premier League",
+    oddsApiSportKey: "soccer_epl",
+    apiFootballLeagueId: 39,
+    defaultReferee: "Michael Oliver",
+    refereeSeverity: 4.0,
+    sportCategory: "soccer",
+  },
+  italia: {
+    espnSportPath: "soccer/ita.1",
+    espnSlug: "ita.1",
+    espnName: "Italia: Serie A",
+    oddsApiSportKey: "soccer_italy_serie_a",
+    apiFootballLeagueId: 135,
+    defaultReferee: "Daniele Orsato",
+    refereeSeverity: 4.5,
+    sportCategory: "soccer",
+  },
+  seriea: {
+    espnSportPath: "soccer/ita.1",
+    espnSlug: "ita.1",
+    espnName: "Italia: Serie A",
+    oddsApiSportKey: "soccer_italy_serie_a",
+    apiFootballLeagueId: 135,
+    defaultReferee: "Daniele Orsato",
+    refereeSeverity: 4.5,
+    sportCategory: "soccer",
+  },
+  alemania: {
+    espnSportPath: "soccer/ger.1",
+    espnSlug: "ger.1",
+    espnName: "Alemania: Bundesliga",
+    oddsApiSportKey: "soccer_germany_bundesliga",
+    apiFootballLeagueId: 78,
+    defaultReferee: "Felix Brych",
+    refereeSeverity: 3.9,
+    sportCategory: "soccer",
+  },
+  bundesliga: {
+    espnSportPath: "soccer/ger.1",
+    espnSlug: "ger.1",
+    espnName: "Alemania: Bundesliga",
+    oddsApiSportKey: "soccer_germany_bundesliga",
+    apiFootballLeagueId: 78,
+    defaultReferee: "Felix Brych",
+    refereeSeverity: 3.9,
+    sportCategory: "soccer",
+  },
+  francia: {
+    espnSportPath: "soccer/fra.1",
+    espnSlug: "fra.1",
+    espnName: "Francia: Ligue 1",
+    oddsApiSportKey: "soccer_france_ligue_one",
+    apiFootballLeagueId: 61,
+    defaultReferee: "François Letexier",
+    refereeSeverity: 4.2,
+    sportCategory: "soccer",
+  },
+  ligue1: {
+    espnSportPath: "soccer/fra.1",
+    espnSlug: "fra.1",
+    espnName: "Francia: Ligue 1",
+    oddsApiSportKey: "soccer_france_ligue_one",
+    apiFootballLeagueId: 61,
+    defaultReferee: "François Letexier",
+    refereeSeverity: 4.2,
+    sportCategory: "soccer",
+  },
+  paises_bajos: {
+    espnSportPath: "soccer/ned.1",
+    espnSlug: "ned.1",
+    espnName: "Países Bajos: Eredivisie",
+    oddsApiSportKey: "soccer_netherlands_eredivisie",
+    apiFootballLeagueId: 88,
+    defaultReferee: "Danny Makkelie",
+    refereeSeverity: 3.8,
+    sportCategory: "soccer",
+  },
+  eredivisie: {
+    espnSportPath: "soccer/ned.1",
+    espnSlug: "ned.1",
+    espnName: "Países Bajos: Eredivisie",
+    oddsApiSportKey: "soccer_netherlands_eredivisie",
+    apiFootballLeagueId: 88,
+    defaultReferee: "Danny Makkelie",
+    refereeSeverity: 3.8,
+    sportCategory: "soccer",
+  },
+  portugal: {
+    espnSportPath: "soccer/por.1",
+    espnSlug: "por.1",
+    espnName: "Portugal: Primeira Liga",
+    oddsApiSportKey: "soccer_portugal_primeira_liga",
+    apiFootballLeagueId: 94,
+    defaultReferee: "Artur Soares Dias",
+    refereeSeverity: 5.1,
+    sportCategory: "soccer",
+  },
+  primeira_liga: {
+    espnSportPath: "soccer/por.1",
+    espnSlug: "por.1",
+    espnName: "Portugal: Primeira Liga",
+    oddsApiSportKey: "soccer_portugal_primeira_liga",
+    apiFootballLeagueId: 94,
+    defaultReferee: "Artur Soares Dias",
+    refereeSeverity: 5.1,
+    sportCategory: "soccer",
+  },
+
+  // Competiciones Internacionales UEFA
   champions: {
+    espnSportPath: "soccer/uefa.champions",
     espnSlug: "uefa.champions",
     espnName: "UEFA Champions League",
     oddsApiSportKey: "soccer_uefa_champs_league",
     apiFootballLeagueId: 2,
     defaultReferee: "Clément Turpin",
     refereeSeverity: 4.1,
+    sportCategory: "soccer",
   },
   europa: {
+    espnSportPath: "soccer/uefa.europa",
     espnSlug: "uefa.europa",
     espnName: "UEFA Europa League",
     oddsApiSportKey: "soccer_uefa_europa_league",
     apiFootballLeagueId: 3,
     defaultReferee: "István Kovács",
     refereeSeverity: 4.7,
+    sportCategory: "soccer",
+  },
+  conference: {
+    espnSportPath: "soccer/uefa.europa.conf",
+    espnSlug: "uefa.europa.conf",
+    espnName: "UEFA Conference League",
+    oddsApiSportKey: "soccer_uefa_europa_conference_league",
+    apiFootballLeagueId: 848,
+    defaultReferee: "Maurizio Mariani",
+    refereeSeverity: 4.3,
+    sportCategory: "soccer",
+  },
+  supercopa_uefa: {
+    espnSportPath: "soccer/uefa.super_cup",
+    espnSlug: "uefa.super_cup",
+    espnName: "Supercopa de la UEFA",
+    oddsApiSportKey: "soccer_uefa_super_cup",
+    apiFootballLeagueId: 531,
+    defaultReferee: "Sandro Schärer",
+    refereeSeverity: 4.0,
+    sportCategory: "soccer",
   },
 };
 
@@ -282,7 +577,8 @@ export async function GET(request: Request) {
     // A) Solicitudes paralelas a ESPN para los 8 días
     const espnDayPromises = daysCompact.map(async (dateCompact) => {
       try {
-        const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/${config.espnSlug}/scoreboard?dates=${dateCompact}`;
+        const sportPath = config.espnSportPath || `soccer/${config.espnSlug}`;
+        const url = `https://site.api.espn.com/apis/site/v2/sports/${sportPath}/scoreboard?dates=${dateCompact}`;
         const res = await fetch(url, { headers: browserHeaders, cache: "no-store" });
         if (!res.ok) return [];
         const data = await res.json();
@@ -293,14 +589,23 @@ export async function GET(request: Request) {
     });
 
     // B) Solicitud en tiempo real a The Odds API (H2H, Totales y Spreads / Hándicap Asiático)
-    const oddsPromise = fetch(
-      `https://api.the-odds-api.com/v4/sports/${config.oddsApiSportKey}/odds/?apiKey=${oddsApiKey}&regions=eu,us,uk&markets=h2h,totals,spreads&oddsFormat=decimal`,
-      { headers: browserHeaders, cache: "no-store" }
-    ).then((r) => (r.ok ? r.json() : [])).catch(() => []);
+    const oddsPromise = (async () => {
+      try {
+        if (!config.oddsApiSportKey) return [];
+        const res = await fetch(
+          `https://api.the-odds-api.com/v4/sports/${config.oddsApiSportKey}/odds/?apiKey=${oddsApiKey}&regions=eu,us,uk&markets=h2h,totals,spreads&oddsFormat=decimal`,
+          { headers: browserHeaders, cache: "no-store" }
+        );
+        return res.ok ? await res.json() : [];
+      } catch {
+        return [];
+      }
+    })();
 
-    // C) Solicitud en tiempo real a API-Football (Standings y Fixtures con árbitros)
+    // C) Solicitud en tiempo real a API-Football (Standings y Fixtures con árbitros para fútbol)
     const apiFootballStandingsPromise = (async () => {
       try {
+        if (!config.apiFootballLeagueId || config.apiFootballLeagueId <= 0) return [];
         let stdRes = await fetch(
           `https://v3.football.api-sports.io/standings?league=${config.apiFootballLeagueId}&season=${currentYear}`,
           { headers: { ...browserHeaders, "x-apisports-key": apiFootballKey }, cache: "no-store" }
@@ -322,6 +627,7 @@ export async function GET(request: Request) {
 
     const apiFootballFixturesPromise = (async () => {
       try {
+        if (!config.apiFootballLeagueId || config.apiFootballLeagueId <= 0) return [];
         const fixRes = await fetch(
           `https://v3.football.api-sports.io/fixtures?league=${config.apiFootballLeagueId}&season=2024&from=${fromIso}&to=${toIso}`,
           { headers: { ...browserHeaders, "x-apisports-key": apiFootballKey }, cache: "no-store" }
@@ -366,7 +672,7 @@ export async function GET(request: Request) {
     }
 
     rawUpcomingEspnEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    diagnostics.push(`ESPN Oficial (${config.espnSlug}): ${rawUpcomingEspnEvents.length} partidos por jugar.`);
+    diagnostics.push(`ESPN Oficial (${config.espnSportPath}): ${rawUpcomingEspnEvents.length} eventos programados.`);
     diagnostics.push(`The Odds API: ${liveOddsEvents.length} eventos con cuotas en tiempo real.`);
 
     // =========================================================================
@@ -542,45 +848,83 @@ export async function GET(request: Request) {
       let altitudeImpactXg = "Sin distorsión fisiológica";
       let altitudeSeverity = "NEUTRAL";
 
-      if (config.espnSlug.includes("ecu")) {
-        if (homeGeo.region === "sierra" && awayGeo.region === "costa") {
-          altitudeSeverity = "CRITICA";
-          altitudeBadge = `⛰️ Altura Crítica: ${homeGeo.altitudeMeters}m (${homeGeo.city})`;
-          altitudeImpactXg = `-16% xG a ${awayName} (Desgaste Costa) | +12% xG a ${homeName}`;
-          altitudeAlert = `Factor Altitud / Desgaste Fisiológico Severo: ${awayName} (club de la costa al nivel del mar) visita la altura andina de ${homeGeo.city} a ${homeGeo.altitudeMeters}m. El modelo aplicó penalización de -16% xG visitante por hipoxia y déficit aeróbico en el segundo tiempo.`;
-          
-          xgHomeCalculated = Number((xgHomeCalculated * 1.12).toFixed(2));
-          xgAwayCalculated = Number((xgAwayCalculated * 0.84).toFixed(2));
-        } else if (homeGeo.region === "costa" && awayGeo.region === "sierra") {
-          altitudeSeverity = "MEDIA";
-          altitudeBadge = `🌊 Nivel del Mar: Calor y Humedad (${homeGeo.city})`;
-          altitudeImpactXg = `-6% xG a ${awayName} (Factor Térmico) | +5% xG a ${homeName}`;
-          altitudeAlert = `Factor Térmico y Desplazamiento Costero: ${awayName} (club de altura) desciende a competir al nivel del mar en ${homeGeo.city}. Las altas temperaturas y la humedad del llano exigen mayor resistencia física.`;
-          
-          xgHomeCalculated = Number((xgHomeCalculated * 1.05).toFixed(2));
-          xgAwayCalculated = Number((xgAwayCalculated * 0.94).toFixed(2));
-        } else if (homeGeo.region === "sierra" && awayGeo.region === "sierra") {
-          altitudeBadge = `⛰️ Duelo en Altura (${homeGeo.altitudeMeters}m)`;
-          altitudeImpactXg = "Simétrico (Ambos aclimatados a la sierra)";
-          altitudeAlert = `Factor Altitud: Duelo andino en ${homeGeo.city} (${homeGeo.altitudeMeters}m). Ambos clubes están plenamente aclimatados a la altitud; sin distorsión fisiológica asimétrica.`;
+      if (config.sportCategory === "soccer") {
+        if (config.espnSportPath.includes("ecu")) {
+          if (homeGeo.region === "sierra" && awayGeo.region === "costa") {
+            altitudeSeverity = "CRITICA";
+            altitudeBadge = `⛰️ Altura Crítica: ${homeGeo.altitudeMeters}m (${homeGeo.city})`;
+            altitudeImpactXg = `-16% xG a ${awayName} (Desgaste Costa) | +12% xG a ${homeName}`;
+            altitudeAlert = `Factor Altitud / Desgaste Fisiológico Severo: ${awayName} (club de la costa al nivel del mar) visita la altura andina de ${homeGeo.city} a ${homeGeo.altitudeMeters}m. El modelo aplicó penalización de -16% xG visitante por hipoxia y déficit aeróbico en el segundo tiempo.`;
+            
+            xgHomeCalculated = Number((xgHomeCalculated * 1.12).toFixed(2));
+            xgAwayCalculated = Number((xgAwayCalculated * 0.84).toFixed(2));
+          } else if (homeGeo.region === "costa" && awayGeo.region === "sierra") {
+            altitudeSeverity = "MEDIA";
+            altitudeBadge = `🌊 Nivel del Mar: Calor y Humedad (${homeGeo.city})`;
+            altitudeImpactXg = `-6% xG a ${awayName} (Factor Térmico) | +5% xG a ${homeName}`;
+            altitudeAlert = `Factor Térmico y Desplazamiento Costero: ${awayName} (club de altura) desciende a competir al nivel del mar en ${homeGeo.city}. Las altas temperaturas y la humedad del llano exigen mayor resistencia física.`;
+            
+            xgHomeCalculated = Number((xgHomeCalculated * 1.05).toFixed(2));
+            xgAwayCalculated = Number((xgAwayCalculated * 0.94).toFixed(2));
+          } else if (homeGeo.region === "sierra" && awayGeo.region === "sierra") {
+            altitudeBadge = `⛰️ Duelo en Altura (${homeGeo.altitudeMeters}m)`;
+            altitudeImpactXg = "Simétrico (Ambos aclimatados a la sierra)";
+            altitudeAlert = `Factor Altitud: Duelo andino en ${homeGeo.city} (${homeGeo.altitudeMeters}m). Ambos clubes están plenamente aclimatados a la altitud; sin distorsión fisiológica asimétrica.`;
+          } else {
+            altitudeBadge = `🌊 Duelo Costero (Nivel del Mar)`;
+            altitudeImpactXg = "Simétrico (Ambos habituados a la costa)";
+            altitudeAlert = `Factor Geográfico: Partido disputado al nivel del mar en ${homeGeo.city}. Desplazamiento interprovincial estándar sin impacto aeróbico.`;
+          }
+        } else if (config.espnSportPath.includes("conmebol") || config.espnSportPath.includes("arg") || config.espnSportPath.includes("bra") || config.espnSportPath.includes("col")) {
+          altitudeBadge = `🏟️ Sede Sudamericana (${homeGeo.city || "CONMEBOL"})`;
+          altitudeImpactXg = "Localía y ambiente de alta intensidad";
+          altitudeAlert = `Contexto Geográfico: Encuentro disputado en ${homeGeo.city || venueCity || "Sede Oficial"}. Factor de localía con alta presión ambiental y dinamismo táctico.`;
         } else {
-          altitudeBadge = `🌊 Duelo Costero (Nivel del Mar)`;
-          altitudeImpactXg = "Simétrico (Ambos habituados a la costa)";
-          altitudeAlert = `Factor Geográfico: Partido disputado al nivel del mar en ${homeGeo.city}. Desplazamiento interprovincial estándar sin impacto aeróbico.`;
+          altitudeBadge = `🌍 Sede Oficial (${homeGeo.city || "Europa"})`;
+          altitudeImpactXg = "Logística y desplazamiento continental";
+          altitudeAlert = `Contexto Geográfico: Competición europea oficial disputada en ${homeGeo.city || venueCity || "Estadio Oficial"}. Rendimiento regido por balance técnico y táctico.`;
         }
       } else {
-        altitudeBadge = `🌍 Sede Oficial UEFA (${homeGeo.city || "Europa"})`;
-        altitudeImpactXg = "Logística y desplazamiento continental";
-        altitudeAlert = `Contexto Geográfico: Partido de competición europea sin penalización extrema por altitud. Rendimiento regido por balance táctico.`;
+        altitudeBadge = `🏟️ Arena Oficial (${homeGeo.city || "Norteamérica"})`;
+        altitudeImpactXg = "Rendimiento y rotación de plantilla";
+        altitudeAlert = `Contexto Deportivo: Encuentro oficial de ${config.espnName}. Rendimiento regido por eficiencia ofensiva, defensiva y descanso de rotación.`;
       }
 
-      // Límites lógicos mínimos
-      const xgHome = Math.max(0.60, xgHomeCalculated);
-      const xgAway = Math.max(0.50, xgAwayCalculated);
-      const xgDiff = Number((xgHome - xgAway).toFixed(2));
+      // --- SIMULACIÓN MONTECARLO CON xG O PUNTOS OFICIALES ---
+      let sim: any;
+      let xgHome = 0;
+      let xgAway = 0;
+      let xgDiff = 0;
 
-      // --- SIMULACIÓN MONTECARLO CON xG ---
-      const sim = runRealPoissonMontecarlo(xgHome, xgAway, 10000);
+      if (config.sportCategory === "soccer") {
+        xgHome = Math.max(0.60, xgHomeCalculated);
+        xgAway = Math.max(0.50, xgAwayCalculated);
+        xgDiff = Number((xgHome - xgAway).toFixed(2));
+        sim = runRealPoissonMontecarlo(xgHome, xgAway, 10000);
+      } else {
+        const sportTotal = lineGoals > 4 ? lineGoals : (config.sportCategory === "basketball" ? 222.5 : config.sportCategory === "football" ? 45.5 : config.sportCategory === "hockey" ? 5.5 : 8.5);
+        const p1Ratio = devig1X2.cleanProb1 / Math.max(1, devig1X2.cleanProb1 + devig1X2.cleanProb2);
+        xgHome = Number((sportTotal * p1Ratio).toFixed(1));
+        xgAway = Number((sportTotal * (1 - p1Ratio)).toFixed(1));
+        xgDiff = Number((xgHome - xgAway).toFixed(1));
+        sim = {
+          probHome: devig1X2.cleanProb1,
+          probDraw: 0,
+          probAway: devig1X2.cleanProb2,
+          probOver25: devigTotals.cleanProbOver,
+          probUnder25: devigTotals.cleanProbUnder,
+          probOver35: devigTotals.cleanProbOver,
+          probUnder35: devigTotals.cleanProbUnder,
+          probBttsYes: 0,
+          probBttsNo: 100,
+          topScores: [
+            { score: `${Math.round(xgHome)}-${Math.round(xgAway)}`, prob: Number(Math.max(devig1X2.cleanProb1, devig1X2.cleanProb2).toFixed(1)) },
+            { score: `${Math.round(xgHome) + 2}-${Math.round(xgAway)}`, prob: Number((Math.min(devig1X2.cleanProb1, devig1X2.cleanProb2) * 0.7).toFixed(1)) },
+            { score: `${Math.round(xgHome)}-${Math.round(xgAway) + 2}`, prob: Number((Math.min(devig1X2.cleanProb1, devig1X2.cleanProb2) * 0.5).toFixed(1)) },
+          ],
+          expectedTotalGoals: sportTotal,
+        };
+      }
 
       // --- CÁLCULO DE VALOR ESPERADO REAL (EV %) TRAS DE-VIGGING ---
       const evHome = Number((((sim.probHome / 100) * defaultOdd1 - 1) * 100).toFixed(1));
@@ -706,22 +1050,28 @@ export async function GET(request: Request) {
       const winnerHouseImplied = isHomeFav ? devig1X2.cleanProb1 : devig1X2.cleanProb2;
       const winnerEV = isHomeFav ? evHome : evAway;
 
+      const unitLabel = (config.sportCategory === "basketball" || config.sportCategory === "football")
+        ? "Puntos"
+        : config.sportCategory === "baseball"
+        ? "Carreras"
+        : "Goles";
+
       const bestGoalsMarket = evOver >= evUnder
         ? {
-            name: `Más de ${lineGoals} Goles`,
+            name: `Más de ${lineGoals} ${unitLabel}`,
             odd: defaultOver,
             houseImplied: devigTotals.cleanProbOver,
             realProb: lineGoals === 3.5 ? sim.probOver35 : sim.probOver25,
             ev: evOver,
-            explanation: `Que hay 3 o más goles en total en el encuentro`,
+            explanation: `Que hay más de ${lineGoals} ${unitLabel.toLowerCase()} en total en el encuentro`,
           }
         : {
-            name: `Menos de ${lineGoals} Goles`,
+            name: `Menos de ${lineGoals} ${unitLabel}`,
             odd: defaultUnder,
             houseImplied: devigTotals.cleanProbUnder,
             realProb: lineGoals === 3.5 ? sim.probUnder35 : sim.probUnder25,
             ev: evUnder,
-            explanation: `Que hay máximo 2 goles en total en el encuentro`,
+            explanation: `Que hay máximo ${lineGoals} ${unitLabel.toLowerCase()} en total en el encuentro`,
           };
 
       let topPickName = `Gana ${winnerName}`;
@@ -731,7 +1081,7 @@ export async function GET(request: Request) {
       let topPickEV = winnerEV;
       let topPickSubtitle = `La opción con mayor probabilidad matemática detectada (${winnerProb}% Montecarlo)`;
 
-      const isTechnicalDraw = Math.abs(sim.probHome - sim.probAway) < 3.5 && sim.probDraw >= 31;
+      const isTechnicalDraw = config.sportCategory === "soccer" && Math.abs(sim.probHome - sim.probAway) < 3.5 && sim.probDraw >= 31;
       if (isTechnicalDraw) {
         topPickName = `Empate (o Cobertura 0.0)`;
         topPickOdd = defaultOddX;
@@ -845,8 +1195,10 @@ export async function GET(request: Request) {
       return {
         id: `espn-${ev.id || idx}`,
         isFreeSample: idx === 0,
+        leagueKey: leagueParam,
+        sportCategory: config.sportCategory,
         leagueTitle: config.espnName,
-        dataSource: `ESPN (${config.espnSlug}) + The Odds API (${bookmakerCount} casas) + API-Football v3`,
+        dataSource: `ESPN (${config.espnSportPath}) + The Odds API (${bookmakerCount} casas) + API-Football v3`,
         hasLiveOdds,
         home: homeName,
         homeInitials: getTeamInitials(homeName),
@@ -952,7 +1304,7 @@ export async function GET(request: Request) {
         analisisDinamico: `¡Terminal Cuantitativa Sincronizada con 3 APIs en Tiempo Real! (${fromIso} al ${toIso}).
 Peligro Ofensivo xG: ${xgHome} xG ${homeName} vs ${xgAway} xG ${awayName} (Diferencial ΔxG: ${xgDiff > 0 ? "+" + xgDiff : xgDiff}).
 Factor Altitud: ${altitudeBadge} (${altitudeImpactXg}).
-Simulaciones Montecarlo: Marcadores más probables: ${sim.topScores.map((s) => `${s.score} (${s.prob}%)`).join(", ")}.
+Simulaciones Montecarlo: Marcadores más probables: ${sim.topScores.map((s: any) => `${s.score} (${s.prob}%)`).join(", ")}.
 
 📋 Contexto Oficial:
 • 👨‍⚖️ Árbitro: ${refereeOfficialName} — ${refereeAlert}

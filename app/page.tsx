@@ -1,9 +1,108 @@
 "use client";
 import { useState, useEffect } from "react";
 
+interface LeagueOption {
+  id: string;
+  name: string;
+  sportLabel?: string;
+  icon: string;
+}
+
+interface DropdownSection {
+  title?: string;
+  options: LeagueOption[];
+}
+
+interface RegionTab {
+  id: "north_america" | "south_america" | "europe";
+  label: string;
+  shortLabel: string;
+  icon: string;
+  subtitle: string;
+  sections: DropdownSection[];
+}
+
+const REGION_TABS: RegionTab[] = [
+  {
+    id: "north_america",
+    label: "AMÉRICA DEL NORTE",
+    shortLabel: "América del Norte",
+    icon: "🏈",
+    subtitle: "US / CA Sports",
+    sections: [
+      {
+        title: "Grandes Ligas Norteamericanas",
+        options: [
+          { id: "nfl", name: "NFL", sportLabel: "Fútbol Americano", icon: "🏈" },
+          { id: "nba", name: "NBA", sportLabel: "Baloncesto", icon: "🏀" },
+          { id: "nhl", name: "NHL", sportLabel: "Hockey sobre Hielo", icon: "🏒" },
+          { id: "mlb", name: "MLB", sportLabel: "Béisbol / Baseball", icon: "⚾" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "south_america",
+    label: "AMÉRICA DEL SUR",
+    shortLabel: "América del Sur",
+    icon: "⚽",
+    subtitle: "CONMEBOL",
+    sections: [
+      {
+        title: "Ligas Locales",
+        options: [
+          { id: "argentina", name: "Argentina: Liga Profesional", sportLabel: "Primera División", icon: "🇦🇷" },
+          { id: "brasil", name: "Brasil: Brasileirão Serie A", sportLabel: "Serie A", icon: "🇧🇷" },
+          { id: "colombia", name: "Colombia: Liga Dimayor", sportLabel: "Categoría Primera A", icon: "🇨🇴" },
+          { id: "ligapro", name: "Ecuador: LigaPro Serie A", sportLabel: "Primera División", icon: "🇪🇨" },
+        ],
+      },
+      {
+        title: "Competiciones CONMEBOL",
+        options: [
+          { id: "libertadores", name: "Copa Libertadores de América", sportLabel: "Torneo Continental", icon: "🏆" },
+          { id: "sudamericana", name: "Copa Sudamericana", sportLabel: "Torneo Continental", icon: "🥈" },
+          { id: "recopa_sudamericana", name: "Recopa Sudamericana", sportLabel: "Final Continental", icon: "🏅" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "europe",
+    label: "EUROPA",
+    shortLabel: "Europa",
+    icon: "🇪🇺",
+    subtitle: "Ligas y UEFA",
+    sections: [
+      {
+        title: "The Big Five + Históricas",
+        options: [
+          { id: "espana", name: "España: La Liga", sportLabel: "Primera División", icon: "🇪🇸" },
+          { id: "inglaterra", name: "Inglaterra: Premier League", sportLabel: "Premier League", icon: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" },
+          { id: "italia", name: "Italia: Serie A", sportLabel: "Serie A", icon: "🇮🇹" },
+          { id: "alemania", name: "Alemania: Bundesliga", sportLabel: "Bundesliga", icon: "🇩🇪" },
+          { id: "francia", name: "Francia: Ligue 1", sportLabel: "Ligue 1", icon: "🇫🇷" },
+          { id: "paises_bajos", name: "Países Bajos: Eredivisie", sportLabel: "Eredivisie", icon: "🇳🇱" },
+          { id: "portugal", name: "Portugal: Primeira Liga", sportLabel: "Primeira Liga", icon: "🇵🇹" },
+        ],
+      },
+      {
+        title: "Competiciones Internacionales UEFA",
+        options: [
+          { id: "champions", name: "UEFA Champions League", sportLabel: "Torneo Continental", icon: "🏆" },
+          { id: "europa", name: "UEFA Europa League", sportLabel: "Torneo Continental", icon: "🌍" },
+          { id: "conference", name: "UEFA Conference League", sportLabel: "Torneo Continental", icon: "🛡️" },
+          { id: "supercopa_uefa", name: "Supercopa de la UEFA", sportLabel: "Final Continental", icon: "⭐" },
+        ],
+      },
+    ],
+  },
+];
+
 export default function EcuaPronosticoDashboard() {
   const [view, setView] = useState("basic");
   const [league, setLeague] = useState("ligapro");
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [activeMarketTab, setActiveMarketTab] = useState("todos");
   const [displayMode, setDisplayMode] = useState<"full" | "simplified" | "top4">("full");
   
@@ -70,6 +169,32 @@ export default function EcuaPronosticoDashboard() {
     }
   };
 
+  const getActiveLeagueDetails = () => {
+    for (const reg of REGION_TABS) {
+      for (const sec of reg.sections) {
+        const found = sec.options.find((o) => o.id === league);
+        if (found) return { region: reg, option: found };
+      }
+    }
+    return {
+      region: REGION_TABS[1],
+      option: { id: "ligapro", name: "Ecuador: LigaPro Serie A", icon: "🇪🇨", sportLabel: "Primera División" },
+    };
+  };
+
+  const activeLeagueInfo = getActiveLeagueDetails();
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest("[data-league-dropdown]")) {
+        setOpenDropdown(null);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+
   const fetchAllLeaguesForTop4 = async () => {
     try {
       const ligaproRes = await fetch(`/api/partidos?league=ligapro`);
@@ -84,6 +209,15 @@ export default function EcuaPronosticoDashboard() {
       const euroData = await euroRes.json();
       const euroMatches = Array.isArray(euroData.matches) ? euroData.matches : [];
 
+      let currentLeagueMatches: any[] = [];
+      if (league !== "ligapro" && league !== "champions" && league !== "europa") {
+        try {
+          const curRes = await fetch(`/api/partidos?league=${league}`);
+          const curData = await curRes.json();
+          currentLeagueMatches = Array.isArray(curData.matches) ? curData.matches : [];
+        } catch {}
+      }
+
       const nowMs = Date.now();
       const sortFn = (a: any, b: any) => {
         const timeA = a.dateIso ? new Date(a.dateIso).getTime() : nowMs + 86400000 * 5;
@@ -96,15 +230,16 @@ export default function EcuaPronosticoDashboard() {
       ligaproMatches.sort(sortFn);
       champMatches.sort(sortFn);
       euroMatches.sort(sortFn);
+      currentLeagueMatches.sort(sortFn);
 
       const selectedTop4: any[] = [];
+      if (currentLeagueMatches.length > 0) selectedTop4.push(currentLeagueMatches[0]);
       if (ligaproMatches.length > 0) selectedTop4.push(ligaproMatches[0]);
-      if (ligaproMatches.length > 1) selectedTop4.push(ligaproMatches[1]);
       if (champMatches.length > 0) selectedTop4.push(champMatches[0]);
-      if (champMatches.length > 1) selectedTop4.push(champMatches[1]);
+      if (euroMatches.length > 0) selectedTop4.push(euroMatches[0]);
 
       if (selectedTop4.length < 4) {
-        const rest = [...ligaproMatches.slice(2), ...champMatches.slice(2), ...euroMatches];
+        const rest = [...currentLeagueMatches.slice(1), ...ligaproMatches.slice(1), ...champMatches.slice(1), ...euroMatches.slice(1)];
         rest.sort(sortFn);
         while (selectedTop4.length < 4 && rest.length > 0) {
           selectedTop4.push(rest.shift());
@@ -333,25 +468,109 @@ export default function EcuaPronosticoDashboard() {
           )}
 
           <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-3">
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setLeague("ligapro")}
-                className={`px-4 py-2.5 rounded-xl font-extrabold text-xs md:text-sm flex items-center gap-2 transition-all ${league === "ligapro" ? "bg-amber-400 text-slate-950 shadow-[0_0_20px_rgba(251,191,36,0.4)]" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
-              >
-                🇪🇨 LigaPro Ecuador
-              </button>
-              <button
-                onClick={() => setLeague("champions")}
-                className={`px-4 py-2.5 rounded-xl font-extrabold text-xs md:text-sm flex items-center gap-2 transition-all ${league === "champions" ? "bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)]" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
-              >
-                🏆 UEFA Champions League
-              </button>
-              <button
-                onClick={() => setLeague("europa")}
-                className={`px-4 py-2.5 rounded-xl font-extrabold text-xs md:text-sm flex items-center gap-2 transition-all ${league === "europa" ? "bg-orange-500 text-slate-950 shadow-[0_0_20px_rgba(249,115,22,0.4)]" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
-              >
-                🌍 UEFA Europa League
-              </button>
+            {/* SISTEMA DE PESTAÑAS DESPLEGABLES (DROPDOWN TABS) POR REGIÓN */}
+            <div className="flex flex-wrap items-center gap-2 relative z-30" data-league-dropdown>
+              {REGION_TABS.map((reg, tabIdx) => {
+                const isRegionActive = activeLeagueInfo.region.id === reg.id;
+                const isOpen = openDropdown === reg.id;
+
+                return (
+                  <div key={reg.id} className="relative">
+                    <button
+                      onClick={() => setOpenDropdown(isOpen ? null : reg.id)}
+                      className={`px-3.5 py-2.5 rounded-xl font-black text-xs md:text-sm flex items-center gap-2 transition-all border ${
+                        isRegionActive
+                          ? "bg-slate-900 text-amber-300 border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.35)] ring-1 ring-amber-400/50"
+                          : "bg-slate-900/90 text-slate-300 border-slate-700/80 hover:bg-slate-800 hover:text-white hover:border-slate-600"
+                      }`}
+                    >
+                      <span className="text-base">{reg.icon}</span>
+                      <span className="tracking-wide uppercase font-extrabold">{reg.label}</span>
+                      {isRegionActive && (
+                        <span className="text-[10px] bg-amber-400/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-400/40 font-bold ml-1 hidden sm:inline-block truncate max-w-[130px]">
+                          {activeLeagueInfo.option.name.split(":")[0]}
+                        </span>
+                      )}
+                      <svg
+                        className={`w-3.5 h-3.5 ml-1 transition-transform duration-200 text-slate-400 ${
+                          isOpen ? "rotate-180 text-amber-400" : ""
+                        }`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2.5}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {/* MENÚ DESPLEGABLE CON SECCIONES */}
+                    {isOpen && (
+                      <div
+                        className={`absolute mt-2 w-72 sm:w-80 md:w-96 bg-slate-900/98 backdrop-blur-2xl border border-slate-700/90 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] p-2 z-50 max-h-[72vh] overflow-y-auto divide-y divide-slate-800/80 animate-in fade-in zoom-in-95 duration-150 ${
+                          tabIdx === 2 ? "left-0 xl:left-auto xl:right-0" : "left-0"
+                        }`}
+                      >
+                        <div className="px-3 py-2 mb-1 flex items-center justify-between border-b border-slate-800">
+                          <div>
+                            <div className="text-xs font-black text-amber-300 flex items-center gap-1.5">
+                              <span>{reg.icon}</span> {reg.label}
+                            </div>
+                            <div className="text-[10px] text-slate-400 font-medium">{reg.subtitle}</div>
+                          </div>
+                          <span className="text-[9px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700 font-mono">
+                            {reg.sections.reduce((acc, s) => acc + s.options.length, 0)} Opciones
+                          </span>
+                        </div>
+
+                        {reg.sections.map((section, sIdx) => (
+                          <div key={sIdx} className="pt-2 pb-1.5">
+                            {section.title && (
+                              <div className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400 bg-slate-950/60 rounded-md mb-1.5 flex items-center justify-between">
+                                <span>{section.title}</span>
+                              </div>
+                            )}
+                            <div className="space-y-1 mt-1">
+                              {section.options.map((opt) => {
+                                const isSelected = league === opt.id;
+                                return (
+                                  <button
+                                    key={opt.id}
+                                    onClick={() => {
+                                      setLeague(opt.id);
+                                      setOpenDropdown(null);
+                                    }}
+                                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left text-xs transition-all ${
+                                      isSelected
+                                        ? "bg-gradient-to-r from-amber-400/25 to-amber-500/10 text-amber-300 border border-amber-400/50 shadow-sm font-bold"
+                                        : "text-slate-200 hover:bg-slate-800/90 hover:text-white"
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2.5 truncate">
+                                      <span className="text-base shrink-0">{opt.icon}</span>
+                                      <div className="truncate">
+                                        <div className="font-bold truncate text-slate-100">{opt.name}</div>
+                                        {opt.sportLabel && (
+                                          <div className="text-[10px] text-slate-400 font-normal">{opt.sportLabel}</div>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {isSelected && (
+                                      <span className="text-amber-400 text-xs font-black shrink-0 ml-2 bg-amber-400/20 px-2 py-0.5 rounded-full border border-amber-400/40">
+                                        ✓ Activa
+                                      </span>
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             <div className="flex flex-wrap gap-2 bg-slate-900 p-1.5 rounded-2xl border-2 border-amber-400/60 shadow-[0_0_25px_rgba(251,191,36,0.2)]">
@@ -519,7 +738,11 @@ export default function EcuaPronosticoDashboard() {
 
                           <button
                             onClick={() => {
-                              setLeague(m.leagueTitle.toLowerCase().includes("champions") ? "champions" : m.leagueTitle.toLowerCase().includes("europa") ? "europa" : "ligapro");
+                              if (m.leagueKey) {
+                                setLeague(m.leagueKey);
+                              } else {
+                                setLeague(m.leagueTitle?.toLowerCase().includes("champions") ? "champions" : m.leagueTitle?.toLowerCase().includes("europa") ? "europa" : "ligapro");
+                              }
                               setSelectedMatchId(m.id);
                               setDisplayMode("full");
                             }}
