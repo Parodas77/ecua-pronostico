@@ -124,6 +124,8 @@ export default function EcuaPronosticoDashboard() {
 
   const [stakeAmount, setStakeAmount] = useState<number>(10);
   const [paywallReason, setPaywallReason] = useState<string>("Desbloquea el Radar VIP completo por solo $14.99/mes");
+  const [fijasSyncInfo, setFijasSyncInfo] = useState<string>("Ventana: Próximas 24 horas (Orden Cronológico)");
+  const [isLoadingTop4, setIsLoadingTop4] = useState<boolean>(false);
 
   const openVipPaywall = (reason?: string) => {
     if (reason) setPaywallReason(reason);
@@ -158,7 +160,7 @@ export default function EcuaPronosticoDashboard() {
       if (data.matches && data.matches.length > 0) {
         setMatches(data.matches);
         setSelectedMatchId(data.matches[0].id);
-        fetchAllLeaguesForTop4();
+        fetchAllLeaguesForTop4(force);
         if (force) {
           setSyncToast("✓ Sincronización exitosa: 3 APIs conectadas en tiempo real (The Odds API + ESPN + API-Football)");
           setTimeout(() => setSyncToast(null), 4500);
@@ -201,60 +203,24 @@ export default function EcuaPronosticoDashboard() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  const fetchAllLeaguesForTop4 = async () => {
+  const fetchAllLeaguesForTop4 = async (force = false) => {
+    setIsLoadingTop4(true);
     try {
-      const ligaproRes = await fetch(`/api/partidos?league=ligapro`);
-      const ligaproData = await ligaproRes.json();
-      const ligaproMatches = Array.isArray(ligaproData.matches) ? ligaproData.matches : [];
-
-      const champRes = await fetch(`/api/partidos?league=champions`);
-      const champData = await champRes.json();
-      const champMatches = Array.isArray(champData.matches) ? champData.matches : [];
-
-      const euroRes = await fetch(`/api/partidos?league=europa`);
-      const euroData = await euroRes.json();
-      const euroMatches = Array.isArray(euroData.matches) ? euroData.matches : [];
-
-      let currentLeagueMatches: any[] = [];
-      if (league !== "ligapro" && league !== "champions" && league !== "europa") {
-        try {
-          const curRes = await fetch(`/api/partidos?league=${league}`);
-          const curData = await curRes.json();
-          currentLeagueMatches = Array.isArray(curData.matches) ? curData.matches : [];
-        } catch {}
-      }
-
-      const nowMs = Date.now();
-      const sortFn = (a: any, b: any) => {
-        const timeA = a.dateIso ? new Date(a.dateIso).getTime() : nowMs + 86400000 * 5;
-        const timeB = b.dateIso ? new Date(b.dateIso).getTime() : nowMs + 86400000 * 5;
-        const diffA = Math.abs(timeA - nowMs);
-        const diffB = Math.abs(timeB - nowMs);
-        return diffA - diffB - (b.probReal || 50) * 1000;
-      };
-
-      ligaproMatches.sort(sortFn);
-      champMatches.sort(sortFn);
-      euroMatches.sort(sortFn);
-      currentLeagueMatches.sort(sortFn);
-
-      const selectedTop4: any[] = [];
-      if (currentLeagueMatches.length > 0) selectedTop4.push(currentLeagueMatches[0]);
-      if (ligaproMatches.length > 0) selectedTop4.push(ligaproMatches[0]);
-      if (champMatches.length > 0) selectedTop4.push(champMatches[0]);
-      if (euroMatches.length > 0) selectedTop4.push(euroMatches[0]);
-
-      if (selectedTop4.length < 4) {
-        const rest = [...currentLeagueMatches.slice(1), ...ligaproMatches.slice(1), ...champMatches.slice(1), ...euroMatches.slice(1)];
-        rest.sort(sortFn);
-        while (selectedTop4.length < 4 && rest.length > 0) {
-          selectedTop4.push(rest.shift());
+      const res = await fetch(`/api/fijas${force ? "?refresh=true&t=" + Date.now() : ""}`);
+      const data = await res.json();
+      if (data && Array.isArray(data.fijas) && data.fijas.length > 0) {
+        setTop4Matches(data.fijas);
+        if (data.syncTime) {
+          setFijasSyncInfo(`Sincronizado a las ${data.syncTime} • Ventana: ${data.window}`);
         }
+      } else {
+        setTop4Matches(matches.slice(0, 4));
       }
-
-      setTop4Matches(selectedTop4.slice(0, 4));
-    } catch {
+    } catch (err) {
+      console.error("Error al obtener Las 4 Fijas del Día:", err);
       setTop4Matches(matches.slice(0, 4));
+    } finally {
+      setIsLoadingTop4(false);
     }
   };
 
@@ -372,7 +338,7 @@ export default function EcuaPronosticoDashboard() {
         ...prev,
         {
           role: "ai",
-          text: `Para ${currentMatch.home} vs ${currentMatch.away}: La opción con mayor probabilidad es '${currentMatch.bestMarketName}' a cuota ${currentMatch.bestOdd} (${currentMatch.ev > 0 ? "+" + currentMatch.ev : currentMatch.ev}% EV). Cuota mínima rentable: ${currentMatch.minFairOddForTopPick}. Árbitro: ${currentMatch.refereeName} (${currentMatch.refereeCardsAvg} tarj/p).`
+          text: `Para ${currentMatch.home} vs ${currentMatch.away}: La opción con mayor probabilidad es '${currentMatch.bestMarketName}' a cuota ${currentMatch.bestOdd} (${currentMatch.ev > 0 ? "+" + currentMatch.ev : currentMatch.ev}% EV). Cuota mínima rentable: ${currentMatch.minFairOddForTopPick}. Árbitro: ${currentMatch.refereeName && currentMatch.refereeName !== "Por designar" ? `${currentMatch.refereeName} (${currentMatch.refereeCardsAvg} tarj/p)` : "Por designar"}.`
         }
       ]);
     } finally {
@@ -385,7 +351,7 @@ export default function EcuaPronosticoDashboard() {
       setChatHistory([
         {
           role: "ai",
-          text: `👋 Auditor Cuantitativo conectado a ${currentMatch.home} vs ${currentMatch.away} (${currentMatch.leagueTitle || 'Competición Oficial'}).\n\nTengo en memoria sus Expected Goals (${currentMatch.xgHome} vs ${currentMatch.xgAway}), cuota mínima rentable (${currentMatch.minFairOddForTopPick}), árbitro oficial (${currentMatch.refereeName} | ${currentMatch.refereeCardsAvg} tarj/p) y el factor altitud/sede (${currentMatch.altitudeBadge}).\n\n¿Qué deseas consultar sobre este partido?`
+          text: `👋 Auditor Cuantitativo conectado a ${currentMatch.home} vs ${currentMatch.away} (${currentMatch.leagueTitle || 'Competición Oficial'}).\n\nTengo en memoria sus Expected Goals (${currentMatch.xgHome} vs ${currentMatch.xgAway}), cuota mínima rentable (${currentMatch.minFairOddForTopPick}), árbitro oficial (${currentMatch.refereeName && currentMatch.refereeName !== "Por designar" ? `${currentMatch.refereeName} | ${currentMatch.refereeCardsAvg} tarj/p` : "Por designar"}) y el factor altitud/sede (${currentMatch.altitudeBadge}).\n\n¿Qué deseas consultar sobre este partido?`
         }
       ]);
     }
@@ -744,19 +710,23 @@ export default function EcuaPronosticoDashboard() {
           <section className="space-y-6">
             <div className="bg-gradient-to-r from-[#064e3b] via-[#0f2557] to-[#064e3b] border-2 border-green-400/80 rounded-3xl p-6 text-center shadow-[0_0_35px_rgba(34,197,94,0.3)] relative overflow-hidden">
               <span className="inline-block bg-green-400 text-slate-950 font-black text-xs px-4 py-1 rounded-full uppercase tracking-widest mb-2 shadow">
-                El Reporte Estelar para Grupos de WhatsApp y Telegram
+                Ventana Dinámica: Próximas 24 Horas (NOW a NOW + 24H) • Orden Estrictamente Cronológico
               </span>
               <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-green-200 to-green-400 drop-shadow">
-                🏆 LAS 4 FIJAS DEL DÍA (MÁXIMA CERTEZA)
+                🏆 LAS 4 FIJAS DEL DÍA (MÁXIMA CERTEZA Y VALOR)
               </h2>
               <p className="text-xs md:text-sm text-slate-200 mt-1 max-w-2xl mx-auto">
-                Estas son las <strong className="text-amber-300">4 mejores predicciones</strong> seleccionadas de todo el radar multiligas (LigaPro, Champions y Europa League) con mayor porcentaje de acierto en las 10,000 simulaciones de Montecarlo.
+                Filtro automático de <strong className="text-amber-300">todas las ligas y deportes activos</strong> para las próximas 24 horas. El motor matemático evalúa el <strong className="text-green-300">EV% y probabilidad más alta</strong> (ganador, doble oportunidad o goles), ordenadas de forma <strong className="text-white font-bold">estrictamente cronológica por hora de inicio</strong>.
               </p>
+              <div className="mt-3 text-[11px] text-emerald-300 font-mono font-bold bg-slate-950/70 inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-emerald-500/40 shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>{fijasSyncInfo}</span>
+              </div>
             </div>
 
-            {isLoadingMatches ? (
+            {isLoadingMatches || isLoadingTop4 ? (
               <div className="p-12 text-center bg-[#131d3b] border border-slate-700 rounded-3xl">
-                <p className="text-lg font-black text-green-300 animate-pulse">Seleccionando Las 4 Fijas de hoy...</p>
+                <p className="text-lg font-black text-green-300 animate-pulse">Consultando 20 ligas globales en la ventana de 24 horas y ordenando cronológicamente...</p>
               </div>
             ) : top4Matches.length === 0 ? (
               <div className="p-8 text-center bg-[#131d3b] border border-slate-700 rounded-3xl">
@@ -789,15 +759,22 @@ export default function EcuaPronosticoDashboard() {
                         <div className="flex items-center gap-2">
                           <span className="w-3 h-3 rounded-full bg-green-400 animate-ping"></span>
                           <span className="text-xs font-black uppercase tracking-wider text-green-300">
-                            FIJA #{idx + 1} • {m.leagueTitle}
+                            FIJA #{idx + 1} • {m.icon || "⚽"} {m.leagueTitle}
                           </span>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="text-xs md:text-sm font-bold text-white">
-                            📅 {m.date} • ⏰ <strong className="text-amber-300">{m.time}</strong>
+                          <span className="text-xs md:text-sm font-bold text-white flex items-center gap-1.5">
+                            <span>📅 {m.date}</span>
+                            <span>•</span>
+                            <span>⏰ <strong className="text-amber-300">{m.time}</strong></span>
+                            {m.timeDisplay && (
+                              <span className="text-[10px] bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2 py-0.5 rounded font-black ml-1">
+                                ⏳ {m.timeDisplay}
+                              </span>
+                            )}
                           </span>
                           <span className="text-[10px] bg-green-950 text-green-400 border border-green-500/40 px-2.5 py-0.5 rounded-full font-black">
-                            🔥 TOP RECOMENDADA
+                            🔥 CONFIANZA {m.confidenceScore || 85}/100
                           </span>
                         </div>
                       </div>
@@ -859,8 +836,15 @@ export default function EcuaPronosticoDashboard() {
                               <strong className="text-green-400">{m.minFairOddForTopPick}</strong>
                             </div>
                             <div className="pt-1 flex flex-wrap gap-1">
-                              <span className="text-[10px] bg-slate-800 text-sky-300 border border-sky-500/30 px-1.5 py-0.5 rounded font-medium">
-                                👨‍⚖️ {m.refereeName || "Árbitro Oficial"}
+                              <span className="text-[10px] bg-slate-800 text-sky-300 border border-sky-500/30 px-2 py-0.5 rounded font-medium">
+                                👨‍⚖️ {m.refereeName && m.refereeName !== "Por designar" ? (
+                                  <>
+                                    <strong>{m.refereeName}</strong>
+                                    {m.refereeCardsAvg && m.refereeCardsAvg !== "N/D" && <span className="text-sky-400 font-bold ml-1">({m.refereeCardsAvg} tarj/p)</span>}
+                                  </>
+                                ) : (
+                                  <span className="text-slate-400">Árbitro: Por designar</span>
+                                )}
                               </span>
                               <span className="text-[10px] bg-slate-800 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded font-medium">
                                 📋 {m.lineupStatus ? m.lineupStatus.slice(0, 32) + "..." : "Alineaciones verificadas"}
@@ -1287,7 +1271,14 @@ export default function EcuaPronosticoDashboard() {
                               {m.altitudeBadge || "⛰️ Altitud Evaluada"}
                             </span>
                             <span className="bg-slate-900/90 text-sky-300 border border-sky-500/40 px-3 py-1 rounded-lg font-medium flex items-center gap-1.5 shadow-sm">
-                              👨‍⚖️ <strong>Árbitro:</strong> {m.refereeName || "Oficial"} <span className="text-sky-400 font-bold">({m.refereeCardsAvg || "4.8"} tarj/p)</span>
+                              👨‍⚖️ <strong>Árbitro:</strong> {m.refereeName && m.refereeName !== "Por designar" ? (
+                                <>
+                                  <span>{m.refereeName}</span>
+                                  {m.refereeCardsAvg && m.refereeCardsAvg !== "N/D" && <span className="text-sky-400 font-bold ml-1">({m.refereeCardsAvg} tarj/p)</span>}
+                                </>
+                              ) : (
+                                <span className="text-slate-400 font-normal">Por designar</span>
+                              )}
                             </span>
                             <span className="bg-slate-900/90 text-amber-300 border border-amber-500/40 px-3 py-1 rounded-lg font-medium flex items-center gap-1.5 shadow-sm">
                               📋 <strong>Alineación:</strong> {m.lineupStatus || "Alineación verificada en planilla"}
@@ -1561,13 +1552,25 @@ export default function EcuaPronosticoDashboard() {
                     <div className="bg-slate-900/90 border border-sky-500/40 rounded-xl p-3.5 flex flex-col justify-between">
                       <div>
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-[10px] uppercase font-black text-sky-300">👨‍⚖️ Árbitro Oficial (API-Football)</span>
-                          <span className="text-[9px] bg-sky-950 text-sky-400 border border-sky-500/30 px-1.5 py-0.5 rounded font-bold">{currentMatch.refereeCardsAvg || "4.8"} tarj/p</span>
+                          <span className="text-[10px] uppercase font-black text-sky-300">👨‍⚖️ Árbitro Oficial</span>
+                          <span className="text-[9px] bg-sky-950 text-sky-400 border border-sky-500/30 px-1.5 py-0.5 rounded font-bold">
+                            {currentMatch.refereeName && currentMatch.refereeName !== "Por designar" && currentMatch.refereeCardsAvg && currentMatch.refereeCardsAvg !== "N/D"
+                              ? `${currentMatch.refereeCardsAvg} tarj/p`
+                              : "Por designar"}
+                          </span>
                         </div>
-                        <p className="text-sm font-black text-white">{currentMatch.refereeName || "Oficial Designado"}</p>
-                        <p className="text-[11px] text-slate-300 mt-1 leading-snug">{currentMatch.refereeAlert || "Evaluación estadística del juez"}</p>
+                        <p className="text-sm font-black text-white">{currentMatch.refereeName || "Por designar"}</p>
+                        <p className="text-[11px] text-slate-300 mt-1 leading-snug">
+                          {currentMatch.refereeName && currentMatch.refereeName !== "Por designar"
+                            ? (currentMatch.refereeAlert || "Terna arbitral confirmada para este partido")
+                            : "Terna arbitral aún no oficializada por la comisión técnica de la competición."}
+                        </p>
                       </div>
-                      <span className="text-[10px] text-slate-400 mt-2 font-mono">Penales estimados: {currentMatch.refereePenaltiesAvg || "0.35"}/p</span>
+                      <span className="text-[10px] text-slate-400 mt-2 font-mono">
+                        {currentMatch.refereeName && currentMatch.refereeName !== "Por designar" && currentMatch.refereePenaltiesAvg && currentMatch.refereePenaltiesAvg !== "N/D"
+                          ? `Penales estimados: ${currentMatch.refereePenaltiesAvg}/p`
+                          : "Penales: Pendiente de designación"}
+                      </span>
                     </div>
 
                     <div className="bg-slate-900/90 border border-amber-500/40 rounded-xl p-3.5 flex flex-col justify-between">
