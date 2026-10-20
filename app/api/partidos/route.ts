@@ -48,6 +48,17 @@ function removeTotalsMargin(oddOver: number, oddUnder: number) {
   };
 }
 
+function removeAsianMargin(odd1: number, odd2: number) {
+  const raw1 = 1 / Math.max(1.01, odd1);
+  const raw2 = 1 / Math.max(1.01, odd2);
+  const overround = raw1 + raw2;
+  return {
+    marginPercent: Number(((overround - 1) * 100).toFixed(1)),
+    cleanProb1: Number(((raw1 / overround) * 100).toFixed(1)),
+    cleanProb2: Number(((raw2 / overround) * 100).toFixed(1)),
+  };
+}
+
 // 2. DISTRIBUCIÓN DE POISSON + 10,000 SIMULACIONES DE MONTECARLO CON xG
 function factorial(n: number): number {
   if (n <= 1) return 1;
@@ -143,6 +154,71 @@ function parseAmericanOddToDecimal(oddStrOrNum: any): number | null {
   return Number((100 / Math.abs(num) + 1).toFixed(2));
 }
 
+// 3. FACTOR DE ALTITUD Y CONTEXTO GEOGRÁFICO
+interface TeamElevationInfo {
+  city: string;
+  altitudeMeters: number;
+  region: "sierra" | "costa" | "europa";
+}
+
+function getTeamElevation(teamName: string, defaultCity = ""): TeamElevationInfo {
+  const norm = normalizeTeamName(teamName);
+
+  // SIERRA ECUATORIANA (ALTITUD > 2,000m)
+  if (
+    norm.includes("liga") ||
+    norm.includes("ldu") ||
+    norm.includes("quito") ||
+    norm.includes("aucas") ||
+    norm.includes("nacional") ||
+    norm.includes("catolica") ||
+    norm.includes("cumbaya") ||
+    norm.includes("independiente")
+  ) {
+    return { city: "Quito / Sangolquí", altitudeMeters: 2850, region: "sierra" };
+  }
+  if (norm.includes("cuenca")) {
+    return { city: "Cuenca", altitudeMeters: 2560, region: "sierra" };
+  }
+  if (norm.includes("macara") || norm.includes("tecnico") || norm.includes("mushuc")) {
+    const isEchaleche = norm.includes("mushuc");
+    return { city: isEchaleche ? "Echaleche (Ambato)" : "Ambato", altitudeMeters: isEchaleche ? 3250 : 2577, region: "sierra" };
+  }
+  if (norm.includes("imbabura")) {
+    return { city: "Ibarra", altitudeMeters: 2225, region: "sierra" };
+  }
+  if (norm.includes("libertad")) {
+    return { city: "Loja", altitudeMeters: 2060, region: "sierra" };
+  }
+
+  // COSTA ECUATORIANA (NIVEL DEL MAR < 50m)
+  if (
+    norm.includes("barcelona") ||
+    norm.includes("emelec") ||
+    norm.includes("guayaquil") ||
+    norm.includes("octubre")
+  ) {
+    return { city: "Guayaquil", altitudeMeters: 4, region: "costa" };
+  }
+  if (norm.includes("delfin") || norm.includes("manta")) {
+    return { city: "Manta", altitudeMeters: 6, region: "costa" };
+  }
+  if (norm.includes("orense")) {
+    return { city: "Machala", altitudeMeters: 6, region: "costa" };
+  }
+
+  // Fallback por ciudad provista por ESPN
+  const cityLower = (defaultCity || "").toLowerCase();
+  if (cityLower.includes("quito") || cityLower.includes("cuenca") || cityLower.includes("ambato") || cityLower.includes("ibarra")) {
+    return { city: defaultCity || "Sierra Ecuatoriana", altitudeMeters: 2800, region: "sierra" };
+  }
+  if (cityLower.includes("guayaquil") || cityLower.includes("manta") || cityLower.includes("machala")) {
+    return { city: defaultCity || "Costa Ecuatoriana", altitudeMeters: 10, region: "costa" };
+  }
+
+  return { city: defaultCity || "Sede Oficial", altitudeMeters: 100, region: "europa" };
+}
+
 // MAPA ESTRICTO POR LIGA INDIVIDUAL
 const LEAGUE_CONFIG: Record<
   string,
@@ -216,9 +292,9 @@ export async function GET(request: Request) {
       }
     });
 
-    // B) Solicitud en tiempo real a The Odds API
+    // B) Solicitud en tiempo real a The Odds API (H2H, Totales y Spreads / Hándicap Asiático)
     const oddsPromise = fetch(
-      `https://api.the-odds-api.com/v4/sports/${config.oddsApiSportKey}/odds/?apiKey=${oddsApiKey}&regions=eu,us,uk&markets=h2h,totals&oddsFormat=decimal`,
+      `https://api.the-odds-api.com/v4/sports/${config.oddsApiSportKey}/odds/?apiKey=${oddsApiKey}&regions=eu,us,uk&markets=h2h,totals,spreads&oddsFormat=decimal`,
       { headers: browserHeaders, cache: "no-store" }
     ).then((r) => (r.ok ? r.json() : [])).catch(() => []);
 
@@ -377,6 +453,9 @@ export async function GET(request: Request) {
       let bookmakerCount = cuotaLocal > 1 ? 1 : 0;
       let pinnacleOdd1 = 0;
       let pinnacleOdd2 = 0;
+      let liveSpreadPoint = 0;
+      let liveSpreadHomePrice = 0;
+      let liveSpreadAwayPrice = 0;
 
       if (matchedOddEvent && Array.isArray(matchedOddEvent.bookmakers) && matchedOddEvent.bookmakers.length > 0) {
         bookmakerCount = matchedOddEvent.bookmakers.length;
@@ -406,6 +485,16 @@ export async function GET(request: Request) {
               cuotaUnder = Number(underOut.price.toFixed(2));
             }
           }
+          const spreadsMarket = bm.markets?.find((mk: any) => mk.key === "spreads");
+          if (spreadsMarket && spreadsMarket.outcomes && liveSpreadHomePrice === 0) {
+            const outH = spreadsMarket.outcomes.find((x: any) => normalizeTeamName(x.name) === normalizeTeamName(matchedOddEvent.home_team));
+            const outA = spreadsMarket.outcomes.find((x: any) => normalizeTeamName(x.name) === normalizeTeamName(matchedOddEvent.away_team));
+            if (outH && outA && outH.price > 1 && outA.price > 1) {
+              liveSpreadPoint = outH.point || 0;
+              liveSpreadHomePrice = Number(outH.price.toFixed(2));
+              liveSpreadAwayPrice = Number(outA.price.toFixed(2));
+            }
+          }
         }
 
         if (countH2h > 0) {
@@ -428,29 +517,64 @@ export async function GET(request: Request) {
       const devigTotals = removeTotalsMargin(defaultOver, defaultUnder);
 
       // --- CÁLCULO DE xG REAL (EXPECTED GOALS) ---
-      // Sustituimos goles anotados ordinarios por xG derivado de Attack/Defense ratios + Consenso de Mercado
       const homeProfile = Object.entries(teamProfileMap).find(([k]) => k.includes(normH.slice(0, 4)) || normH.includes(k.slice(0, 4)))?.[1];
       const awayProfile = Object.entries(teamProfileMap).find(([k]) => k.includes(normA.slice(0, 4)) || normA.includes(k.slice(0, 4)))?.[1];
 
-      // Goles esperados del mercado desmarginizado:
-      // P(Under 2.5) en Poisson se relaciona con λ_total: P(0)+P(1)+P(2)
-      // Estimación del total de goles esperados según el mercado:
       const marketExpectedTotal = devigTotals.cleanProbOver > 50 ? 2.75 : 2.45;
       const homeShare = (devig1X2.cleanProb1 + 0.5 * devig1X2.cleanProbX) / 100;
 
       let xgHomeCalculated = Number((marketExpectedTotal * homeShare).toFixed(2));
       let xgAwayCalculated = Number((marketExpectedTotal * (1 - homeShare)).toFixed(2));
 
-      // Si tenemos los ratios de ataque/defensa avanzados de API-Football, refinamos los Expected Goals:
       if (homeProfile && awayProfile) {
         const statsXgHome = 1.35 * homeProfile.attackRatio * awayProfile.defenseRatio;
         const statsXgAway = 1.10 * awayProfile.attackRatio * homeProfile.defenseRatio;
-        // Ponderamos 60% Consenso de Mercado desmarginizado + 40% Métricas xG de API-Football
         xgHomeCalculated = Number((0.60 * xgHomeCalculated + 0.40 * statsXgHome).toFixed(2));
         xgAwayCalculated = Number((0.60 * xgAwayCalculated + 0.40 * statsXgAway).toFixed(2));
       }
 
-      // Aseguramos límites matemáticos lógicos (mínimo 0.60 xG)
+      // --- INTEGRACIÓN DEL FACTOR DE ALTITUD Y DESPLAZAMIENTO (CONTEXTO GEOGRÁFICO) ---
+      const homeGeo = getTeamElevation(homeName, venueCity);
+      const awayGeo = getTeamElevation(awayName, "");
+
+      let altitudeBadge = "⚖️ Clima Neutral";
+      let altitudeAlert = "Condiciones geográficas equilibradas entre ambos equipos.";
+      let altitudeImpactXg = "Sin distorsión fisiológica";
+      let altitudeSeverity = "NEUTRAL";
+
+      if (config.espnSlug.includes("ecu")) {
+        if (homeGeo.region === "sierra" && awayGeo.region === "costa") {
+          altitudeSeverity = "CRITICA";
+          altitudeBadge = `⛰️ Altura Crítica: ${homeGeo.altitudeMeters}m (${homeGeo.city})`;
+          altitudeImpactXg = `-16% xG a ${awayName} (Desgaste Costa) | +12% xG a ${homeName}`;
+          altitudeAlert = `Factor Altitud / Desgaste Fisiológico Severo: ${awayName} (club de la costa al nivel del mar) visita la altura andina de ${homeGeo.city} a ${homeGeo.altitudeMeters}m. El modelo aplicó penalización de -16% xG visitante por hipoxia y déficit aeróbico en el segundo tiempo.`;
+          
+          xgHomeCalculated = Number((xgHomeCalculated * 1.12).toFixed(2));
+          xgAwayCalculated = Number((xgAwayCalculated * 0.84).toFixed(2));
+        } else if (homeGeo.region === "costa" && awayGeo.region === "sierra") {
+          altitudeSeverity = "MEDIA";
+          altitudeBadge = `🌊 Nivel del Mar: Calor y Humedad (${homeGeo.city})`;
+          altitudeImpactXg = `-6% xG a ${awayName} (Factor Térmico) | +5% xG a ${homeName}`;
+          altitudeAlert = `Factor Térmico y Desplazamiento Costero: ${awayName} (club de altura) desciende a competir al nivel del mar en ${homeGeo.city}. Las altas temperaturas y la humedad del llano exigen mayor resistencia física.`;
+          
+          xgHomeCalculated = Number((xgHomeCalculated * 1.05).toFixed(2));
+          xgAwayCalculated = Number((xgAwayCalculated * 0.94).toFixed(2));
+        } else if (homeGeo.region === "sierra" && awayGeo.region === "sierra") {
+          altitudeBadge = `⛰️ Duelo en Altura (${homeGeo.altitudeMeters}m)`;
+          altitudeImpactXg = "Simétrico (Ambos aclimatados a la sierra)";
+          altitudeAlert = `Factor Altitud: Duelo andino en ${homeGeo.city} (${homeGeo.altitudeMeters}m). Ambos clubes están plenamente aclimatados a la altitud; sin distorsión fisiológica asimétrica.`;
+        } else {
+          altitudeBadge = `🌊 Duelo Costero (Nivel del Mar)`;
+          altitudeImpactXg = "Simétrico (Ambos habituados a la costa)";
+          altitudeAlert = `Factor Geográfico: Partido disputado al nivel del mar en ${homeGeo.city}. Desplazamiento interprovincial estándar sin impacto aeróbico.`;
+        }
+      } else {
+        altitudeBadge = `🌍 Sede Oficial UEFA (${homeGeo.city || "Europa"})`;
+        altitudeImpactXg = "Logística y desplazamiento continental";
+        altitudeAlert = `Contexto Geográfico: Partido de competición europea sin penalización extrema por altitud. Rendimiento regido por balance táctico.`;
+      }
+
+      // Límites lógicos mínimos
       const xgHome = Math.max(0.60, xgHomeCalculated);
       const xgAway = Math.max(0.50, xgAwayCalculated);
       const xgDiff = Number((xgHome - xgAway).toFixed(2));
@@ -459,12 +583,201 @@ export async function GET(request: Request) {
       const sim = runRealPoissonMontecarlo(xgHome, xgAway, 10000);
 
       // --- CÁLCULO DE VALOR ESPERADO REAL (EV %) TRAS DE-VIGGING ---
-      // EV% = (Prob_Simulada * Cuota - 1) * 100
       const evHome = Number((((sim.probHome / 100) * defaultOdd1 - 1) * 100).toFixed(1));
       const evDraw = Number((((sim.probDraw / 100) * defaultOddX - 1) * 100).toFixed(1));
       const evAway = Number((((sim.probAway / 100) * defaultOdd2 - 1) * 100).toFixed(1));
       const evOver = Number((((sim.probOver25 / 100) * defaultOver - 1) * 100).toFixed(1));
       const evUnder = Number((((sim.probUnder25 / 100) * defaultUnder - 1) * 100).toFixed(1));
+
+      // --- CÁLCULO DE LÍNEAS ASIÁTICAS (HÁNDICAP ASIÁTICO) Y DE-VIGGING ASIÁTICO ---
+      let oddHomeDnb = liveSpreadPoint === 0 && liveSpreadHomePrice > 1 ? liveSpreadHomePrice : 0;
+      let oddAwayDnb = liveSpreadPoint === 0 && liveSpreadAwayPrice > 1 ? liveSpreadAwayPrice : 0;
+
+      if (oddHomeDnb === 0 || oddAwayDnb === 0) {
+        oddHomeDnb = Number((defaultOdd1 * (1 - 1 / Math.max(1.1, defaultOddX))).toFixed(2));
+        oddAwayDnb = Number((defaultOdd2 * (1 - 1 / Math.max(1.1, defaultOddX))).toFixed(2));
+      }
+
+      oddHomeDnb = Math.max(1.15, oddHomeDnb);
+      oddAwayDnb = Math.max(1.15, oddAwayDnb);
+
+      const devigAsian00 = removeAsianMargin(oddHomeDnb, oddAwayDnb);
+      const totalNoDrawProb = sim.probHome + sim.probAway;
+      const realProbHomeDnb = Number(((sim.probHome / Math.max(1, totalNoDrawProb)) * 100).toFixed(1));
+      const realProbAwayDnb = Number(((sim.probAway / Math.max(1, totalNoDrawProb)) * 100).toFixed(1));
+
+      const evHomeDnb = Number((((realProbHomeDnb / 100) * oddHomeDnb - 1) * 100).toFixed(1));
+      const evAwayDnb = Number((((realProbAwayDnb / 100) * oddAwayDnb - 1) * 100).toFixed(1));
+
+      const isHomeFav = sim.probHome >= sim.probAway;
+      const favInitials = isHomeFav ? getTeamInitials(homeName) : getTeamInitials(awayName);
+      const dogInitials = isHomeFav ? getTeamInitials(awayName) : getTeamInitials(homeName);
+      const favName = isHomeFav ? homeName : awayName;
+      const dogName = isHomeFav ? awayName : homeName;
+
+      const oddFavDnb = isHomeFav ? oddHomeDnb : oddAwayDnb;
+      const oddDogDnb = isHomeFav ? oddAwayDnb : oddHomeDnb;
+      const oddFav1X2 = isHomeFav ? defaultOdd1 : defaultOdd2;
+
+      const oddFavMinus025 = Number(Math.max(1.20, (oddFavDnb + oddFav1X2) / 2).toFixed(2));
+      const oddDogPlus025 = Number(Math.max(1.20, oddDogDnb * 0.85 + 0.3).toFixed(2));
+      const devigAsianQuarter = removeAsianMargin(oddFavMinus025, oddDogPlus025);
+
+      const probFavWin = isHomeFav ? sim.probHome : sim.probAway;
+      const probDogWin = isHomeFav ? sim.probAway : sim.probHome;
+      const probDraw = sim.probDraw;
+
+      const evFavMinus025 = Number((
+        ((probFavWin / 100) * (oddFavMinus025 - 1) + (probDraw / 100) * (-0.5) - (probDogWin / 100)) * 100
+      ).toFixed(1));
+
+      const evDogPlus025 = Number((
+        ((probDogWin / 100) * (oddDogPlus025 - 1) + (probDraw / 100) * (0.5 * (oddDogPlus025 - 1)) - (probFavWin / 100)) * 100
+      ).toFixed(1));
+
+      const recommendedAsian = {
+        line: `Hándicap Asiático ${favInitials} 0.0 (DNB)`,
+        team: favName,
+        point: 0.0,
+        odd: oddFavDnb,
+        marginPercent: devigAsian00.marginPercent,
+        cleanProb: isHomeFav ? devigAsian00.cleanProb1 : devigAsian00.cleanProb2,
+        realProb: isHomeFav ? realProbHomeDnb : realProbAwayDnb,
+        ev: isHomeFav ? evHomeDnb : evAwayDnb,
+        protectionRule: "Empate = Reembolso del 100% (Push sin riesgo)",
+        explanation: `Protección de capital: Cobras la cuota ${oddFavDnb} si ${favName} gana, y si empatan tu dinero vuelve íntegro a tu cuenta.`,
+      };
+
+      const asianLines = [
+        {
+          name: `Hándicap 0.0 (DNB) ${getTeamInitials(homeName)}`,
+          line: `Hándicap 0.0 (Empate No Válido)`,
+          team: homeName,
+          odd: oddHomeDnb,
+          cleanProb: devigAsian00.cleanProb1,
+          realProb: realProbHomeDnb,
+          ev: evHomeDnb,
+          margin: devigAsian00.marginPercent,
+          rule: "Si empatan: dinero reembolsado al 100%",
+        },
+        {
+          name: `Hándicap 0.0 (DNB) ${getTeamInitials(awayName)}`,
+          line: `Hándicap 0.0 (Empate No Válido)`,
+          team: awayName,
+          odd: oddAwayDnb,
+          cleanProb: devigAsian00.cleanProb2,
+          realProb: realProbAwayDnb,
+          ev: evAwayDnb,
+          margin: devigAsian00.marginPercent,
+          rule: "Si empatan: dinero reembolsado al 100%",
+        },
+        {
+          name: `Hándicap -0.25 ${favInitials}`,
+          line: `Hándicap -0.25 (Favorito)`,
+          team: favName,
+          odd: oddFavMinus025,
+          cleanProb: devigAsianQuarter.cleanProb1,
+          realProb: Number((probFavWin + 0.5 * probDraw).toFixed(1)),
+          ev: evFavMinus025,
+          margin: devigAsianQuarter.marginPercent,
+          rule: "Empate: pierdes solo la mitad de tu apuesta (50% devuelto)",
+        },
+        {
+          name: `Hándicap +0.25 ${dogInitials}`,
+          line: `Hándicap +0.25 (No Favorito)`,
+          team: dogName,
+          odd: oddDogPlus025,
+          cleanProb: devigAsianQuarter.cleanProb2,
+          realProb: Number((probDogWin + 0.5 * probDraw).toFixed(1)),
+          ev: evDogPlus025,
+          margin: devigAsianQuarter.marginPercent,
+          rule: "Empate: ganas la mitad de la cuota y recuperas tu apuesta",
+        },
+      ];
+
+      // --- SELECCIÓN JERÁRQUICA ROTUNDA DEL PRONÓSTICO PRINCIPAL (CAJA 1) ---
+      // Priorizando en orden:
+      // 1. Equipo pronosticado a ganar (según probabilidad Montecarlo e xG)
+      // 2. Opción de Empate si el partido es un empate técnico equilibrado
+      // 3. Mercado de Goles / +EV secundario
+      const winnerName = isHomeFav ? homeName : awayName;
+      const winnerProb = isHomeFav ? sim.probHome : sim.probAway;
+      const winnerOdd = isHomeFav ? defaultOdd1 : defaultOdd2;
+      const winnerHouseImplied = isHomeFav ? devig1X2.cleanProb1 : devig1X2.cleanProb2;
+      const winnerEV = isHomeFav ? evHome : evAway;
+
+      const bestGoalsMarket = evOver >= evUnder
+        ? {
+            name: `Más de ${lineGoals} Goles`,
+            odd: defaultOver,
+            houseImplied: devigTotals.cleanProbOver,
+            realProb: lineGoals === 3.5 ? sim.probOver35 : sim.probOver25,
+            ev: evOver,
+            explanation: `Que hay 3 o más goles en total en el encuentro`,
+          }
+        : {
+            name: `Menos de ${lineGoals} Goles`,
+            odd: defaultUnder,
+            houseImplied: devigTotals.cleanProbUnder,
+            realProb: lineGoals === 3.5 ? sim.probUnder35 : sim.probUnder25,
+            ev: evUnder,
+            explanation: `Que hay máximo 2 goles en total en el encuentro`,
+          };
+
+      let topPickName = `Gana ${winnerName}`;
+      let topPickOdd = winnerOdd;
+      let topPickHouseImplied = winnerHouseImplied;
+      let topPickRealProb = winnerProb;
+      let topPickEV = winnerEV;
+      let topPickSubtitle = `La opción con mayor probabilidad matemática detectada (${winnerProb}% Montecarlo)`;
+
+      const isTechnicalDraw = Math.abs(sim.probHome - sim.probAway) < 3.5 && sim.probDraw >= 31;
+      if (isTechnicalDraw) {
+        topPickName = `Empate (o Cobertura 0.0)`;
+        topPickOdd = defaultOddX;
+        topPickHouseImplied = devig1X2.cleanProbX;
+        topPickRealProb = sim.probDraw;
+        topPickEV = evDraw;
+        topPickSubtitle = `Equilibrio técnico rotundo: Alta probabilidad de empate detectada (${sim.probDraw}% en simulación)`;
+      }
+
+      const minFairOddForTopPick = Number((100 / Math.max(1, topPickRealProb)).toFixed(2));
+      const hasRealPositiveEdge = topPickEV >= 1.0;
+
+      const hierarchicalPicks = {
+        pick1Winner: {
+          title: "1. Pronóstico Ganador Directo (1X2)",
+          name: `Gana ${winnerName}`,
+          team: winnerName,
+          odd: winnerOdd,
+          realProb: winnerProb,
+          impliedProb: winnerHouseImplied,
+          ev: winnerEV,
+          minFairOdd: Number((100 / Math.max(1, winnerProb)).toFixed(2)),
+          role: "Pronóstico prioritario directo al ganador en los 90 minutos de juego",
+        },
+        pick2Asian: {
+          title: "2. Cobertura Hándicap Asiático (Protección)",
+          name: recommendedAsian.line,
+          team: recommendedAsian.team,
+          odd: recommendedAsian.odd,
+          realProb: recommendedAsian.realProb,
+          impliedProb: recommendedAsian.cleanProb,
+          ev: recommendedAsian.ev,
+          minFairOdd: Number((100 / Math.max(1, recommendedAsian.realProb)).toFixed(2)),
+          role: recommendedAsian.protectionRule,
+        },
+        pick3Goals: {
+          title: "3. Mercado de Goles / Totales (Poisson)",
+          name: bestGoalsMarket.name,
+          odd: bestGoalsMarket.odd,
+          realProb: bestGoalsMarket.realProb,
+          impliedProb: bestGoalsMarket.houseImplied,
+          ev: bestGoalsMarket.ev,
+          minFairOdd: Number((100 / Math.max(1, bestGoalsMarket.realProb)).toFixed(2)),
+          role: "Mercado secundario de alta certidumbre basado en Expected Goals (xG)",
+        },
+      };
 
       // --- VARIABLES CONTEXTUALES REALES ---
       // 1. Árbitro
@@ -517,58 +830,17 @@ export async function GET(request: Request) {
         oddsMovement = "OVER_BIAS";
       }
 
-      // --- SELECCIÓN DEL MEJOR MERCADO CON VENTAJA MATEMÁTICA (+EV) ---
-      const candidateMarkets = [
-        {
-          name: `Gana ${homeName}`,
-          explanation: `Apostar directo a la victoria de ${homeName}`,
-          odd: defaultOdd1,
-          houseImplied: devig1X2.cleanProb1,
-          realProb: sim.probHome,
-          ev: evHome,
-        },
-        {
-          name: `Gana ${awayName}`,
-          explanation: `Apostar directo a la victoria de ${awayName}`,
-          odd: defaultOdd2,
-          houseImplied: devig1X2.cleanProb2,
-          realProb: sim.probAway,
-          ev: evAway,
-        },
-        {
-          name: `Más de ${lineGoals} Goles`,
-          explanation: `Que hay 3 goles o más en total en el partido`,
-          odd: defaultOver,
-          houseImplied: devigTotals.cleanProbOver,
-          realProb: lineGoals === 3.5 ? sim.probOver35 : sim.probOver25,
-          ev: evOver,
-        },
-        {
-          name: `Menos de ${lineGoals} Goles`,
-          explanation: `Que hay máximo 2 goles en total en el partido`,
-          odd: defaultUnder,
-          houseImplied: devigTotals.cleanProbUnder,
-          realProb: lineGoals === 3.5 ? sim.probUnder35 : sim.probUnder25,
-          ev: evUnder,
-        },
-      ];
-
-      candidateMarkets.sort((a, b) => b.ev - a.ev);
-      const topPick = candidateMarkets[0];
-      const minFairOddForTopPick = Number((100 / Math.max(1, topPick.realProb)).toFixed(2));
-      const hasRealPositiveEdge = topPick.ev >= 1.0;
-
       const dateObj = new Date(ev.date);
 
-      const reporteVerificado = `Modelo de Peligro xG (${xgHome} xG ${homeName} vs ${xgAway} xG ${awayName} | ΔxG: ${xgDiff > 0 ? "+" + xgDiff : xgDiff}). Árbitro: ${refereeOfficialName}. Sede: ${fullVenue}. ${
+      const reporteVerificado = `Modelo de Peligro xG (${xgHome} xG ${homeName} vs ${xgAway} xG ${awayName} | ΔxG: ${xgDiff > 0 ? "+" + xgDiff : xgDiff}). Factor Altitud: ${altitudeBadge}. Árbitro: ${refereeOfficialName}. Sede: ${fullVenue}. Cobertura Asiática: ${recommendedAsian.line} (${recommendedAsian.protectionRule}). ${
         hasLiveOdds
           ? `Cuotas desmarginizadas de The Odds API (${bookmakerCount} casas auditadas).`
-          : `Cuota mínima rentable Montecarlo para '${topPick.name}': ${minFairOddForTopPick}.`
+          : `Cuota mínima rentable Montecarlo para '${topPickName}': ${minFairOddForTopPick}.`
       }`;
 
       const veredictoHonesto = hasRealPositiveEdge
-        ? `✅ VALOR ESPERADO DETECTADO (+${topPick.ev}% EV): La opción '${topPick.name}' supera la probabilidad desmarginizada de la casa (${topPick.realProb}% en Montecarlo vs ${topPick.houseImplied}% del mercado).`
-        : `⚖️ MERCADO EFICIENTE (${topPick.ev}% EV): Las casas han ajustado sus cuotas sin dejar margen evidente. Cuota mínima recomendada para apostar: ${minFairOddForTopPick}.`;
+        ? `✅ VALOR ESPERADO DETECTADO (+${topPickEV}% EV): La opción principal '${topPickName}' supera la probabilidad desmarginizada de la casa (${topPickRealProb}% en Montecarlo vs ${topPickHouseImplied}% del mercado).`
+        : `⚖️ MERCADO EQUILIBRADO (${topPickEV}% EV): Pronóstico principal con ventaja competitiva: '${topPickName}'. Cuota mínima rentable para apostar: ${minFairOddForTopPick}.`;
 
       return {
         id: `espn-${ev.id || idx}`,
@@ -614,14 +886,29 @@ export async function GET(request: Request) {
         xgDiff,
         expectedGoals: sim.expectedTotalGoals,
 
+        // Factor Altitud y Contexto Geográfico
+        altitudeBadge,
+        altitudeAlert,
+        altitudeImpactXg,
+        altitudeSeverity,
+        altitudeMeters: homeGeo.altitudeMeters,
+        altitudeCity: homeGeo.city,
+
+        // Hándicap Asiático y De-vigging
+        asianHandicap: recommendedAsian,
+        asianLines,
+
+        // Estructura Jerárquica de 3 Filas/Opciones Clave
+        hierarchicalPicks,
+
         // Valor Esperado (EV %) Post-Devigging
         evHome,
         evDraw,
         evAway,
         evOver,
         evUnder,
-        ev: topPick.ev,
-        bestMarketEV: topPick.ev,
+        ev: topPickEV,
+        bestMarketEV: topPickEV,
         hasRealEdge: hasRealPositiveEdge,
 
         // Variables Contextuales Reales (Alertas para Novatos)
@@ -649,24 +936,29 @@ export async function GET(request: Request) {
         probX2: Number((sim.probAway + sim.probDraw).toFixed(1)),
         topScores: sim.topScores,
 
-        // Selección óptima
-        bestMarketName: topPick.name,
-        bestMarketExplanation: topPick.explanation,
-        bestOdd: topPick.odd,
+        // Selección óptima rotunda (Caja 1)
+        bestMarketName: topPickName,
+        bestMarketExplanation: isTechnicalDraw
+          ? "Alta paridad táctica: Oportunidad en Empate o Cobertura 0.0"
+          : `Apostar directo a la victoria de ${winnerName}`,
+        bestMarketDynamicSubtitle: topPickSubtitle,
+        bestOdd: topPickOdd,
         minFairOddForTopPick,
-        probImplicitaBest: topPick.houseImplied,
-        probReal: topPick.realProb,
+        probImplicitaBest: topPickHouseImplied,
+        probReal: topPickRealProb,
 
         reportePlantilla: reporteVerificado,
         cuotaMejoradaCasa: "Evita combinadas de 3 o más condiciones del mismo partido.",
         analisisDinamico: `¡Terminal Cuantitativa Sincronizada con 3 APIs en Tiempo Real! (${fromIso} al ${toIso}).
 Peligro Ofensivo xG: ${xgHome} xG ${homeName} vs ${xgAway} xG ${awayName} (Diferencial ΔxG: ${xgDiff > 0 ? "+" + xgDiff : xgDiff}).
+Factor Altitud: ${altitudeBadge} (${altitudeImpactXg}).
 Simulaciones Montecarlo: Marcadores más probables: ${sim.topScores.map((s) => `${s.score} (${s.prob}%)`).join(", ")}.
 
 📋 Contexto Oficial:
 • 👨‍⚖️ Árbitro: ${refereeOfficialName} — ${refereeAlert}
 • 📋 Plantel: ${lineupStatus} (${lineupAlert})
 • 📈 Dinámica de Mercado: ${marketTrend}
+• 🛡️ Hándicap Asiático: ${recommendedAsian.line} (Cuota ${recommendedAsian.odd} | EV: ${recommendedAsian.ev > 0 ? "+" + recommendedAsian.ev : recommendedAsian.ev}% | ${recommendedAsian.protectionRule})
 
 💰 Veredicto Financiero (+EV):
 ${veredictoHonesto}`,

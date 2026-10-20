@@ -899,6 +899,9 @@ export default function EcuaPronosticoDashboard() {
                       <div className="w-full mt-3.5 pt-3 border-t border-slate-800/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5 text-xs">
                         {/* LADO NOVATO: Alertas Semánticas de APIs */}
                         <div className="flex flex-wrap items-center gap-2">
+                          <span className="bg-slate-900/90 text-purple-300 border border-purple-500/40 px-3 py-1 rounded-lg font-medium flex items-center gap-1.5 shadow-sm">
+                            {m.altitudeBadge || "⛰️ Altitud Evaluada"}
+                          </span>
                           <span className="bg-slate-900/90 text-sky-300 border border-sky-500/40 px-3 py-1 rounded-lg font-medium flex items-center gap-1.5 shadow-sm">
                             👨‍⚖️ <strong>Árbitro:</strong> {m.refereeName || "Oficial"} <span className="text-sky-400 font-bold">({m.refereeCardsAvg || "4.8"} tarj/p)</span>
                           </span>
@@ -972,35 +975,169 @@ export default function EcuaPronosticoDashboard() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div className="bg-slate-800/90 border border-amber-400/50 rounded-xl p-3.5 text-center">
-                      <p className="text-amber-300 text-[10px] uppercase font-black">1. Opción Analizada</p>
-                      <p className="text-xs md:text-sm text-white font-black mt-1">{currentMatch.bestMarketName}</p>
-                      <p className="text-[11px] text-amber-300 mt-0.5">Cuota Ref: <strong>{currentMatch.bestOdd}</strong></p>
-                    </div>
-                    <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-3.5 text-center">
-                      <p className="text-slate-300 text-[10px] uppercase font-bold">2. Lo que cree la Casa</p>
-                      <p className="text-2xl text-slate-300 font-bold mt-1">{currentMatch.probImplicitaBest}%</p>
-                      <p className="text-[10px] text-slate-400">Según cuota de {currentMatch.bestOdd}</p>
-                    </div>
-                    <div className="bg-slate-800/90 border-t-4 border-emerald-500 rounded-xl p-3.5 text-center">
-                      <p className="text-emerald-300 text-[10px] uppercase font-black">3. Valor Esperado (+EV Real)</p>
-                      <p className="text-2xl text-emerald-400 font-black mt-1">
-                        {currentMatch.ev > 0 ? `+${currentMatch.ev}` : currentMatch.ev}% EV
+                  {/* 4 CAJAS SUPERIORES - RESUMEN EJECUTIVO (JERARQUÍA CLARA Y TEXTO AUXILIAR PARA NOVATOS) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                    {/* CAJA 1: OPCIÓN ANALIZADA PRINCIPAL */}
+                    <div className="bg-gradient-to-b from-slate-900/95 to-slate-900/80 border-2 border-amber-400/80 rounded-2xl p-4 text-center shadow-lg flex flex-col justify-between">
+                      <div>
+                        <span className="text-amber-300 text-[11px] uppercase font-black tracking-wider block">
+                          1. OPCIÓN ANALIZADA PRINCIPAL
+                        </span>
+                        <h3 className="text-base md:text-lg font-black text-white mt-1.5 leading-snug">
+                          {currentMatch.bestMarketName}
+                        </h3>
+                        <span className="inline-block mt-1 text-xs text-amber-300 font-bold bg-amber-950/60 border border-amber-500/40 px-2.5 py-0.5 rounded-md font-mono">
+                          Cuota Ref: <strong>{currentMatch.bestOdd}</strong>
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-300 mt-2.5 pt-2 border-t border-slate-800 leading-snug font-medium">
+                        {currentMatch.bestMarketDynamicSubtitle || "La opción con mayor probabilidad matemática detectada por el modelo"}
                       </p>
-                      <p className="text-[10px] text-slate-300">Pos De-vigging The Odds API</p>
                     </div>
-                    <div className="bg-green-950/40 border border-green-500/60 rounded-xl p-3.5 text-center">
-                      <p className="text-green-400 text-[10px] uppercase font-black">4. Cuota Mínima Rentable</p>
-                      <p className="text-2xl font-black mt-1 text-green-400">{currentMatch.minFairOddForTopPick}</p>
-                      <p className="text-[10px] text-slate-200 font-bold">
-                        Apuesta si pagan más de {currentMatch.minFairOddForTopPick}
+
+                    {/* CAJA 2: LO QUE CREE LA CASA */}
+                    <div className="bg-gradient-to-b from-slate-900/95 to-slate-900/80 border border-slate-700 rounded-2xl p-4 text-center shadow-lg flex flex-col justify-between">
+                      <div>
+                        <span className="text-slate-300 text-[11px] uppercase font-bold tracking-wider block">
+                          2. LO QUE CREE LA CASA
+                        </span>
+                        <p className="text-2xl md:text-3xl text-slate-200 font-black font-mono mt-1.5">
+                          {currentMatch.probImplicitaBest}%
+                        </p>
+                        <span className="text-[11px] text-slate-400 font-mono block mt-0.5">
+                          Según cuota de {currentMatch.bestOdd}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-2.5 pt-2 border-t border-slate-800 leading-snug">
+                        Probabilidad que la casa de apuestas le asigna según su cuota
+                      </p>
+                    </div>
+
+                    {/* CAJA 3: VALOR ESPERADO (+EV REAL) */}
+                    <div className={`bg-gradient-to-b from-slate-900/95 to-slate-900/80 border-2 ${
+                      currentMatch.ev >= 1.0 ? "border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.25)]" : "border-slate-700"
+                    } rounded-2xl p-4 text-center shadow-lg flex flex-col justify-between`}>
+                      <div>
+                        <span className="text-emerald-300 text-[11px] uppercase font-black tracking-wider block">
+                          3. VALOR ESPERADO (+EV REAL)
+                        </span>
+                        <p className={`text-2xl md:text-3xl font-black font-mono mt-1.5 ${
+                          currentMatch.ev >= 1.0 ? "text-emerald-400" : "text-slate-200"
+                        }`}>
+                          {currentMatch.ev > 0 ? `+${currentMatch.ev}` : currentMatch.ev}% EV
+                        </p>
+                        <span className="text-[11px] text-emerald-300/80 font-mono block mt-0.5">
+                          Pos De-vigging The Odds API
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-300 mt-2.5 pt-2 border-t border-slate-800 leading-snug">
+                        Ventaja matemática real tras descontar el margen de la casa
+                      </p>
+                    </div>
+
+                    {/* CAJA 4: CUOTA MÍNIMA RENTABLE */}
+                    <div className="bg-gradient-to-b from-green-950/40 to-slate-900/90 border-2 border-green-500/60 rounded-2xl p-4 text-center shadow-lg flex flex-col justify-between">
+                      <div>
+                        <span className="text-green-400 text-[11px] uppercase font-black tracking-wider block">
+                          4. CUOTA MÍNIMA RENTABLE
+                        </span>
+                        <p className="text-2xl md:text-3xl font-black font-mono mt-1.5 text-green-400">
+                          {currentMatch.minFairOddForTopPick}
+                        </p>
+                        <span className="text-[11px] text-green-300/90 font-bold block mt-0.5">
+                          Apuesta si pagan más de {currentMatch.minFairOddForTopPick}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-300 mt-2.5 pt-2 border-t border-slate-800 leading-snug">
+                        Límite inferior para que tu apuesta sea matemáticamente rentable
                       </p>
                     </div>
                   </div>
 
-                  {/* PANEL CONTEXTUAL DINÁMICO DE LAS 3 APIS */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {/* ESTRUCTURA JERÁRQUICA DE 3 FILAS/OPCIONES CLAVE */}
+                  {currentMatch.hierarchicalPicks && (
+                    <div className="bg-slate-900/95 border border-slate-700/80 rounded-2xl p-4 shadow-xl">
+                      <div className="flex flex-wrap justify-between items-center pb-2.5 mb-3 border-b border-slate-800 gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm">🎯</span>
+                          <h4 className="text-xs md:text-sm font-black uppercase text-amber-300 tracking-wider">
+                            Estructura Jerárquica de Apuesta (3 Opciones Clave)
+                          </h4>
+                        </div>
+                        <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                          Modelado Montecarlo + De-vigging
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {/* 1. Ganador Directo (1X2) */}
+                        <div className="bg-slate-800/80 border border-amber-500/40 rounded-xl p-3 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[10px] uppercase font-black text-amber-300">🥇 1. Ganador Directo</span>
+                              <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-950 px-1.5 py-0.5 rounded border border-amber-500/30">
+                                Cuota {currentMatch.hierarchicalPicks.pick1Winner?.odd}
+                              </span>
+                            </div>
+                            <p className="text-sm font-black text-white">{currentMatch.hierarchicalPicks.pick1Winner?.name}</p>
+                            <div className="mt-1 flex items-center gap-2 text-xs text-slate-300 font-mono">
+                              <span>Prob: <strong>{currentMatch.hierarchicalPicks.pick1Winner?.realProb}%</strong></span>
+                              <span>•</span>
+                              <span className="text-emerald-400 font-bold">{currentMatch.hierarchicalPicks.pick1Winner?.ev > 0 ? `+${currentMatch.hierarchicalPicks.pick1Winner?.ev}% EV` : `${currentMatch.hierarchicalPicks.pick1Winner?.ev}% EV`}</span>
+                            </div>
+                          </div>
+                          <p className="text-[10px] text-slate-400 mt-2 pt-1 border-t border-slate-700/60 leading-tight">
+                            {currentMatch.hierarchicalPicks.pick1Winner?.role}
+                          </p>
+                        </div>
+
+                        {/* 2. Cobertura Hándicap Asiático */}
+                        <div className="bg-slate-800/80 border border-sky-500/40 rounded-xl p-3 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[10px] uppercase font-black text-sky-300">🛡️ 2. Cobertura Asiática</span>
+                              <span className="text-[10px] font-mono font-bold text-sky-400 bg-sky-950 px-1.5 py-0.5 rounded border border-sky-500/30">
+                                Cuota {currentMatch.hierarchicalPicks.pick2Asian?.odd}
+                              </span>
+                            </div>
+                            <p className="text-sm font-black text-white">{currentMatch.hierarchicalPicks.pick2Asian?.name}</p>
+                            <div className="mt-1 flex items-center gap-2 text-xs text-slate-300 font-mono">
+                              <span>Prob: <strong>{currentMatch.hierarchicalPicks.pick2Asian?.realProb}%</strong></span>
+                              <span>•</span>
+                              <span className="text-emerald-400 font-bold">{currentMatch.hierarchicalPicks.pick2Asian?.ev > 0 ? `+${currentMatch.hierarchicalPicks.pick2Asian?.ev}% EV` : `${currentMatch.hierarchicalPicks.pick2Asian?.ev}% EV`}</span>
+                            </div>
+                          </div>
+                          <p className="text-[10px] text-slate-400 mt-2 pt-1 border-t border-slate-700/60 leading-tight">
+                            {currentMatch.hierarchicalPicks.pick2Asian?.role}
+                          </p>
+                        </div>
+
+                        {/* 3. Mercado de Goles */}
+                        <div className="bg-slate-800/80 border border-emerald-500/40 rounded-xl p-3 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[10px] uppercase font-black text-emerald-300">⚽ 3. Mercado de Goles</span>
+                              <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                                Cuota {currentMatch.hierarchicalPicks.pick3Goals?.odd}
+                              </span>
+                            </div>
+                            <p className="text-sm font-black text-white">{currentMatch.hierarchicalPicks.pick3Goals?.name}</p>
+                            <div className="mt-1 flex items-center gap-2 text-xs text-slate-300 font-mono">
+                              <span>Prob: <strong>{currentMatch.hierarchicalPicks.pick3Goals?.realProb}%</strong></span>
+                              <span>•</span>
+                              <span className="text-emerald-400 font-bold">{currentMatch.hierarchicalPicks.pick3Goals?.ev > 0 ? `+${currentMatch.hierarchicalPicks.pick3Goals?.ev}% EV` : `${currentMatch.hierarchicalPicks.pick3Goals?.ev}% EV`}</span>
+                            </div>
+                          </div>
+                          <p className="text-[10px] text-slate-400 mt-2 pt-1 border-t border-slate-700/60 leading-tight">
+                            {currentMatch.hierarchicalPicks.pick3Goals?.role}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* PANEL CONTEXTUAL DINÁMICO DE LAS 3 APIS + CONTEXTO GEOGRÁFICO */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                     <div className="bg-slate-900/90 border border-sky-500/40 rounded-xl p-3.5 flex flex-col justify-between">
                       <div>
                         <div className="flex items-center justify-between mb-1">
@@ -1036,6 +1173,23 @@ export default function EcuaPronosticoDashboard() {
                       </div>
                       <span className="text-[10px] text-slate-400 mt-2 font-mono">Margen casa: {currentMatch.marginCasa}% | Desmargenizado</span>
                     </div>
+
+                    {/* FACTOR ALTITUD / DESGASTE FISIOLÓGICO */}
+                    <div className="bg-slate-900/90 border border-purple-500/50 rounded-xl p-3.5 flex flex-col justify-between shadow-sm">
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] uppercase font-black text-purple-300">⛰️ Factor Altitud / Desgaste</span>
+                          <span className="text-[9px] bg-purple-950 text-purple-300 border border-purple-500/40 px-1.5 py-0.5 rounded font-bold">
+                            {currentMatch.altitudeMeters ? `${currentMatch.altitudeMeters}m` : "Sede"}
+                          </span>
+                        </div>
+                        <p className="text-sm font-black text-white">{currentMatch.altitudeBadge || "Condiciones Simétricas"}</p>
+                        <p className="text-[11px] text-slate-300 mt-1 leading-snug">{currentMatch.altitudeAlert}</p>
+                      </div>
+                      <span className="text-[10px] text-purple-300 font-mono mt-2 font-bold bg-purple-950/40 px-2 py-0.5 rounded border border-purple-500/30">
+                        Impacto: {currentMatch.altitudeImpactXg}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="bg-slate-800/90 border border-amber-400/40 rounded-2xl p-4 space-y-2 shadow-lg">
@@ -1055,6 +1209,7 @@ export default function EcuaPronosticoDashboard() {
                     <div className="flex overflow-x-auto bg-[#1c2a52] border-b border-slate-700 p-1.5 gap-1.5 text-xs font-bold">
                       {[
                         { id: "todos", label: "📊 Todas las Opciones Explicadas" },
+                        { id: "asiatico", label: "🛡️ Hándicap Asiático & Coberturas (+EV)" },
                         { id: "goles", label: "⚽ Goles (Poisson) & Ambos Marcan" },
                         { id: "marcadores", label: "🎯 Marcadores Más Probables & Doble Oportunidad" }
                       ].map(tab => (
@@ -1109,6 +1264,64 @@ export default function EcuaPronosticoDashboard() {
                                 <strong className="text-blue-400">Montecarlo: {currentMatch.probAwaySim}%</strong>
                               </div>
                             </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* MÓDULO DE HÁNDICAP ASIÁTICO & COBERTURAS (+EV) */}
+                      {(activeMarketTab === "todos" || activeMarketTab === "asiatico") && (
+                        <div className="bg-slate-900/90 border border-sky-500/40 rounded-xl p-4">
+                          <div className="flex flex-wrap justify-between items-center mb-3 gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm">🛡️</span>
+                              <h4 className="text-xs font-black uppercase text-sky-400">
+                                Mercado de Hándicap Asiático & Coberturas (The Odds API & De-vigging)
+                              </h4>
+                            </div>
+                            <span className="text-[11px] text-sky-300 bg-sky-950/80 px-2.5 py-1 rounded border border-sky-500/30 font-medium">
+                              Protección contra el empate: Reembolso parcial o total de la apuesta
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs mb-3">
+                            {currentMatch.asianLines?.map((line: any, idx: number) => (
+                              <div key={idx} className="bg-slate-800/90 p-3 rounded-xl border border-slate-700 flex flex-col justify-between">
+                                <div>
+                                  <div className="flex justify-between items-center mb-1">
+                                    <span className="font-extrabold text-white text-xs">{line.name}</span>
+                                    <span className="text-amber-300 font-bold font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">
+                                      Cuota {line.odd}
+                                    </span>
+                                  </div>
+                                  <div className="text-[11px] text-slate-300 font-mono space-y-0.5 mt-1.5">
+                                    <div className="flex justify-between">
+                                      <span className="text-slate-400">Prob. De-vig:</span>
+                                      <span>{line.cleanProb}%</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-slate-400">Prob. Montecarlo:</span>
+                                      <strong className="text-blue-300">{line.realProb}%</strong>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-slate-400">Valor Esperado:</span>
+                                      <strong className={line.ev > 0 ? "text-emerald-400 font-bold" : "text-slate-300"}>
+                                        {line.ev > 0 ? `+${line.ev}% EV` : `${line.ev}% EV`}
+                                      </strong>
+                                    </div>
+                                  </div>
+                                </div>
+                                <p className="text-[10px] text-slate-400 mt-2 pt-1.5 border-t border-slate-700 leading-tight">
+                                  💡 <strong>Regla:</strong> {line.rule}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="bg-sky-950/40 border border-sky-500/30 rounded-lg p-2.5 text-xs text-slate-300 flex items-start gap-2">
+                            <span className="text-base leading-none">ℹ️</span>
+                            <p className="leading-snug">
+                              <strong>¿Por qué usar Hándicap Asiático?</strong> A diferencia del 1X2 tradicional donde el empate te hace perder tu dinero, las líneas asiáticas como <strong>0.0 (DNB)</strong> o <strong>-0.25 / +0.25</strong> eliminan o mitigan el riesgo de empate devolviéndote el 100% o 50% de tu apuesta.
+                            </p>
                           </div>
                         </div>
                       )}
