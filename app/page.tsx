@@ -123,6 +123,12 @@ export default function EcuaPronosticoDashboard() {
   const [showGuide, setShowGuide] = useState(false);
 
   const [stakeAmount, setStakeAmount] = useState<number>(10);
+  const [paywallReason, setPaywallReason] = useState<string>("Desbloquea el Radar VIP completo por solo $14.99/mes");
+
+  const openVipPaywall = (reason?: string) => {
+    if (reason) setPaywallReason(reason);
+    setShowLoginModal(true);
+  };
 
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState([
@@ -322,8 +328,15 @@ export default function EcuaPronosticoDashboard() {
     analisisDinamico: "Conectando con las 3 APIs en tiempo real..."
   };
 
-  const isFreePreview = currentMatch.isFreeSample === true;
+  const isFirstMatch = matches.length > 0 && (selectedMatchId === matches[0]?.id || currentMatch.id === matches[0]?.id);
+  const isFreePreview = isFirstMatch || currentMatch.isFreeSample === true;
   const isMatchUnlocked = view === "premium" || isFreePreview;
+
+  useEffect(() => {
+    if (view !== "premium" && displayMode !== "full") {
+      setDisplayMode("full");
+    }
+  }, [view]);
 
   const probImplicitaLocal = ((1 / currentMatch.cuotaLocal) * 100).toFixed(1);
   const probImplicitaEmpate = ((1 / currentMatch.cuotaEmpate) * 100).toFixed(1);
@@ -384,26 +397,96 @@ export default function EcuaPronosticoDashboard() {
         
         {showLoginModal && (
           <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex justify-center items-center z-50 p-4">
-            <div className="bg-slate-800 border border-slate-600 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
-              <button onClick={() => { setShowLoginModal(false); setLoginError(""); }} className="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold">✕</button>
-              <h3 className="text-xl font-bold text-white mb-1">Acceso VIP EcuaPronóstico</h3>
-              <p className="text-xs text-slate-400 mb-4">Desbloquea Las 4 Fijas del Día y todas las predicciones VIP</p>
+            <div className="bg-slate-800 border-2 border-amber-400/60 rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-[0_0_50px_rgba(251,191,36,0.3)] relative overflow-hidden">
+              <button
+                onClick={() => { setShowLoginModal(false); setLoginError(""); }}
+                className="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold bg-slate-900 w-8 h-8 rounded-full flex items-center justify-center border border-slate-700 transition-all hover:border-slate-500"
+              >
+                ✕
+              </button>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase mb-1">Usuario</label>
-                  <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Ej: vip" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white outline-none text-sm" />
+              <div className="text-center mb-5">
+                <span className="inline-block bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 font-black text-[11px] px-3.5 py-1 rounded-full uppercase tracking-wider shadow mb-2">
+                  ⭐ MEMBRESÍA VIP ECUAPRONÓSTICO
+                </span>
+                <h3 className="text-2xl md:text-3xl font-black text-white">
+                  Desbloquea el Radar Completo
+                </h3>
+                <div className="text-amber-400 font-extrabold text-lg mt-1 font-mono">
+                  $14.99 USD / mes
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase mb-1">Clave</label>
-                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()} placeholder="••••••••" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white outline-none text-sm" />
-                </div>
-                {loginError && <p className="text-xs text-red-400 bg-red-950/40 p-2.5 rounded-lg">{loginError}</p>}
-                <button onClick={handleLogin} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg">Desbloquear Todo el Radar</button>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-slate-700 text-center">
-                <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="inline-block w-full bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-bold py-2.5 px-4 rounded-lg text-sm">Solicitar Suscripción por WhatsApp ($14.99/mes)</a>
+              {paywallReason && (
+                <div className="mb-4 bg-amber-950/60 border border-amber-400/50 rounded-xl p-3 text-xs text-amber-200 flex items-start gap-2">
+                  <span className="text-base shrink-0">💡</span>
+                  <p className="leading-snug">{paywallReason}</p>
+                </div>
+              )}
+
+              <div className="space-y-2 mb-6 bg-slate-900/80 p-4 rounded-2xl border border-slate-700 text-xs">
+                <div className="flex items-center gap-2 text-slate-200">
+                  <span className="text-emerald-400 font-black">✓</span>
+                  <span><strong>100% Partidos Desbloqueados:</strong> LigaPro, Champions, Europa League, Premier, La Liga, etc.</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-200">
+                  <span className="text-emerald-400 font-black">✓</span>
+                  <span><strong>Las 4 Fijas del Día:</strong> Selecciones con máxima certeza listas para tus apuestas.</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-200">
+                  <span className="text-emerald-400 font-black">✓</span>
+                  <span><strong>Cartelera Simplificada:</strong> Porcentaje de victoria directo (%) sin cuotas confusas.</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-200">
+                  <span className="text-emerald-400 font-black">✓</span>
+                  <span><strong>xG y De-vigging Real:</strong> Poisson, 10,000 simulaciones Montecarlo y cuota mínima rentable.</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-200">
+                  <span className="text-emerald-400 font-black">✓</span>
+                  <span><strong>Auditor IA en Vivo:</strong> Consultas ilimitadas sobre árbitros, planteles y factor altitud.</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <a
+                  href={whatsappLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-black py-3.5 px-4 rounded-xl text-sm md:text-base flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(37,211,102,0.4)] transition-all hover:scale-[1.02]"
+                >
+                  <span className="text-lg">📲</span>
+                  <span>Activar Suscripción por WhatsApp ($14.99/mes)</span>
+                </a>
+
+                <div className="pt-4 border-t border-slate-700/80">
+                  <div className="text-xs font-bold text-slate-400 mb-2 uppercase text-center">
+                    ¿Ya eres miembro VIP? Inicia sesión
+                  </div>
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="Usuario VIP (ej: vip)"
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3.5 py-2 text-white outline-none text-xs focus:border-amber-400"
+                    />
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                      placeholder="Clave VIP"
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3.5 py-2 text-white outline-none text-xs focus:border-amber-400"
+                    />
+                    {loginError && <p className="text-xs text-red-400 bg-red-950/40 p-2 rounded-lg">{loginError}</p>}
+                    <button
+                      onClick={handleLogin}
+                      className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded-lg text-xs transition-all"
+                    >
+                      Ingresar con mi cuenta VIP
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -434,12 +517,21 @@ export default function EcuaPronosticoDashboard() {
             <div className="flex items-center gap-2 flex-wrap">
               <a
                 href="/aciertos"
-                className="text-xs bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/60 px-3 py-2 rounded-lg font-black flex items-center gap-1 shadow-lg"
+                className="text-xs bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/60 px-3 py-2 rounded-lg font-black flex items-center gap-1.5 shadow-lg transition-all hover:scale-105"
               >
-                ✅ Historial de Aciertos
+                <span>✅ Historial de Aciertos</span>
+                <span className="text-[9px] bg-emerald-400 text-slate-950 px-1.5 py-0.2 rounded font-extrabold uppercase">
+                  Público
+                </span>
               </a>
               <button
-                onClick={() => fetchMatchesFromServer(league, true)}
+                onClick={() => {
+                  if (view !== "premium") {
+                    openVipPaywall("La sincronización en tiempo real con 3 APIs oficiales (The Odds API + ESPN + API-Football) es una función exclusiva para miembros VIP ($14.99/mes).");
+                    return;
+                  }
+                  fetchMatchesFromServer(league, true);
+                }}
                 disabled={isSyncing}
                 className={`text-xs px-3 py-2 rounded-lg font-bold transition-all flex items-center gap-1.5 ${
                   isSyncing
@@ -448,10 +540,21 @@ export default function EcuaPronosticoDashboard() {
                 }`}
               >
                 <span className={isSyncing ? "animate-spin" : ""}>🔄</span>
-                {isSyncing ? "Sincronizando 3 APIs..." : "Forzar Sincronización"}
+                <span>{isSyncing ? "Sincronizando 3 APIs..." : "Forzar Sincronización"}</span>
+                {view !== "premium" && <span className="text-[9px] text-amber-400 font-mono">🔒</span>}
               </button>
-              <button onClick={() => setShowGuide(!showGuide)} className="text-xs bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 px-3 py-2 rounded-lg font-bold">
-                {showGuide ? "Ocultar Guía" : "📖 Guía Fácil"}
+              <button
+                onClick={() => {
+                  if (view !== "premium") {
+                    openVipPaywall("La Guía Fácil de Inversión Cuantitativa (+EV) es exclusiva para miembros VIP ($14.99/mes).");
+                    return;
+                  }
+                  setShowGuide(!showGuide);
+                }}
+                className="text-xs bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 px-3 py-2 rounded-lg font-bold flex items-center gap-1"
+              >
+                <span>{showGuide ? "Ocultar Guía" : "📖 Guía Fácil"}</span>
+                {view !== "premium" && <span className="text-[9px] text-amber-400 font-mono">🔒</span>}
               </button>
               <div className="flex gap-1 bg-slate-800 p-1 rounded-lg border border-slate-700">
                 <button onClick={() => setView("basic")} className={`px-3 py-1.5 text-xs font-bold rounded-md ${view === "basic" ? "bg-slate-600 text-white" : "text-slate-400"}`}>Gratis</button>
@@ -586,34 +689,52 @@ export default function EcuaPronosticoDashboard() {
 
             <div className="flex flex-wrap gap-2 bg-slate-900 p-1.5 rounded-2xl border-2 border-amber-400/60 shadow-[0_0_25px_rgba(251,191,36,0.2)]">
               <button
-                onClick={() => { setDisplayMode("top4"); fetchAllLeaguesForTop4(); }}
-                className={`px-4 py-2.5 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                onClick={() => {
+                  if (view !== "premium") {
+                    openVipPaywall("Las 4 Fijas del Día (las predicciones de máxima certeza matemática del radar multiligas) son exclusivas para miembros VIP ($14.99/mes).");
+                    return;
+                  }
+                  setDisplayMode("top4");
+                  fetchAllLeaguesForTop4();
+                }}
+                className={`px-4 py-2.5 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
                   displayMode === "top4"
                     ? "bg-gradient-to-r from-emerald-400 via-green-300 to-emerald-500 text-slate-950 shadow-[0_0_20px_rgba(34,197,94,0.6)] scale-[1.02]"
                     : "text-green-300 hover:bg-slate-800"
                 }`}
               >
-                🏆 LAS 4 FIJAS DEL DÍA
+                <span>🏆 LAS 4 FIJAS DEL DÍA</span>
+                {view !== "premium" && <span className="text-[9px] bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded font-black">🔒 VIP</span>}
               </button>
               <button
-                onClick={() => setDisplayMode("simplified")}
-                className={`px-4 py-2.5 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                onClick={() => {
+                  if (view !== "premium") {
+                    openVipPaywall("La Cartelera de Ganadores Proyectados (Vista Simplificada sin cuotas) es exclusiva para miembros VIP ($14.99/mes).");
+                    return;
+                  }
+                  setDisplayMode("simplified");
+                }}
+                className={`px-4 py-2.5 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
                   displayMode === "simplified"
                     ? "bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 shadow-[0_0_20px_rgba(251,191,36,0.6)] scale-[1.02]"
                     : "text-amber-300 hover:bg-slate-800"
                 }`}
               >
-                🔥 Vista Simplificada
+                <span>🔥 Vista Simplificada</span>
+                {view !== "premium" && <span className="text-[9px] bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded font-black">🔒 VIP</span>}
               </button>
               <button
                 onClick={() => setDisplayMode("full")}
-                className={`px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-2 ${
+                className={`px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-1.5 ${
                   displayMode === "full"
                     ? "bg-blue-600 text-white shadow-lg"
                     : "text-slate-400 hover:text-white hover:bg-slate-800"
                 }`}
               >
-                📊 Vista Completa
+                <span>📊 Vista Completa</span>
+                <span className="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-1.5 py-0.5 rounded font-bold">
+                  🔓 Gratuita
+                </span>
               </button>
             </div>
           </div>
@@ -990,189 +1111,242 @@ export default function EcuaPronosticoDashboard() {
               )}
 
               <div className="divide-y divide-slate-800/80 max-h-[640px] overflow-y-auto">
-                {matches.map((m) => {
+                {matches.map((m, idx) => {
                   const isSelected = m.id === currentMatch.id;
-                  const unlocked = view === "premium" || m.isFreeSample;
+                  const isFirst = idx === 0;
+                  const unlocked = view === "premium" || isFirst;
                   const isProfitable = m.ev >= 1.0;
                   return (
                     <div
                       key={m.id}
-                      onClick={() => setSelectedMatchId(m.id)}
-                      className={`p-4 md:px-6 md:py-4 transition-all cursor-pointer ${
-                        isSelected
+                      onClick={() => {
+                        if (!unlocked) {
+                          openVipPaywall(`Desbloquea el análisis completo de ${m.home} vs ${m.away} y todos los partidos del radar con tu suscripción VIP ($14.99/mes).`);
+                        } else {
+                          setSelectedMatchId(m.id);
+                        }
+                      }}
+                      className={`relative p-4 md:px-6 md:py-4 transition-all cursor-pointer ${
+                        isSelected && unlocked
                           ? "bg-blue-950/70 border-l-4 border-l-amber-400"
                           : "hover:bg-slate-800/40"
                       }`}
                     >
-                      {/* FILA PRINCIPAL: 3 BLOQUES PERFECTAMENTE BALANCEADOS (4 COLS C/U) */}
-                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-center">
-                        {/* 1. EQUIPOS Y HORARIO (4 COLS) */}
-                        <div className="lg:col-span-4 flex items-center gap-3">
-                          <div className="text-xs font-bold text-amber-400 w-24 shrink-0 bg-slate-900/80 p-2 rounded-xl border border-slate-800 text-center">
-                            <span className="block uppercase tracking-wider">{m.date.split(",")[0].slice(0, 3)} {m.date.match(/\d+/)?.[0]}</span>
-                            <span className="text-white font-black text-xs">{m.time.replace(" ECT", "")}</span>
+                      {/* OVERLAY DE BLOQUEO VIP (FILTRO DE OPACIDAD Y CANDADO) PARA PARTIDOS 2 EN ADELANTE */}
+                      {!unlocked && (
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openVipPaywall(`Desbloquea el análisis completo de ${m.home} vs ${m.away} y todos los partidos del radar con tu suscripción VIP ($14.99/mes).`);
+                          }}
+                          className="absolute inset-0 bg-slate-950/80 backdrop-blur-[2px] z-20 flex flex-col sm:flex-row items-center justify-center gap-3 p-4 text-center cursor-pointer hover:bg-slate-950/90 transition-all group"
+                        >
+                          <div className="flex items-center gap-2 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black text-xs md:text-sm px-4 py-2 rounded-xl shadow-[0_0_20px_rgba(251,191,36,0.5)] transform group-hover:scale-105 transition-all">
+                            <span>🔒</span>
+                            <span>PARTIDO VIP BLOQUEADO • CLIC PARA DESBLOQUEAR ($14.99/MES)</span>
                           </div>
-
-                          <div className="space-y-1.5 flex-1 min-w-0">
-                            <div className="flex items-center gap-2.5">
-                              <span className="w-7 h-7 rounded-full bg-slate-800 text-xs font-black flex items-center justify-center text-blue-300 border border-blue-400/40 shrink-0">
-                                {m.homeInitials}
-                              </span>
-                              <span className="font-bold text-sm md:text-base text-white tracking-tight truncate">
-                                {m.home}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2.5">
-                              <span className="w-7 h-7 rounded-full bg-slate-800 text-xs font-black flex items-center justify-center text-amber-300 border border-amber-400/40 shrink-0">
-                                {m.awayInitials}
-                              </span>
-                              <span className="font-bold text-sm md:text-base text-slate-200 tracking-tight truncate">
-                                {m.away}
-                              </span>
-                            </div>
-                          </div>
-
-                          <span className={`text-[11px] px-2.5 py-1 rounded-lg font-black shrink-0 tracking-wider ${
-                            unlocked
-                              ? "bg-emerald-950/90 text-emerald-400 border border-emerald-500/50"
-                              : "bg-slate-900 text-amber-400 border border-amber-500/40"
-                          }`}>
-                            {m.isFreeSample ? "🔓 ABIERTA" : unlocked ? "🔓 VIP" : "🔒 VIP"}
+                          <span className="text-[11px] text-amber-200/90 font-medium hidden sm:inline">
+                            xG real, cuotas desmargenizadas y Montecarlo restringidos
                           </span>
                         </div>
+                      )}
 
-                        {/* 2. BLOQUE GANADOR 1X2 (4 COLS) */}
-                        <div className="lg:col-span-4 flex flex-col justify-between">
-                          <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
-                            <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
-                              <span className="block text-xs font-bold text-slate-300 truncate">
-                                Gana {m.homeInitials}
-                              </span>
-                              <strong className="text-base md:text-lg font-black text-white font-mono">
-                                {m.cuotaLocal.toFixed(2)}
-                              </strong>
+                      <div className={`transition-all ${!unlocked ? "filter blur-[1.5px] opacity-35 select-none pointer-events-none" : ""}`}>
+                        {/* FILA PRINCIPAL: 3 BLOQUES PERFECTAMENTE BALANCEADOS (4 COLS C/U) */}
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-center">
+                          {/* 1. EQUIPOS Y HORARIO (4 COLS) */}
+                          <div className="lg:col-span-4 flex items-center gap-3">
+                            <div className="text-xs font-bold text-amber-400 w-24 shrink-0 bg-slate-900/80 p-2 rounded-xl border border-slate-800 text-center">
+                              <span className="block uppercase tracking-wider">{m.date.split(",")[0].slice(0, 3)} {m.date.match(/\d+/)?.[0]}</span>
+                              <span className="text-white font-black text-xs">{m.time.replace(" ECT", "")}</span>
                             </div>
 
-                            <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
-                              <span className="block text-xs font-bold text-slate-300">
-                                Empate
-                              </span>
-                              <strong className="text-base md:text-lg font-black text-white font-mono">
-                                {m.cuotaEmpate.toFixed(2)}
-                              </strong>
-                            </div>
-
-                            <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
-                              <span className="block text-xs font-bold text-slate-300 truncate">
-                                Gana {m.awayInitials}
-                              </span>
-                              <strong className="text-base md:text-lg font-black text-white font-mono">
-                                {m.cuotaVisita.toFixed(2)}
-                              </strong>
-                            </div>
-                          </div>
-
-                          <p className="text-xs text-slate-400 mt-2 text-center leading-snug">
-                            Multiplica tu dinero: cobras tu apuesta × cuota si aciertas quién gana o empate
-                          </p>
-                        </div>
-
-                        {/* 3. BLOQUE TOTAL GOLES Y VALOR ESPERADO EV (4 COLS) */}
-                        <div className="lg:col-span-4 grid grid-cols-3 gap-2 sm:gap-2.5 items-start">
-                          {/* 2 CUADROS DE GOLES */}
-                          <div className="col-span-2 flex flex-col justify-between">
-                            <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
-                              <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
-                                <span className="block text-xs font-bold text-slate-300">
-                                  Más de {m.lineGoals}
+                            <div className="space-y-1.5 flex-1 min-w-0">
+                              <div className="flex items-center gap-2.5">
+                                <span className="w-7 h-7 rounded-full bg-slate-800 text-xs font-black flex items-center justify-center text-blue-300 border border-blue-400/40 shrink-0">
+                                  {m.homeInitials}
                                 </span>
-                                <strong className="text-base md:text-lg font-black text-amber-300 font-mono">
-                                  {m.cuotaOver.toFixed(2)}
-                                </strong>
+                                <span className="font-bold text-sm md:text-base text-white tracking-tight truncate">
+                                  {m.home}
+                                </span>
                               </div>
-                              <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
-                                <span className="block text-xs font-bold text-slate-300">
-                                  Menos de {m.lineGoals}
+                              <div className="flex items-center gap-2.5">
+                                <span className="w-7 h-7 rounded-full bg-slate-800 text-xs font-black flex items-center justify-center text-amber-300 border border-amber-400/40 shrink-0">
+                                  {m.awayInitials}
                                 </span>
-                                <strong className="text-base md:text-lg font-black text-amber-300 font-mono">
-                                  {m.cuotaUnder.toFixed(2)}
-                                </strong>
+                                <span className="font-bold text-sm md:text-base text-slate-200 tracking-tight truncate">
+                                  {m.away}
+                                </span>
                               </div>
                             </div>
-                            <p className="text-xs text-slate-400 mt-2 text-center leading-snug">
-                              Más: 3 o más goles | Menos: máx. 2 goles
-                            </p>
-                          </div>
 
-                          {/* 1 CUADRO DE VALOR ESPERADO EV */}
-                          <div className="col-span-1 flex flex-col justify-between">
-                            <div className={`rounded-xl px-2 py-2 text-center flex flex-col justify-center transition-all shadow-sm border ${
-                              !unlocked
-                                ? "bg-slate-900/90 border-slate-700"
-                                : isProfitable
-                                ? "bg-emerald-950/90 border-emerald-500/80 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
-                                : "bg-slate-900/90 border-slate-700"
+                            <span className={`text-[11px] px-2.5 py-1 rounded-lg font-black shrink-0 tracking-wider ${
+                              isFirst
+                                ? "bg-emerald-950/90 text-emerald-400 border border-emerald-500/50"
+                                : unlocked
+                                ? "bg-emerald-950/90 text-emerald-400 border border-emerald-500/50"
+                                : "bg-amber-950/90 text-amber-300 border border-amber-500/50"
                             }`}>
-                              <span className="block text-[10px] sm:text-xs text-slate-300 uppercase font-black tracking-tight">
-                                {!unlocked ? "Auditoría EV" : isProfitable ? "VALOR +EV" : "MERCADO EV"}
-                              </span>
-                              <strong className={`text-sm md:text-base font-black font-mono mt-0.5 ${
-                                !unlocked ? "text-amber-300" : isProfitable ? "text-emerald-400" : "text-slate-300"
-                              }`}>
-                                {unlocked ? (m.ev > 0 ? `+${m.ev}% EV` : `${m.ev}% EV`) : "🔒 VIP"}
-                              </strong>
+                              {isFirst ? "🔓 ABIERTA" : unlocked ? "🔓 VIP" : "🔒 VIP"}
+                            </span>
+                          </div>
+
+                          {/* 2. BLOQUE GANADOR 1X2 (4 COLS) */}
+                          <div className="lg:col-span-4 flex flex-col justify-between">
+                            <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+                              <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
+                                <span className="block text-xs font-bold text-slate-300 truncate">
+                                  Gana {m.homeInitials}
+                                </span>
+                                <strong className="text-base md:text-lg font-black text-white font-mono">
+                                  {m.cuotaLocal.toFixed(2)}
+                                </strong>
+                              </div>
+
+                              <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
+                                <span className="block text-xs font-bold text-slate-300">
+                                  Empate
+                                </span>
+                                <strong className="text-base md:text-lg font-black text-white font-mono">
+                                  {m.cuotaEmpate.toFixed(2)}
+                                </strong>
+                              </div>
+
+                              <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
+                                <span className="block text-xs font-bold text-slate-300 truncate">
+                                  Gana {m.awayInitials}
+                                </span>
+                                <strong className="text-base md:text-lg font-black text-white font-mono">
+                                  {m.cuotaVisita.toFixed(2)}
+                                </strong>
+                              </div>
                             </div>
+
                             <p className="text-xs text-slate-400 mt-2 text-center leading-snug">
-                              Valor pos-devigging
+                              Multiplica tu dinero: cobras tu apuesta × cuota si aciertas quién gana o empate
                             </p>
                           </div>
-                        </div>
-                      </div>
 
-                      {/* BANDEJA CONTEXTUAL DUAL COMPLETA: NOVATO (Semántica) vs PROFESIONAL (Cuantitativa xG) */}
-                      <div className="w-full mt-3.5 pt-3 border-t border-slate-800/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5 text-xs">
-                        {/* LADO NOVATO: Alertas Semánticas de APIs */}
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="bg-slate-900/90 text-purple-300 border border-purple-500/40 px-3 py-1 rounded-lg font-medium flex items-center gap-1.5 shadow-sm">
-                            {m.altitudeBadge || "⛰️ Altitud Evaluada"}
-                          </span>
-                          <span className="bg-slate-900/90 text-sky-300 border border-sky-500/40 px-3 py-1 rounded-lg font-medium flex items-center gap-1.5 shadow-sm">
-                            👨‍⚖️ <strong>Árbitro:</strong> {m.refereeName || "Oficial"} <span className="text-sky-400 font-bold">({m.refereeCardsAvg || "4.8"} tarj/p)</span>
-                          </span>
-                          <span className="bg-slate-900/90 text-amber-300 border border-amber-500/40 px-3 py-1 rounded-lg font-medium flex items-center gap-1.5 shadow-sm">
-                            📋 <strong>Alineación:</strong> {m.lineupStatus || "Alineación verificada en planilla"}
-                          </span>
-                          <span className="bg-slate-900/90 text-slate-300 border border-slate-700 px-3 py-1 rounded-lg font-medium hidden xl:flex items-center gap-1.5 shadow-sm">
-                            📈 <strong>Mercado:</strong> {m.marketTrend ? (m.marketTrend.length > 55 ? m.marketTrend.slice(0, 52) + "..." : m.marketTrend) : "Consenso en vivo"}
-                          </span>
+                          {/* 3. BLOQUE TOTAL GOLES Y VALOR ESPERADO EV (4 COLS) */}
+                          <div className="lg:col-span-4 grid grid-cols-3 gap-2 sm:gap-2.5 items-start">
+                            {/* 2 CUADROS DE GOLES */}
+                            <div className="col-span-2 flex flex-col justify-between">
+                              <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+                                <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
+                                  <span className="block text-xs font-bold text-slate-300">
+                                    Más de {m.lineGoals}
+                                  </span>
+                                  <strong className="text-base md:text-lg font-black text-amber-300 font-mono">
+                                    {m.cuotaOver.toFixed(2)}
+                                  </strong>
+                                </div>
+                                <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
+                                  <span className="block text-xs font-bold text-slate-300">
+                                    Menos de {m.lineGoals}
+                                  </span>
+                                  <strong className="text-base md:text-lg font-black text-amber-300 font-mono">
+                                    {m.cuotaUnder.toFixed(2)}
+                                  </strong>
+                                </div>
+                              </div>
+                              <p className="text-xs text-slate-400 mt-2 text-center leading-snug">
+                                Más: 3 o más goles | Menos: máx. 2 goles
+                              </p>
+                            </div>
+
+                            {/* 1 CUADRO DE VALOR ESPERADO EV */}
+                            <div className="col-span-1 flex flex-col justify-between">
+                              <div className={`rounded-xl px-2 py-2 text-center flex flex-col justify-center transition-all shadow-sm border ${
+                                !unlocked
+                                  ? "bg-slate-900/90 border-slate-700"
+                                  : isProfitable
+                                  ? "bg-emerald-950/90 border-emerald-500/80 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                                  : "bg-slate-900/90 border-slate-700"
+                              }`}>
+                                <span className="block text-[10px] sm:text-xs text-slate-300 uppercase font-black tracking-tight">
+                                  {!unlocked ? "Auditoría EV" : isProfitable ? "VALOR +EV" : "MERCADO EV"}
+                                </span>
+                                <strong className={`text-sm md:text-base font-black font-mono mt-0.5 ${
+                                  !unlocked ? "text-amber-300" : isProfitable ? "text-emerald-400" : "text-slate-300"
+                                }`}>
+                                  {unlocked ? (m.ev > 0 ? `+${m.ev}% EV` : `${m.ev}% EV`) : "🔒 VIP"}
+                                </strong>
+                              </div>
+                              <p className="text-xs text-slate-400 mt-2 text-center leading-snug">
+                                Valor pos-devigging
+                              </p>
+                            </div>
+                          </div>
                         </div>
 
-                        {/* LADO PROFESIONAL: Métricas Cuantitativas xG y De-vigging */}
-                        <div className="flex flex-wrap items-center gap-2 font-mono">
-                          <span className="bg-blue-950/80 text-blue-300 border border-blue-500/50 px-3 py-1 rounded-lg font-bold shadow-sm flex items-center gap-1.5">
-                            📊 ΔxG: <span className="text-white">{m.xgDiff > 0 ? `+${m.xgDiff}` : m.xgDiff}</span> ({m.xgHome} vs {m.xgAway})
-                          </span>
-                          <span className="bg-slate-900/90 text-slate-300 border border-slate-700/80 px-3 py-1.5 rounded-lg shadow-sm text-xs leading-normal">
-                            <span className="text-slate-400 font-bold mr-1.5">⚖️ Prob. Limpia:</span>
-                            <span className="text-emerald-400 font-bold">
-                              {m.cleanProbX > 0 ? (
-                                <>
-                                  Gana {m.home}: <strong className="text-white font-extrabold">{m.cleanProb1}%</strong> | Empate: <strong className="text-white font-extrabold">{m.cleanProbX}%</strong> | Gana {m.away}: <strong className="text-white font-extrabold">{m.cleanProb2}%</strong>
-                                </>
-                              ) : (
-                                <>
-                                  Gana {m.home}: <strong className="text-white font-extrabold">{m.cleanProb1}%</strong> | Gana {m.away}: <strong className="text-white font-extrabold">{m.cleanProb2}%</strong>
-                                </>
-                              )}
+                        {/* BANDEJA CONTEXTUAL DUAL COMPLETA: NOVATO (Semántica) vs PROFESIONAL (Cuantitativa xG) */}
+                        <div className="w-full mt-3.5 pt-3 border-t border-slate-800/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5 text-xs">
+                          {/* LADO NOVATO: Alertas Semánticas de APIs */}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="bg-slate-900/90 text-purple-300 border border-purple-500/40 px-3 py-1 rounded-lg font-medium flex items-center gap-1.5 shadow-sm">
+                              {m.altitudeBadge || "⛰️ Altitud Evaluada"}
                             </span>
-                            <span className="text-slate-500 font-mono ml-2 text-[10px] hidden md:inline">({m.marginCasa}% margen descontado)</span>
-                          </span>
+                            <span className="bg-slate-900/90 text-sky-300 border border-sky-500/40 px-3 py-1 rounded-lg font-medium flex items-center gap-1.5 shadow-sm">
+                              👨‍⚖️ <strong>Árbitro:</strong> {m.refereeName || "Oficial"} <span className="text-sky-400 font-bold">({m.refereeCardsAvg || "4.8"} tarj/p)</span>
+                            </span>
+                            <span className="bg-slate-900/90 text-amber-300 border border-amber-500/40 px-3 py-1 rounded-lg font-medium flex items-center gap-1.5 shadow-sm">
+                              📋 <strong>Alineación:</strong> {m.lineupStatus || "Alineación verificada en planilla"}
+                            </span>
+                            <span className="bg-slate-900/90 text-slate-300 border border-slate-700 px-3 py-1 rounded-lg font-medium hidden xl:flex items-center gap-1.5 shadow-sm">
+                              📈 <strong>Mercado:</strong> {m.marketTrend ? (m.marketTrend.length > 55 ? m.marketTrend.slice(0, 52) + "..." : m.marketTrend) : "Consenso en vivo"}
+                            </span>
+                          </div>
+
+                          {/* LADO PROFESIONAL: Métricas Cuantitativas xG y De-vigging */}
+                          <div className="flex flex-wrap items-center gap-2 font-mono">
+                            <span className="bg-blue-950/80 text-blue-300 border border-blue-500/50 px-3 py-1 rounded-lg font-bold shadow-sm flex items-center gap-1.5">
+                              📊 ΔxG: <span className="text-white">{m.xgDiff > 0 ? `+${m.xgDiff}` : m.xgDiff}</span> ({m.xgHome} vs {m.xgAway})
+                            </span>
+                            <span className="bg-slate-900/90 text-slate-300 border border-slate-700/80 px-3 py-1.5 rounded-lg shadow-sm text-xs leading-normal">
+                              <span className="text-slate-400 font-bold mr-1.5">⚖️ Prob. Limpia:</span>
+                              <span className="text-emerald-400 font-bold">
+                                {m.cleanProbX > 0 ? (
+                                  <>
+                                    Gana {m.home}: <strong className="text-white font-extrabold">{m.cleanProb1}%</strong> | Empate: <strong className="text-white font-extrabold">{m.cleanProbX}%</strong> | Gana {m.away}: <strong className="text-white font-extrabold">{m.cleanProb2}%</strong>
+                                  </>
+                                ) : (
+                                  <>
+                                    Gana {m.home}: <strong className="text-white font-extrabold">{m.cleanProb1}%</strong> | Gana {m.away}: <strong className="text-white font-extrabold">{m.cleanProb2}%</strong>
+                                  </>
+                                )}
+                              </span>
+                              <span className="text-slate-500 font-mono ml-2 text-[10px] hidden md:inline">({m.marginCasa}% margen descontado)</span>
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
+
+              {/* BANNER INFERIOR DE CONVERSIÓN FREEMIUM */}
+              {matches.length > 1 && view !== "premium" && (
+                <div className="p-3.5 bg-gradient-to-r from-amber-500/15 via-slate-900 to-amber-500/15 border-t border-amber-400/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🔒</span>
+                    <div>
+                      <div className="text-xs md:text-sm font-black text-amber-300">
+                        {matches.length - 1} Partidos Bloqueados en esta liga
+                      </div>
+                      <div className="text-[11px] text-slate-300">
+                        Solo el primer partido es gratuito. Activa tu membresía VIP para ver todos los encuentros.
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => openVipPaywall("Desbloquea todos los partidos y ligas completas con la membresía VIP ($14.99/mes).")}
+                    className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-4 py-2 rounded-xl text-xs uppercase tracking-wider shrink-0 shadow-lg"
+                  >
+                    Desbloquear Todo VIP ($14.99)
+                  </button>
+                </div>
+              )}
             </section>
 
             {!isMatchUnlocked ? (
@@ -1182,7 +1356,7 @@ export default function EcuaPronosticoDashboard() {
                   Desbloquea el veredicto real calculado con Distribución de Poisson y 10,000 Simulaciones de Montecarlo para saber en qué partidos sí hay ventaja y en cuáles no debes arriesgar tu dinero.
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
-                  <button onClick={() => setShowLoginModal(true)} className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl text-sm shadow-lg">Iniciar Sesión VIP</button>
+                  <button onClick={() => openVipPaywall(`Inicia sesión o adquiere tu membresía VIP para desbloquear el análisis de ${currentMatch.home} vs ${currentMatch.away}.`)} className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl text-sm shadow-lg">Iniciar Sesión VIP</button>
                   <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-black py-3 px-6 rounded-xl text-sm shadow-lg">Suscribirme por WhatsApp - $14.99/mes</a>
                 </div>
               </div>
