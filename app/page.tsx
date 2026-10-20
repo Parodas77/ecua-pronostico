@@ -329,12 +329,12 @@ export default function EcuaPronosticoDashboard() {
   const probImplicitaEmpate = ((1 / currentMatch.cuotaEmpate) * 100).toFixed(1);
   const probImplicitaVisita = ((1 / currentMatch.cuotaVisita) * 100).toFixed(1);
 
-  const handleSendMessage = async () => {
-    if (!chatInput.trim()) return;
-    const questionText = chatInput.trim();
+  const handleSendMessage = async (customQuestion?: string) => {
+    const questionText = (customQuestion || chatInput).trim();
+    if (!questionText) return;
     const newUserMsg = { role: "user", text: questionText };
     setChatHistory(prev => [...prev, newUserMsg]);
-    setChatInput("");
+    if (!customQuestion) setChatInput("");
     setIsTyping(true);
 
     try {
@@ -359,13 +359,24 @@ export default function EcuaPronosticoDashboard() {
         ...prev,
         {
           role: "ai",
-          text: `Para ${currentMatch.home} vs ${currentMatch.away}, la opción más fuerte es '${currentMatch.bestMarketName}' con ${currentMatch.probReal}% de probabilidad real (Cuota mínima rentable: ${currentMatch.minFairOddForTopPick}).`
+          text: `Para ${currentMatch.home} vs ${currentMatch.away}: La opción con mayor probabilidad es '${currentMatch.bestMarketName}' a cuota ${currentMatch.bestOdd} (${currentMatch.ev > 0 ? "+" + currentMatch.ev : currentMatch.ev}% EV). Cuota mínima rentable: ${currentMatch.minFairOddForTopPick}. Árbitro: ${currentMatch.refereeName} (${currentMatch.refereeCardsAvg} tarj/p).`
         }
       ]);
     } finally {
       setIsTyping(false);
     }
   };
+
+  useEffect(() => {
+    if (currentMatch && currentMatch.home && currentMatch.away) {
+      setChatHistory([
+        {
+          role: "ai",
+          text: `👋 Auditor Cuantitativo conectado a ${currentMatch.home} vs ${currentMatch.away} (${currentMatch.leagueTitle || 'Competición Oficial'}).\n\nTengo en memoria sus Expected Goals (${currentMatch.xgHome} vs ${currentMatch.xgAway}), cuota mínima rentable (${currentMatch.minFairOddForTopPick}), árbitro oficial (${currentMatch.refereeName} | ${currentMatch.refereeCardsAvg} tarj/p) y el factor altitud/sede (${currentMatch.altitudeBadge}).\n\n¿Qué deseas consultar sobre este partido?`
+        }
+      ]);
+    }
+  }, [currentMatch?.id]);
 
   return (
     <div className="min-h-screen bg-[#0b132b] text-slate-50 p-3 md:p-6 font-sans">
@@ -1141,8 +1152,20 @@ export default function EcuaPronosticoDashboard() {
                           <span className="bg-blue-950/80 text-blue-300 border border-blue-500/50 px-3 py-1 rounded-lg font-bold shadow-sm flex items-center gap-1.5">
                             📊 ΔxG: <span className="text-white">{m.xgDiff > 0 ? `+${m.xgDiff}` : m.xgDiff}</span> ({m.xgHome} vs {m.xgAway})
                           </span>
-                          <span className="bg-slate-900/90 text-slate-300 border border-slate-700/80 px-3 py-1 rounded-lg shadow-sm">
-                            ⚖️ Margen Casa: <strong className="text-slate-100">{m.marginCasa}%</strong> | Prob. Limpia: <strong className="text-emerald-400">{m.cleanProb1}% - {m.cleanProbX}% - {m.cleanProb2}%</strong>
+                          <span className="bg-slate-900/90 text-slate-300 border border-slate-700/80 px-3 py-1.5 rounded-lg shadow-sm text-xs leading-normal">
+                            <span className="text-slate-400 font-bold mr-1.5">⚖️ Prob. Limpia:</span>
+                            <span className="text-emerald-400 font-bold">
+                              {m.cleanProbX > 0 ? (
+                                <>
+                                  Gana {m.home}: <strong className="text-white font-extrabold">{m.cleanProb1}%</strong> | Empate: <strong className="text-white font-extrabold">{m.cleanProbX}%</strong> | Gana {m.away}: <strong className="text-white font-extrabold">{m.cleanProb2}%</strong>
+                                </>
+                              ) : (
+                                <>
+                                  Gana {m.home}: <strong className="text-white font-extrabold">{m.cleanProb1}%</strong> | Gana {m.away}: <strong className="text-white font-extrabold">{m.cleanProb2}%</strong>
+                                </>
+                              )}
+                            </span>
+                            <span className="text-slate-500 font-mono ml-2 text-[10px] hidden md:inline">({m.marginCasa}% margen descontado)</span>
                           </span>
                         </div>
                       </div>
@@ -1671,22 +1694,88 @@ export default function EcuaPronosticoDashboard() {
                     </div>
                   </div>
 
-                  <div className="bg-slate-900 border border-blue-500/40 rounded-2xl overflow-hidden flex flex-col h-[380px] shadow-xl">
-                    <div className="bg-slate-800 px-4 py-3 border-b border-slate-700 flex justify-between items-center">
-                      <h3 className="text-white font-bold text-xs uppercase">Pregúntale al Auditor en Vivo</h3>
-                      <span className="text-[10px] bg-green-950 text-green-400 border border-green-500/40 px-2 py-0.5 rounded-full font-bold">CALENDARIO 8 DÍAS</span>
+                  <div className="bg-slate-900 border border-blue-500/40 rounded-2xl overflow-hidden flex flex-col h-[430px] shadow-xl">
+                    <div className="bg-slate-800 px-3.5 py-2.5 border-b border-slate-700 flex justify-between items-center">
+                      <div className="truncate pr-2">
+                        <h3 className="text-white font-bold text-xs uppercase flex items-center gap-1.5 truncate">
+                          <span>🤖</span>
+                          <span className="truncate">Auditor en Vivo: {currentMatch.home} vs {currentMatch.away}</span>
+                        </h3>
+                      </div>
+                      <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-500/50 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 shrink-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        CONECTADO
+                      </span>
                     </div>
-                    <div className="p-3 flex-1 overflow-y-auto space-y-2.5">
+
+                    {/* HISTORIAL DE MENSAJES */}
+                    <div className="p-3 flex-1 overflow-y-auto space-y-2.5 text-xs">
                       {chatHistory.map((msg, i) => (
                         <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`max-w-[88%] p-2.5 rounded-xl text-xs leading-relaxed ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-200 border border-slate-700'}`}>{msg.text}</div>
+                          <div
+                            className={`max-w-[90%] p-2.5 rounded-xl text-xs leading-relaxed whitespace-pre-line shadow-sm ${
+                              msg.role === 'user'
+                                ? 'bg-blue-600 text-white font-medium'
+                                : 'bg-slate-800 text-slate-200 border border-slate-700 font-sans'
+                            }`}
+                          >
+                            {msg.text}
+                          </div>
                         </div>
                       ))}
-                      {isTyping && <div className="text-xs text-blue-400 animate-pulse">Auditando partidos de los próximos 8 días...</div>}
+                      {isTyping && (
+                        <div className="flex items-center gap-2 text-xs text-blue-400 bg-slate-800/70 p-2 rounded-lg border border-slate-700/60 animate-pulse">
+                          <span>🔄</span>
+                          <span>Auditando {currentMatch.home} vs {currentMatch.away} en tiempo real...</span>
+                        </div>
+                      )}
                     </div>
-                    <div className="p-2.5 bg-slate-800 border-t border-slate-700 flex gap-2">
-                      <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} placeholder="Ej: ¿Cuáles son los mejores partidos de la semana?" className="flex-1 bg-slate-900 border border-slate-600 text-xs text-white rounded-lg px-3 py-2 outline-none" />
-                      <button onClick={handleSendMessage} className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg text-xs font-bold">Preguntar</button>
+
+                    {/* BOTONES DE PREGUNTAS RÁPIDAS (1-CLICK) */}
+                    <div className="px-2.5 py-1.5 bg-slate-950/70 border-t border-slate-800 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                      <button
+                        onClick={() => handleSendMessage(`¿Vale la pena apostar a este partido y cuál es la cuota rentable?`)}
+                        className="text-[10px] whitespace-nowrap bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-400/30 px-2 py-1 rounded-md transition-all shrink-0 font-semibold"
+                      >
+                        💡 ¿Vale la pena?
+                      </button>
+                      <button
+                        onClick={() => handleSendMessage(`Explícame los xG y los marcadores más probables para ${currentMatch.home} vs ${currentMatch.away}`)}
+                        className="text-[10px] whitespace-nowrap bg-slate-800 hover:bg-slate-700 text-blue-300 border border-blue-400/30 px-2 py-1 rounded-md transition-all shrink-0 font-semibold"
+                      >
+                        📊 xG y Marcador
+                      </button>
+                      <button
+                        onClick={() => handleSendMessage(`¿Quién es el árbitro y cómo influye en este partido?`)}
+                        className="text-[10px] whitespace-nowrap bg-slate-800 hover:bg-slate-700 text-sky-300 border border-sky-400/30 px-2 py-1 rounded-md transition-all shrink-0 font-semibold"
+                      >
+                        👨‍⚖️ Árbitro
+                      </button>
+                      <button
+                        onClick={() => handleSendMessage(`¿Cómo influye la altitud o la sede en este encuentro?`)}
+                        className="text-[10px] whitespace-nowrap bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-400/30 px-2 py-1 rounded-md transition-all shrink-0 font-semibold"
+                      >
+                        ⛰️ Altura/Sede
+                      </button>
+                    </div>
+
+                    {/* CAJA DE ENTRADA */}
+                    <div className="p-2 bg-slate-800 border-t border-slate-700 flex gap-2">
+                      <input
+                        type="text"
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                        placeholder={`Pregunta sobre ${currentMatch.home} vs ${currentMatch.away}...`}
+                        className="flex-1 bg-slate-900 border border-slate-600 text-xs text-white rounded-lg px-3 py-2 outline-none focus:border-blue-400"
+                      />
+                      <button
+                        onClick={() => handleSendMessage()}
+                        disabled={isTyping}
+                        className="bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow"
+                      >
+                        Preguntar
+                      </button>
                     </div>
                   </div>
 
