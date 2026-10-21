@@ -852,9 +852,27 @@ export default function EcuaPronosticoDashboard() {
                             <h3 className="text-xl md:text-2xl font-black text-white uppercase leading-tight truncate">
                               {winnerName}
                             </h3>
-                            <span className="inline-flex items-center gap-1.5 mt-2 bg-slate-950/95 border-2 border-[#FFD700] text-[#FFD700] font-black text-xs md:text-sm px-3.5 py-1.5 rounded-xl uppercase tracking-wider shadow-[0_0_18px_rgba(255,215,0,0.55)] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
-                              {m.fijaTag || lexicon.fijaTag}
-                            </span>
+                            <div
+                              className="inline-flex items-center gap-2 mt-2 px-3.5 py-1.5 rounded-xl border-2 font-black text-xs md:text-sm uppercase tracking-wider"
+                              style={{
+                                backgroundColor: "#020617",
+                                borderColor: "#FFD700",
+                                color: "#FFD700",
+                                boxShadow: "0 0 18px rgba(255, 215, 0, 0.45)",
+                              }}
+                            >
+                              <span className="text-base leading-none">{lexicon.icon || "⚽"}</span>
+                              <span style={{ color: "#FFFFFF", fontWeight: 900 }}>FIJA</span>
+                              <span
+                                style={{
+                                  color: "#FFD700",
+                                  fontWeight: 900,
+                                  textShadow: "0 0 12px rgba(255, 215, 0, 0.9), 0 2px 4px rgba(0, 0, 0, 0.9)",
+                                }}
+                              >
+                                A GANAR
+                              </span>
+                            </div>
                           </div>
                         </div>
 
@@ -1034,9 +1052,26 @@ export default function EcuaPronosticoDashboard() {
                               <h3 className="text-xl md:text-2xl font-black text-white uppercase leading-tight break-words">
                                 {winnerName}
                               </h3>
-                              <span className="inline-block mt-2 bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 font-black text-xs md:text-sm px-3.5 py-1 rounded-lg uppercase tracking-wider shadow">
-                                🏆 A GANAR
-                              </span>
+                              <div
+                                className="inline-flex items-center gap-2 mt-2 px-3.5 py-1.5 rounded-xl border-2 font-black text-xs md:text-sm uppercase tracking-wider"
+                                style={{
+                                  backgroundColor: "#020617",
+                                  borderColor: "#FFD700",
+                                  color: "#FFD700",
+                                  boxShadow: "0 0 18px rgba(255, 215, 0, 0.45)",
+                                }}
+                              >
+                                <span className="text-base leading-none">🏆</span>
+                                <span
+                                  style={{
+                                    color: "#FFD700",
+                                    fontWeight: 900,
+                                    textShadow: "0 0 12px rgba(255, 215, 0, 0.9), 0 2px 4px rgba(0, 0, 0, 0.9)",
+                                  }}
+                                >
+                                  A GANAR
+                                </span>
+                              </div>
                             </div>
                           </div>
 
