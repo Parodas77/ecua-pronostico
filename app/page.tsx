@@ -99,6 +99,58 @@ const REGION_TABS: RegionTab[] = [
   },
 ];
 
+function getSportLexicon(sportCategory?: string) {
+  const cat = (sportCategory || "soccer").toLowerCase();
+  switch (cat) {
+    case "basketball":
+      return {
+        sportCategory: "basketball",
+        unitLabel: "Puntos",
+        metricLabel: "Eficiencia Ofensiva / xPts",
+        metricShort: "ΔxPts",
+        fijaTag: "🏀 FIJA A GANAR",
+        icon: "🏀",
+      };
+    case "baseball":
+      return {
+        sportCategory: "baseball",
+        unitLabel: "Carreras (Runs)",
+        metricLabel: "Peligro xRuns",
+        metricShort: "ΔxRuns",
+        fijaTag: "⚾ FIJA A GANAR",
+        icon: "⚾",
+      };
+    case "football":
+      return {
+        sportCategory: "football",
+        unitLabel: "Puntos",
+        metricLabel: "Yardas / Eficiencia",
+        metricShort: "ΔxPts",
+        fijaTag: "🏈 FIJA A GANAR",
+        icon: "🏈",
+      };
+    case "hockey":
+      return {
+        sportCategory: "hockey",
+        unitLabel: "Goles (Pucks)",
+        metricLabel: "Peligro xG (Pucks)",
+        metricShort: "ΔxG",
+        fijaTag: "🏒 FIJA A GANAR",
+        icon: "🏒",
+      };
+    case "soccer":
+    default:
+      return {
+        sportCategory: "soccer",
+        unitLabel: "Goles",
+        metricLabel: "Peligro xG",
+        metricShort: "ΔxG",
+        fijaTag: "⚽ FIJA A GANAR",
+        icon: "⚽",
+      };
+  }
+}
+
 export default function EcuaPronosticoDashboard() {
   const [view, setView] = useState("basic");
   const [league, setLeague] = useState("ligapro");
@@ -716,11 +768,22 @@ export default function EcuaPronosticoDashboard() {
                 🏆 LAS 4 FIJAS DEL DÍA (MÁXIMA CERTEZA Y VALOR)
               </h2>
               <p className="text-xs md:text-sm text-slate-200 mt-1 max-w-2xl mx-auto">
-                Filtro automático de <strong className="text-amber-300">todas las ligas y deportes activos</strong> para las próximas 24 horas. El motor matemático evalúa el <strong className="text-green-300">EV% y probabilidad más alta</strong> (ganador, doble oportunidad o goles), ordenadas de forma <strong className="text-white font-bold">estrictamente cronológica por hora de inicio</strong>.
+                Filtro automático de <strong className="text-amber-300">todas las ligas y deportes activos</strong> para las próximas 24 horas. El motor matemático evalúa el <strong className="text-green-300">EV% y probabilidad más alta</strong> (ganador, doble oportunidad o totales con adaptación semántica de métricas xG, xPts y xRuns según deporte), ordenadas de forma <strong className="text-white font-bold">estrictamente cronológica por hora de inicio</strong>.
               </p>
-              <div className="mt-3 text-[11px] text-emerald-300 font-mono font-bold bg-slate-950/70 inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-emerald-500/40 shadow-sm">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>{fijasSyncInfo}</span>
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                <div className="text-[11px] text-emerald-300 font-mono font-bold bg-slate-950/70 inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-emerald-500/40 shadow-sm">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>{fijasSyncInfo}</span>
+                </div>
+                <button
+                  onClick={() => fetchAllLeaguesForTop4(true)}
+                  disabled={isLoadingTop4}
+                  className="text-[11px] text-amber-300 font-bold bg-slate-900 hover:bg-slate-800 border border-amber-400/50 hover:border-amber-300 px-3 py-1 rounded-full transition-all inline-flex items-center gap-1.5 shadow active:scale-95 cursor-pointer"
+                  title="Recalibrar y sincronizar fijas en vivo"
+                >
+                  <span className={isLoadingTop4 ? "animate-spin" : ""}>🔄</span>
+                  <span>{isLoadingTop4 ? "Recalibrando Fijas..." : "Forzar Sincronización"}</span>
+                </button>
               </div>
             </div>
 
@@ -747,19 +810,20 @@ export default function EcuaPronosticoDashboard() {
                   const loserInitials = isHomeWinner ? m.awayInitials : m.homeInitials;
 
                   const rawWinProb = isHomeWinner ? homeProb : awayProb;
-                  const headToHeadWinProb = Number(((rawWinProb / Math.max(1, rawWinProb + (isHomeWinner ? awayProb : homeProb))) * 100).toFixed(1));
+                  const headToHeadWinProb = m.headToHeadWinProb || Number(((rawWinProb / Math.max(1, rawWinProb + (isHomeWinner ? awayProb : homeProb))) * 100).toFixed(1));
                   const safeDoubleProb = isHomeWinner ? m.prob1X : m.probX2;
+                  const lexicon = getSportLexicon(m.sportCategory);
 
                   return (
                     <div
-                      key={m.id || idx}
+                      key={m.id || m.fixtureId || idx}
                       className="relative rounded-3xl overflow-hidden border-2 border-green-500/70 bg-gradient-to-r from-[#064e3b]/40 via-[#16264c] to-[#064e3b]/40 shadow-2xl transition-all hover:scale-[1.01]"
                     >
                       <div className="bg-[#091024] px-5 py-2.5 border-b border-slate-800 flex flex-wrap justify-between items-center gap-2">
                         <div className="flex items-center gap-2">
                           <span className="w-3 h-3 rounded-full bg-green-400 animate-ping"></span>
                           <span className="text-xs font-black uppercase tracking-wider text-green-300">
-                            FIJA #{idx + 1} • {m.icon || "⚽"} {m.leagueTitle}
+                            FIJA #{idx + 1} • {m.icon || lexicon.icon || "⚽"} {m.leagueTitle}
                           </span>
                         </div>
                         <div className="flex items-center gap-3">
@@ -788,8 +852,8 @@ export default function EcuaPronosticoDashboard() {
                             <h3 className="text-xl md:text-2xl font-black text-white uppercase leading-tight truncate">
                               {winnerName}
                             </h3>
-                            <span className="inline-block mt-2 bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 font-black text-xs px-3 py-1 rounded-lg uppercase tracking-wider shadow">
-                              🏆 FIJA A GANAR
+                            <span className="inline-flex items-center gap-1.5 mt-2 bg-slate-950/95 border-2 border-[#FFD700] text-[#FFD700] font-black text-xs md:text-sm px-3.5 py-1.5 rounded-xl uppercase tracking-wider shadow-[0_0_18px_rgba(255,215,0,0.55)] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                              {m.fijaTag || lexicon.fijaTag}
                             </span>
                           </div>
                         </div>
@@ -803,8 +867,10 @@ export default function EcuaPronosticoDashboard() {
                           </div>
                           <div className="text-xs text-slate-300 mt-2 space-y-1">
                             <div className="flex justify-between px-2 bg-slate-800/80 rounded-lg py-1 border border-slate-700/60 font-mono">
-                              <span className="text-slate-400">Peligro xG:</span>
-                              <strong className="text-blue-400">ΔxG {m.xgDiff > 0 ? `+${m.xgDiff}` : m.xgDiff}</strong>
+                              <span className="text-slate-400">{m.metricLabel || lexicon.metricLabel}:</span>
+                              <strong className="text-blue-400">
+                                {m.metricShort || lexicon.metricShort} {m.metricDiff || (m.xgDiff > 0 ? `+${m.xgDiff}` : m.xgDiff)}
+                              </strong>
                             </div>
                             <div className="flex justify-between px-2 bg-slate-800/80 rounded-lg py-1 border border-slate-700/60">
                               <span className="text-slate-400">Certeza De-vig:</span>
@@ -862,7 +928,7 @@ export default function EcuaPronosticoDashboard() {
                               setSelectedMatchId(m.id);
                               setDisplayMode("full");
                             }}
-                            className="w-full text-center text-xs bg-slate-800 hover:bg-green-600 text-green-300 hover:text-white py-2 px-3 rounded-xl font-bold transition-all border border-slate-700"
+                            className="w-full text-center text-xs bg-slate-800 hover:bg-green-600 text-green-300 hover:text-white py-2 px-3 rounded-xl font-bold transition-all border border-slate-700 cursor-pointer"
                           >
                             Ver análisis de esta fija →
                           </button>
