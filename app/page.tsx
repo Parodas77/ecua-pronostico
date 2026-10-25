@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 interface LeagueOption {
   id: string;
@@ -151,6 +152,63 @@ function getSportLexicon(sportCategory?: string) {
   }
 }
 
+const VIP_SESSION_KEY = "ecuapronostico_vip_session_v1";
+const VIP_INACTIVITY_LIMIT_MS = 2 * 60 * 60 * 1000; // 2 horas de inactividad máxima (7,200,000 ms)
+
+const getStoredVipSession = () => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(VIP_SESSION_KEY);
+    if (!raw) return null;
+    const session = JSON.parse(raw);
+    const now = Date.now();
+    const lastActivity = Number(session.lastActivity || session.timestamp || 0);
+    // Verificar si sigue vigente dentro de las 2 horas de inactividad
+    if (session.authenticated && (now - lastActivity) < VIP_INACTIVITY_LIMIT_MS) {
+      return { ...session, lastActivity };
+    } else {
+      // Expirado por 2 horas de inactividad
+      localStorage.removeItem(VIP_SESSION_KEY);
+      return null;
+    }
+  } catch {
+    return null;
+  }
+};
+
+const recordVipActivity = () => {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = localStorage.getItem(VIP_SESSION_KEY);
+    if (!raw) return;
+    const session = JSON.parse(raw);
+    const now = Date.now();
+    if (session.authenticated && (now - Number(session.lastActivity || 0)) < VIP_INACTIVITY_LIMIT_MS) {
+      session.lastActivity = now;
+      localStorage.setItem(VIP_SESSION_KEY, JSON.stringify(session));
+    }
+  } catch {}
+};
+
+const saveVipSession = (user: string) => {
+  if (typeof window === "undefined") return;
+  try {
+    const session = {
+      authenticated: true,
+      username: user,
+      lastActivity: Date.now(),
+    };
+    localStorage.setItem(VIP_SESSION_KEY, JSON.stringify(session));
+  } catch {}
+};
+
+const clearVipSession = () => {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(VIP_SESSION_KEY);
+  } catch {}
+};
+
 export default function EcuaPronosticoDashboard() {
   const [view, setView] = useState("basic");
   const [league, setLeague] = useState("ligapro");
@@ -180,9 +238,62 @@ export default function EcuaPronosticoDashboard() {
   const [isLoadingTop4, setIsLoadingTop4] = useState<boolean>(false);
 
   const openVipPaywall = (reason?: string) => {
+    const session = getStoredVipSession();
+    if (session) {
+      recordVipActivity();
+      if (!isAuthenticated) setIsAuthenticated(true);
+      if (view !== "premium") setView("premium");
+      return;
+    }
+
+    if (isAuthenticated && view === "premium") {
+      return;
+    }
+
     if (reason) setPaywallReason(reason);
     setShowLoginModal(true);
   };
+
+  useEffect(() => {
+    // Al cargar la app, chequear si hay sesión VIP guardada vigente (< 2 horas de inactividad)
+    const session = getStoredVipSession();
+    if (session) {
+      setIsAuthenticated(true);
+      setView("premium");
+      recordVipActivity();
+    }
+
+    const onUserInteraction = () => {
+      recordVipActivity();
+    };
+
+    window.addEventListener("mousedown", onUserInteraction, { passive: true });
+    window.addEventListener("keydown", onUserInteraction, { passive: true });
+    window.addEventListener("touchstart", onUserInteraction, { passive: true });
+    window.addEventListener("scroll", onUserInteraction, { passive: true });
+
+    // Chequeo cada 60s para expirar tras 2 horas de inactividad real
+    const interval = setInterval(() => {
+      const active = getStoredVipSession();
+      if (!active) {
+        setIsAuthenticated((prev) => {
+          if (prev) {
+            setView("basic");
+            return false;
+          }
+          return prev;
+        });
+      }
+    }, 60000);
+
+    return () => {
+      window.removeEventListener("mousedown", onUserInteraction);
+      window.removeEventListener("keydown", onUserInteraction);
+      window.removeEventListener("touchstart", onUserInteraction);
+      window.removeEventListener("scroll", onUserInteraction);
+      clearInterval(interval);
+    };
+  }, []);
 
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState([
@@ -283,6 +394,7 @@ export default function EcuaPronosticoDashboard() {
   const handleLogin = () => {
     const validUser = username.trim().toLowerCase();
     if ((validUser === "vip" || validUser === "admin" || validUser === "pedro") && password === "ecuapronostico2026@") {
+      saveVipSession(validUser);
       setIsAuthenticated(true);
       setView("premium");
       setShowLoginModal(false);
@@ -293,6 +405,7 @@ export default function EcuaPronosticoDashboard() {
   };
 
   const handleLogout = () => {
+    clearVipSession();
     setIsAuthenticated(false);
     setView("basic");
     setUsername("");
@@ -300,12 +413,18 @@ export default function EcuaPronosticoDashboard() {
   };
 
   const handlePremiumSwitch = () => {
-    if (isAuthenticated) {
+    const session = getStoredVipSession();
+    if (session || isAuthenticated) {
+      recordVipActivity();
+      setIsAuthenticated(true);
       setView("premium");
     } else {
       setShowLoginModal(true);
     }
   };
+
+  const activeVipSession = getStoredVipSession();
+  const isEffectiveVip = view === "premium" || !!activeVipSession;
 
   const currentMatch = matches.find(m => m.id === selectedMatchId) || matches[0] || {
     id: "loading",
@@ -348,11 +467,18 @@ export default function EcuaPronosticoDashboard() {
 
   const isFirstMatch = matches.length > 0 && (selectedMatchId === matches[0]?.id || currentMatch.id === matches[0]?.id);
   const isFreePreview = isFirstMatch || currentMatch.isFreeSample === true;
-  const isMatchUnlocked = view === "premium" || isFreePreview;
+  const isMatchUnlocked = isEffectiveVip || isFreePreview;
 
   const handleOpenProDetails = (matchItem: any) => {
+    const s = getStoredVipSession();
+    if (s) {
+      recordVipActivity();
+      if (!isAuthenticated) setIsAuthenticated(true);
+      if (view !== "premium") setView("premium");
+    }
+
     const isFirst = matches.length > 0 && matches[0]?.id === matchItem.id;
-    const isUnlocked = view === "premium" || isFirst;
+    const isUnlocked = isEffectiveVip || isFirst;
 
     if (!isUnlocked) {
       openVipPaywall(
@@ -547,7 +673,7 @@ export default function EcuaPronosticoDashboard() {
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <a
+              <Link
                 href="/aciertos"
                 className="text-xs bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/60 px-3 py-2 rounded-lg font-black flex items-center gap-1.5 shadow-lg transition-all hover:scale-105"
               >
@@ -555,7 +681,7 @@ export default function EcuaPronosticoDashboard() {
                 <span className="text-[9px] bg-emerald-400 text-slate-950 px-1.5 py-0.2 rounded font-extrabold uppercase">
                   Público
                 </span>
-              </a>
+              </Link>
               <button
                 onClick={() => {
                   if (view !== "premium") {
@@ -722,7 +848,12 @@ export default function EcuaPronosticoDashboard() {
             <div className="flex flex-wrap gap-2 bg-slate-900 p-1.5 rounded-2xl border-2 border-amber-400/60 shadow-[0_0_25px_rgba(251,191,36,0.2)]">
               <button
                 onClick={() => {
-                  if (view !== "premium") {
+                  const s = getStoredVipSession();
+                  if (s) {
+                    recordVipActivity();
+                    if (!isAuthenticated) setIsAuthenticated(true);
+                    if (view !== "premium") setView("premium");
+                  } else if (view !== "premium") {
                     openVipPaywall("Las 4 Fijas del Día (las predicciones de máxima certeza matemática del radar multiligas) son exclusivas para miembros VIP ($14.99/mes).");
                     return;
                   }
@@ -736,10 +867,10 @@ export default function EcuaPronosticoDashboard() {
                 }`}
               >
                 <span>🏆 LAS 4 FIJAS DEL DÍA</span>
-                {view !== "premium" && <span className="text-[9px] bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded font-black">🔒 VIP</span>}
+                {!isEffectiveVip && <span className="text-[9px] bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded font-black">🔒 VIP</span>}
               </button>
 
-              <a
+              <Link
                 href="/aciertos"
                 className="px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-1.5 text-emerald-300 hover:text-white hover:bg-slate-800 border border-emerald-500/30 hover:border-emerald-500/60"
               >
@@ -747,10 +878,18 @@ export default function EcuaPronosticoDashboard() {
                 <span className="text-[9px] bg-emerald-400 text-slate-950 px-1.5 py-0.5 rounded font-extrabold uppercase">
                   Público
                 </span>
-              </a>
+              </Link>
 
               <button
-                onClick={() => setDisplayMode("full")}
+                onClick={() => {
+                  const s = getStoredVipSession();
+                  if (s) {
+                    recordVipActivity();
+                    if (!isAuthenticated) setIsAuthenticated(true);
+                    if (view !== "premium") setView("premium");
+                  }
+                  setDisplayMode("full");
+                }}
                 className={`px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   displayMode === "full"
                     ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30 scale-[1.02]"
@@ -759,7 +898,7 @@ export default function EcuaPronosticoDashboard() {
               >
                 <span>📊 Vista Completa</span>
                 <span className="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-1.5 py-0.5 rounded font-bold">
-                  🔓 Gratuita
+                  {isEffectiveVip ? "🔓 VIP Activo" : "🔓 Gratuita"}
                 </span>
               </button>
             </div>
@@ -946,6 +1085,12 @@ export default function EcuaPronosticoDashboard() {
 
                           <button
                             onClick={() => {
+                              const s = getStoredVipSession();
+                              if (s) {
+                                recordVipActivity();
+                                if (!isAuthenticated) setIsAuthenticated(true);
+                                if (view !== "premium") setView("premium");
+                              }
                               if (m.leagueKey) {
                                 setLeague(m.leagueKey);
                               } else {
@@ -953,6 +1098,10 @@ export default function EcuaPronosticoDashboard() {
                               }
                               setSelectedMatchId(m.id);
                               setDisplayMode("full");
+                              setTimeout(() => {
+                                const el = document.getElementById("auditoria-pro");
+                                if (el) el.scrollIntoView({ behavior: "smooth" });
+                              }, 150);
                             }}
                             className="w-full text-center text-xs bg-slate-800 hover:bg-green-600 text-green-300 hover:text-white py-2 px-3 rounded-xl font-bold transition-all border border-slate-700 cursor-pointer"
                           >
@@ -1013,7 +1162,7 @@ export default function EcuaPronosticoDashboard() {
                 <div className="grid grid-cols-1 gap-5">
                   {matches.map((m, idx) => {
                     const isSample = idx === 0;
-                    const isUnlocked = view === "premium" || isSample;
+                    const isUnlocked = isEffectiveVip || isSample;
                     const isSelected = selectedMatchId === m.id;
 
                     const isSoccer = !m.sportType || m.sportType === "soccer" || (m.cleanProbX && Number(m.cleanProbX) > 0);
@@ -1215,20 +1364,22 @@ export default function EcuaPronosticoDashboard() {
                           </div>
 
                           {/* PIE DE TARJETA: DESCARGO INSTITUCIONAL CON ENLACE INTERACTIVO */}
-                          <div className="mt-5 pt-3.5 border-t border-slate-700/60 text-center text-xs text-slate-300 leading-relaxed">
-                            Esta es una versión simplificada de nuestro pronóstico. Si eres apostador profesional{" "}
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenProDetails(m);
-                              }}
-                              className="inline-flex items-center gap-1 font-black text-amber-300 hover:text-amber-200 underline decoration-amber-400 decoration-2 underline-offset-4 transition cursor-pointer"
-                            >
-                              <span>puedes dar clic aquí</span>
-                              <span className="text-[11px]">↗</span>
-                            </button>{" "}
-                            y te llevaremos a la página que contiene todas las variables, estadísticas y más detalles PRO de donde obtenemos nuestros pronósticos.
+                          <div className="mt-6 pt-4 border-t-2 border-slate-700/80 bg-slate-900/70 rounded-2xl p-4 text-center shadow-inner">
+                            <p className="text-sm md:text-base text-slate-100 font-medium leading-relaxed">
+                              Esta es una versión simplificada de nuestro pronóstico. Si eres apostador profesional{" "}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenProDetails(m);
+                                }}
+                                className="inline-flex items-center gap-1.5 font-black text-amber-300 hover:text-amber-200 underline decoration-amber-400 decoration-2 underline-offset-4 transition text-sm md:text-base cursor-pointer px-1.5 py-0.5 rounded hover:bg-amber-400/10"
+                              >
+                                <span>puedes dar clic aquí</span>
+                                <span className="text-base font-black">↗</span>
+                              </button>{" "}
+                              y te llevaremos a la página que contiene todas las variables, estadísticas y más detalles PRO de donde obtenemos nuestros pronósticos.
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -1238,7 +1389,7 @@ export default function EcuaPronosticoDashboard() {
               )}
 
               {/* BANNER INFERIOR DE CONVERSIÓN FREEMIUM */}
-              {matches.length > 1 && view !== "premium" && (
+              {matches.length > 1 && !isEffectiveVip && (
                 <div className="p-4 bg-gradient-to-r from-amber-500/15 via-slate-900 to-amber-500/15 border border-amber-400/40 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">🔒</span>
