@@ -156,7 +156,7 @@ export default function EcuaPronosticoDashboard() {
   const [league, setLeague] = useState("ligapro");
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [activeMarketTab, setActiveMarketTab] = useState("todos");
-  const [displayMode, setDisplayMode] = useState<"full" | "simplified" | "top4">("full");
+  const [displayMode, setDisplayMode] = useState<"full" | "top4">("full");
   
   const [matches, setMatches] = useState<any[]>([]);
   const [top4Matches, setTop4Matches] = useState<any[]>([]);
@@ -350,11 +350,25 @@ export default function EcuaPronosticoDashboard() {
   const isFreePreview = isFirstMatch || currentMatch.isFreeSample === true;
   const isMatchUnlocked = view === "premium" || isFreePreview;
 
-  useEffect(() => {
-    if (view !== "premium" && displayMode !== "full") {
-      setDisplayMode("full");
+  const handleOpenProDetails = (matchItem: any) => {
+    const isFirst = matches.length > 0 && matches[0]?.id === matchItem.id;
+    const isUnlocked = view === "premium" || isFirst;
+
+    if (!isUnlocked) {
+      openVipPaywall(
+        `El acceso a todas las variables PRO, matrices de Poisson, simulaciones Monte Carlo y auditoría técnica completa de ${matchItem.home} vs ${matchItem.away} está reservado para miembros VIP ($14.99/mes).`
+      );
+      return;
     }
-  }, [view]);
+
+    setSelectedMatchId(matchItem.id);
+    setTimeout(() => {
+      const el = document.getElementById("auditoria-pro");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 120);
+  };
 
   const probImplicitaLocal = ((1 / currentMatch.cuotaLocal) * 100).toFixed(1);
   const probImplicitaEmpate = ((1 / currentMatch.cuotaEmpate) * 100).toFixed(1);
@@ -715,7 +729,7 @@ export default function EcuaPronosticoDashboard() {
                   setDisplayMode("top4");
                   fetchAllLeaguesForTop4();
                 }}
-                className={`px-4 py-2.5 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+                className={`px-4 py-2.5 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   displayMode === "top4"
                     ? "bg-gradient-to-r from-emerald-400 via-green-300 to-emerald-500 text-slate-950 shadow-[0_0_20px_rgba(34,197,94,0.6)] scale-[1.02]"
                     : "text-green-300 hover:bg-slate-800"
@@ -724,28 +738,22 @@ export default function EcuaPronosticoDashboard() {
                 <span>🏆 LAS 4 FIJAS DEL DÍA</span>
                 {view !== "premium" && <span className="text-[9px] bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded font-black">🔒 VIP</span>}
               </button>
-              <button
-                onClick={() => {
-                  if (view !== "premium") {
-                    openVipPaywall("La Cartelera de Ganadores Proyectados (Vista Simplificada sin cuotas) es exclusiva para miembros VIP ($14.99/mes).");
-                    return;
-                  }
-                  setDisplayMode("simplified");
-                }}
-                className={`px-4 py-2.5 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
-                  displayMode === "simplified"
-                    ? "bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 shadow-[0_0_20px_rgba(251,191,36,0.6)] scale-[1.02]"
-                    : "text-amber-300 hover:bg-slate-800"
-                }`}
+
+              <a
+                href="/aciertos"
+                className="px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-1.5 text-emerald-300 hover:text-white hover:bg-slate-800 border border-emerald-500/30 hover:border-emerald-500/60"
               >
-                <span>🔥 Vista Simplificada</span>
-                {view !== "premium" && <span className="text-[9px] bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded font-black">🔒 VIP</span>}
-              </button>
+                <span>✅ Historial de Aciertos</span>
+                <span className="text-[9px] bg-emerald-400 text-slate-950 px-1.5 py-0.5 rounded font-extrabold uppercase">
+                  Público
+                </span>
+              </a>
+
               <button
                 onClick={() => setDisplayMode("full")}
-                className={`px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-1.5 ${
+                className={`px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   displayMode === "full"
-                    ? "bg-blue-600 text-white shadow-lg"
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30 scale-[1.02]"
                     : "text-slate-400 hover:text-white hover:bg-slate-800"
                 }`}
               >
@@ -958,481 +966,295 @@ export default function EcuaPronosticoDashboard() {
               </div>
             )}
           </section>
-        ) : displayMode === "simplified" ? (
-          <section className="space-y-6">
-            <div className="bg-gradient-to-r from-[#1a103c] via-[#0f2557] to-[#1a103c] border-2 border-amber-400/70 rounded-3xl p-6 text-center shadow-[0_0_35px_rgba(251,191,36,0.2)] relative overflow-hidden">
-              <span className="inline-block bg-amber-400 text-slate-950 font-black text-xs px-4 py-1 rounded-full uppercase tracking-widest mb-2 shadow">
-                10,000 Simulaciones Montecarlo + Distribución de Poisson
-              </span>
-              <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-amber-200 to-amber-400 drop-shadow">
-                CARTELERA DE GANADORES PROYECTADOS
-              </h2>
-              <p className="text-xs md:text-sm text-slate-300 mt-1 max-w-2xl mx-auto">
-                Directo al grano: sin cuotas confusas. Aquí tienes el <strong className="text-amber-300">Probable Ganador</strong> de cada partido y su <strong className="text-green-400">porcentaje exacto de victoria</strong> frente al rival.
-              </p>
-            </div>
-
-            {isLoadingMatches ? (
-              <div className="p-12 text-center bg-[#131d3b] border border-slate-700 rounded-3xl">
-                <p className="text-lg font-black text-amber-300 animate-pulse">Calculando Ganadores de la Semana...</p>
-              </div>
-            ) : matches.length === 0 ? (
-              <div className="p-8 text-center bg-[#131d3b] border border-slate-700 rounded-3xl">
-                <p className="text-base font-bold text-amber-300">No hay partidos programados en los próximos 8 días para esta competición.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-5">
-                {matches.map((m) => {
-                  const unlocked = view === "premium" || m.isFreeSample;
-                  const homeProb = Number(m.probHomeSim || 50);
-                  const awayProb = Number(m.probAwaySim || 30);
-                  const drawProb = Number(m.probDrawSim || 20);
-
-                  const isHomeWinner = homeProb >= awayProb;
-                  const winnerName = isHomeWinner ? m.home : m.away;
-                  const winnerInitials = isHomeWinner ? m.homeInitials : m.awayInitials;
-                  const loserName = isHomeWinner ? m.away : m.home;
-                  const loserInitials = isHomeWinner ? m.awayInitials : m.homeInitials;
-
-                  const rawWinProb = isHomeWinner ? homeProb : awayProb;
-                  const rawLoseProb = isHomeWinner ? awayProb : homeProb;
-                  const headToHeadWinProb = Number(((rawWinProb / Math.max(1, rawWinProb + rawLoseProb)) * 100).toFixed(1));
-                  const safeDoubleProb = isHomeWinner ? m.prob1X : m.probX2;
-
-                  return (
-                    <div
-                      key={m.id}
-                      className="relative rounded-3xl overflow-hidden border-2 border-slate-700/90 bg-gradient-to-r from-[#0e1730] via-[#16264c] to-[#0e1730] shadow-2xl transition-all hover:border-amber-400/80"
-                    >
-                      <div className="bg-[#091024] px-5 py-2.5 border-b border-slate-800 flex flex-wrap justify-between items-center gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-                          <span className="text-xs font-black uppercase tracking-wider text-amber-300">
-                            {m.leagueTitle}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs md:text-sm font-bold text-white">
-                            📅 {m.date} • ⏰ <strong className="text-amber-300">{m.time}</strong>
-                          </span>
-                          <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-black ${unlocked ? "bg-green-950 text-green-400 border border-green-500/40" : "bg-amber-950 text-amber-300 border border-amber-500/40"}`}>
-                            {m.isFreeSample ? "🔓 MUESTRA GRATIS" : unlocked ? "🔓 VIP ACTIVO" : "🔒 SOLO VIP"}
-                          </span>
-                        </div>
-                      </div>
-
-                      {!unlocked ? (
-                        <div className="p-8 text-center flex flex-col md:flex-row justify-between items-center gap-6">
-                          <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 rounded-full bg-slate-800 border-2 border-slate-600 flex items-center justify-center font-black text-lg text-slate-300">
-                              {m.homeInitials}
-                            </div>
-                            <div className="text-left">
-                              <h3 className="text-lg md:text-xl font-black text-white">{m.home} vs {m.away}</h3>
-                              <p className="text-xs text-slate-400">Desbloquea quién gana este partido y su porcentaje exacto</p>
-                            </div>
-                          </div>
-                          <div className="flex gap-3">
-                            <button
-                              onClick={() => setShowLoginModal(true)}
-                              className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-5 py-3 rounded-xl text-xs md:text-sm uppercase shadow-lg"
-                            >
-                              🔓 Ver Ganador (Acceso VIP)
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="p-5 md:p-7 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-                          {/* IZQUIERDA (4 cols): CIRCULO + EQUIPO + A GANAR */}
-                          <div className="lg:col-span-4 flex items-center gap-4 bg-gradient-to-r from-green-950/60 to-slate-900/80 p-5 rounded-2xl border-2 border-green-500/60 shadow-[0_0_25px_rgba(34,197,94,0.15)]">
-                            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-slate-900 border-4 border-amber-400 flex items-center justify-center font-black text-xl md:text-2xl text-white shrink-0 shadow-[0_0_15px_rgba(251,191,36,0.5)]">
-                              {winnerInitials}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="text-xl md:text-2xl font-black text-white uppercase leading-tight break-words">
-                                {winnerName}
-                              </h3>
-                              <div
-                                className="inline-flex items-center gap-2 mt-2 px-3.5 py-1.5 rounded-xl border-2 font-black text-xs md:text-sm uppercase tracking-wider"
-                                style={{
-                                  backgroundColor: "#020617",
-                                  borderColor: "#FFD700",
-                                  color: "#FFD700",
-                                  boxShadow: "0 0 18px rgba(255, 215, 0, 0.45)",
-                                }}
-                              >
-                                <span className="text-base leading-none">🏆</span>
-                                <span
-                                  style={{
-                                    color: "#FFD700",
-                                    fontWeight: 900,
-                                    textShadow: "0 0 12px rgba(255, 215, 0, 0.9), 0 2px 4px rgba(0, 0, 0, 0.9)",
-                                  }}
-                                >
-                                  A GANAR
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* CENTRO (4 cols): CAJA DE PROBABILIDAD DE GANAR (DIRECTO Y CON EMPATE) */}
-                          <div className="lg:col-span-4 flex flex-col justify-center bg-slate-900/95 border-2 border-amber-400/60 rounded-2xl p-5 shadow-xl">
-                            <span className="text-xs font-black uppercase tracking-widest text-amber-300 text-center border-b border-slate-800 pb-2 mb-3">
-                              PROBABILIDAD DE GANAR
-                            </span>
-                            <div className="space-y-2.5">
-                              <div className="flex items-baseline justify-between bg-slate-800/80 px-3.5 py-2 rounded-xl border border-slate-700">
-                                <span className="text-2xl md:text-3xl font-black text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.3)]">
-                                  {rawWinProb}%
-                                </span>
-                                <span className="text-xs md:text-sm font-extrabold text-white uppercase tracking-wide">
-                                  Directo
-                                </span>
-                              </div>
-                              <div className="flex items-baseline justify-between bg-slate-800/80 px-3.5 py-2 rounded-xl border border-slate-700">
-                                <span className="text-2xl md:text-3xl font-black text-amber-300">
-                                  {headToHeadWinProb}%
-                                </span>
-                                <span className="text-xs md:text-sm font-extrabold text-slate-200 uppercase tracking-wide">
-                                  Con empate
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* DERECHA (4 cols): EQUIPO A PERDER Y DETALLES */}
-                          <div className="lg:col-span-4 flex flex-col justify-between bg-slate-900/80 border-2 border-red-500/30 rounded-2xl p-5 space-y-3">
-                            <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-2.5">
-                              <div className="min-w-0">
-                                <h4 className="text-base md:text-lg font-black text-slate-200 uppercase truncate">
-                                  {loserName}
-                                </h4>
-                                <span className="inline-block mt-1 bg-red-950/80 border border-red-500/40 text-red-400 font-black text-[11px] px-2.5 py-0.5 rounded uppercase tracking-wider">
-                                  ❌ A PERDER
-                                </span>
-                              </div>
-                              <div className="w-12 h-12 rounded-full bg-slate-800 border border-red-500/40 flex items-center justify-center font-black text-sm text-slate-300 shrink-0">
-                                {loserInitials}
-                              </div>
-                            </div>
-
-                            <div className="space-y-1 text-xs text-slate-300 font-medium">
-                              <div className="flex justify-between">
-                                <span className="text-slate-400">Prob. ganar en 90m:</span>
-                                <strong className="text-red-400">{rawLoseProb}%</strong>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-slate-400">Peligro xG:</span>
-                                <strong className="text-blue-300 font-mono">ΔxG {m.xgDiff > 0 ? `+${m.xgDiff}` : m.xgDiff} ({m.xgHome} vs {m.xgAway})</strong>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-slate-400">Valor Esperado:</span>
-                                <strong className={m.ev > 0 ? "text-emerald-400 font-bold" : "text-slate-300 font-bold"}>{m.ev > 0 ? `+${m.ev}% EV` : `${m.ev}% EV`}</strong>
-                              </div>
-                              <div className="pt-1 flex flex-wrap gap-1">
-                                <span className="text-[10px] bg-slate-800 text-sky-300 border border-sky-500/30 px-1.5 py-0.5 rounded font-medium">
-                                  👨‍⚖️ {m.refereeName || "Árbitro Oficial"}
-                                </span>
-                                <span className="text-[10px] bg-slate-800 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded font-medium">
-                                  📋 {m.lineupStatus ? m.lineupStatus.slice(0, 30) + "..." : "Alineaciones OK"}
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="pt-1 flex justify-end">
-                              <button
-                                onClick={() => {
-                                  setSelectedMatchId(m.id);
-                                  setDisplayMode("full");
-                                }}
-                                className="w-full text-center text-xs bg-slate-800 hover:bg-blue-600 text-blue-300 hover:text-white py-2 px-3 rounded-xl font-bold transition-all border border-slate-700"
-                              >
-                                Ver análisis completo →
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
         ) : (
           <>
-            <section className="mb-8 bg-[#131d3b] border border-slate-700/80 rounded-2xl overflow-hidden shadow-2xl">
-              <div className="bg-[#1c2a52] px-4 md:px-6 py-3.5 border-b border-slate-700">
-                <div className="flex flex-wrap justify-between items-center gap-2 mb-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-ping"></span>
-                    <h2 className="text-xs md:text-sm font-black uppercase tracking-wider text-amber-300">
-                      {isLoadingMatches
-                        ? "Consultando calendario oficial de ESPN para los próximos 8 días..."
-                        : `${currentMatch.leagueTitle} — ${matches.length} Partidos Por Jugar (Próximos 8 Días)`}
-                    </h2>
+            {/* VISTA COMPLETA: CARTELERA DE PARTIDOS EN FORMATO LIMPIO */}
+            <section id="lista-partidos-limpia" className="mb-10 space-y-6">
+              {/* ENCABEZADO DE LA CARTELERA */}
+              <div className="bg-[#131d3b] border-2 border-slate-700/80 rounded-3xl p-5 md:p-6 shadow-2xl relative overflow-hidden">
+                <div className="flex flex-wrap justify-between items-center gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="w-3 h-3 rounded-full bg-green-400 animate-ping"></span>
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 block">
+                        Cartelera Oficial en Vivo
+                      </span>
+                      <h2 className="text-lg md:text-2xl font-black uppercase tracking-tight text-white">
+                        {isLoadingMatches
+                          ? "Sincronizando partidos oficiales..."
+                          : `${currentMatch.leagueTitle} — ${matches.length} Partidos (Próximos 8 Días)`}
+                      </h2>
+                    </div>
                   </div>
-                  <span className="text-[11px] text-slate-300 font-bold bg-slate-800/80 px-2.5 py-1 rounded-md border border-slate-700">
-                    Datos en vivo: API-Football, The Odds API & ESPN
-                  </span>
-                </div>
-
-                <div className="hidden lg:grid grid-cols-12 gap-6 text-xs font-black uppercase tracking-wider text-slate-300 pt-2 border-t border-slate-700/60">
-                  <div className="col-span-4">Partido, Fecha y Estado</div>
-                  <div className="col-span-4 text-center">Mercado Ganador 1 X 2 (Cuotas)</div>
-                  <div className="col-span-4 text-center">Total Goles & Veredicto EV Pos-Devigging</div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-300 font-bold bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
+                      📡 ESPN, API-Football & The Odds API
+                    </span>
+                    <span className="text-xs text-amber-300 font-bold bg-amber-400/10 px-3 py-1.5 rounded-xl border border-amber-400/30">
+                      ⚡ 10,000 Simulaciones
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {!isLoadingMatches && matches.length === 0 && (
-                <div className="p-6 text-center space-y-2 bg-slate-900/80">
-                  <p className="text-sm font-bold text-amber-300">No hay partidos programados en los próximos 8 días para esta competición:</p>
-                  <div className="text-xs text-slate-300 space-y-1 max-w-xl mx-auto">
-                    {apiDiagnostics.map((d, idx) => (
-                      <p key={idx} className="bg-slate-800 px-3 py-1.5 rounded border border-slate-700">{d}</p>
-                    ))}
-                  </div>
+              {isLoadingMatches ? (
+                <div className="p-12 text-center bg-[#131d3b] border border-slate-700 rounded-3xl shadow-xl">
+                  <p className="text-lg font-black text-amber-300 animate-pulse">
+                    Calculando probabilidades desmargenizadas y ganadores proyectados...
+                  </p>
+                </div>
+              ) : matches.length === 0 ? (
+                <div className="p-8 text-center bg-[#131d3b] border border-slate-700 rounded-3xl shadow-xl">
+                  <p className="text-base font-bold text-amber-300">
+                    No hay partidos programados en los próximos 8 días para esta competición.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-5">
+                  {matches.map((m, idx) => {
+                    const isSample = idx === 0;
+                    const isUnlocked = view === "premium" || isSample;
+                    const isSelected = selectedMatchId === m.id;
+
+                    const isSoccer = !m.sportType || m.sportType === "soccer" || (m.cleanProbX && Number(m.cleanProbX) > 0);
+                    const probHome = Number(m.cleanProb1 || m.probHomeSim || 0);
+                    const probAway = Number(m.cleanProb2 || m.probAwaySim || 0);
+                    const probDraw = isSoccer ? Number(m.cleanProbX || m.probDrawSim || 0) : 0;
+
+                    const isHomeFav = probHome >= probAway && probHome >= probDraw;
+                    const isAwayFav = probAway > probHome && probAway >= probDraw;
+                    const isDrawFav = probDraw > probHome && probDraw > probAway;
+
+                    return (
+                      <div
+                        key={m.id}
+                        onClick={() => {
+                          if (!isUnlocked) {
+                            openVipPaywall(
+                              `Desbloquea el pronóstico y estadísticas completas de ${m.home} vs ${m.away} con tu membresía VIP ($14.99/mes).`
+                            );
+                          } else {
+                            setSelectedMatchId(m.id);
+                          }
+                        }}
+                        className={`relative rounded-3xl overflow-hidden border-2 transition-all cursor-pointer ${
+                          isSelected && isUnlocked
+                            ? "border-amber-400 bg-gradient-to-r from-[#111c38] via-[#1a2d59] to-[#111c38] shadow-[0_0_30px_rgba(251,191,36,0.25)]"
+                            : "border-slate-700/80 hover:border-slate-600 bg-gradient-to-r from-[#0d162e] via-[#142347] to-[#0d162e] shadow-xl"
+                        }`}
+                      >
+                        {/* OVERLAY DE BLOQUEO VIP (FILTRO DE OPACIDAD Y CANDADO) PARA PARTIDOS 2 EN ADELANTE */}
+                        {!isUnlocked && (
+                          <div
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openVipPaywall(
+                                `Desbloquea el análisis completo de ${m.home} vs ${m.away} y todos los partidos con tu membresía VIP ($14.99/mes).`
+                              );
+                            }}
+                            className="absolute inset-0 z-20 backdrop-blur-[4px] bg-slate-950/80 flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all hover:bg-slate-950/85 group"
+                          >
+                            <div className="w-14 h-14 rounded-2xl bg-amber-400/20 border-2 border-amber-400 flex items-center justify-center text-2xl mb-3 shadow-[0_0_25px_rgba(251,191,36,0.4)] group-hover:scale-110 transition-transform">
+                              🔒
+                            </div>
+                            <span className="bg-amber-400 text-slate-950 font-black text-xs px-3.5 py-1 rounded-full uppercase tracking-wider mb-2 shadow">
+                              Partido Bloqueado • Solo VIP
+                            </span>
+                            <h4 className="text-base md:text-lg font-black text-white mb-1">
+                              {m.home} vs {m.away}
+                            </h4>
+                            <p className="text-xs text-slate-300 max-w-md mb-4">
+                              Accede al pronóstico ganador simplificado y a todas las variables PRO de este encuentro.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openVipPaywall(
+                                  `Desbloquea ${m.home} vs ${m.away} y todos los partidos con tu membresía VIP ($14.99/mes).`
+                                );
+                              }}
+                              className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-amber-400/30 transform group-hover:scale-105 transition-all"
+                            >
+                              Desbloquear con VIP ($14.99/mes)
+                            </button>
+                          </div>
+                        )}
+
+                        {/* CONTENIDO DE LA TARJETA */}
+                        <div
+                          className={`p-5 md:p-6 transition-all ${
+                            !isUnlocked ? "filter blur-[2px] opacity-40 select-none pointer-events-none" : ""
+                          }`}
+                        >
+                          {/* ENCABEZADO DE TARJETA: TORNEO, FECHA/HORA, BADGE DE ACCESO */}
+                          <div className="flex flex-wrap justify-between items-center gap-2 pb-4 mb-4 border-b border-slate-700/60">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                              <span className="text-xs font-black uppercase tracking-wider text-amber-300">
+                                {m.leagueTitle}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-xs md:text-sm font-bold text-slate-200">
+                                📅 {m.date} • ⏰ <strong className="text-white">{m.time}</strong>
+                              </span>
+                              <span
+                                className={`text-[10px] px-2.5 py-0.5 rounded-full font-black ${
+                                  isUnlocked
+                                    ? "bg-green-950/80 text-green-400 border border-green-500/40"
+                                    : "bg-amber-950/80 text-amber-300 border border-amber-500/40"
+                                }`}
+                              >
+                                {isSample ? "🔓 MUESTRA GRATIS" : isUnlocked ? "🔓 VIP ACTIVO" : "🔒 SOLO VIP"}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* ESTRUCTURA IZQUIERDA / CENTRO / DERECHA */}
+                          <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+                            {/* IZQUIERDA: EQUIPO LOCAL */}
+                            <div className="md:col-span-4 flex items-center gap-4">
+                              <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-slate-900 border-2 border-slate-600 flex items-center justify-center font-black text-lg md:text-xl text-white shrink-0 shadow-lg">
+                                {m.homeInitials}
+                              </div>
+                              <div className="min-w-0">
+                                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                                  Equipo Local
+                                </span>
+                                <h3 className="text-base md:text-lg font-black text-white uppercase leading-snug truncate">
+                                  {m.home}
+                                </h3>
+                                {isHomeFav && (
+                                  <div
+                                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border-2 font-black text-[11px] uppercase tracking-wider mt-2"
+                                    style={{
+                                      backgroundColor: "#020617",
+                                      borderColor: "#FFD700",
+                                      color: "#FFD700",
+                                      boxShadow: "0 0 16px rgba(255, 215, 0, 0.45)",
+                                    }}
+                                  >
+                                    <span className="text-sm">🏆</span>
+                                    <span
+                                      style={{
+                                        color: "#FFD700",
+                                        fontWeight: 900,
+                                        textShadow: "0 0 10px rgba(255, 215, 0, 0.9), 0 2px 4px rgba(0, 0, 0, 0.9)",
+                                      }}
+                                    >
+                                      FAVORITO A GANAR
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* CENTRO: RESUMEN LIMPIO DE PROBABILIDADES DIRECTAS */}
+                            <div className="md:col-span-4">
+                              <div className="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-3 text-center shadow-inner">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">
+                                  Probabilidades del Modelo
+                                </span>
+                                <div className="text-xs md:text-sm font-extrabold text-white flex flex-wrap items-center justify-center gap-1.5">
+                                  <span className={isHomeFav ? "text-amber-300 font-black" : "text-slate-200"}>
+                                    Gana {m.home} <strong className="text-white">{m.cleanProb1}%</strong>
+                                  </span>
+                                  {isSoccer && (
+                                    <>
+                                      <span className="text-slate-500 font-normal">|</span>
+                                      <span className={isDrawFav ? "text-amber-300 font-black" : "text-slate-300"}>
+                                        Empatan <strong className="text-white">{m.cleanProbX}%</strong>
+                                      </span>
+                                    </>
+                                  )}
+                                  <span className="text-slate-500 font-normal">|</span>
+                                  <span className={isAwayFav ? "text-amber-300 font-black" : "text-slate-200"}>
+                                    Gana {m.away} <strong className="text-white">{m.cleanProb2}%</strong>
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* DERECHA: EQUIPO VISITANTE */}
+                            <div className="md:col-span-4 flex items-center justify-end gap-4 text-right">
+                              <div className="min-w-0">
+                                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                                  Equipo Visitante
+                                </span>
+                                <h3 className="text-base md:text-lg font-black text-white uppercase leading-snug truncate">
+                                  {m.away}
+                                </h3>
+                                {isAwayFav && (
+                                  <div
+                                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border-2 font-black text-[11px] uppercase tracking-wider mt-2"
+                                    style={{
+                                      backgroundColor: "#020617",
+                                      borderColor: "#FFD700",
+                                      color: "#FFD700",
+                                      boxShadow: "0 0 16px rgba(255, 215, 0, 0.45)",
+                                    }}
+                                  >
+                                    <span className="text-sm">🏆</span>
+                                    <span
+                                      style={{
+                                        color: "#FFD700",
+                                        fontWeight: 900,
+                                        textShadow: "0 0 10px rgba(255, 215, 0, 0.9), 0 2px 4px rgba(0, 0, 0, 0.9)",
+                                      }}
+                                    >
+                                      FAVORITO A GANAR
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-slate-900 border-2 border-slate-600 flex items-center justify-center font-black text-lg md:text-xl text-white shrink-0 shadow-lg">
+                                {m.awayInitials}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* PIE DE TARJETA: DESCARGO INSTITUCIONAL CON ENLACE INTERACTIVO */}
+                          <div className="mt-5 pt-3.5 border-t border-slate-700/60 text-center text-xs text-slate-300 leading-relaxed">
+                            Esta es una versión simplificada de nuestro pronóstico. Si eres apostador profesional{" "}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenProDetails(m);
+                              }}
+                              className="inline-flex items-center gap-1 font-black text-amber-300 hover:text-amber-200 underline decoration-amber-400 decoration-2 underline-offset-4 transition cursor-pointer"
+                            >
+                              <span>puedes dar clic aquí</span>
+                              <span className="text-[11px]">↗</span>
+                            </button>{" "}
+                            y te llevaremos a la página que contiene todas las variables, estadísticas y más detalles PRO de donde obtenemos nuestros pronósticos.
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 
-              <div className="divide-y divide-slate-800/80 max-h-[640px] overflow-y-auto">
-                {matches.map((m, idx) => {
-                  const isSelected = m.id === currentMatch.id;
-                  const isFirst = idx === 0;
-                  const unlocked = view === "premium" || isFirst;
-                  const isProfitable = m.ev >= 1.0;
-                  return (
-                    <div
-                      key={m.id}
-                      onClick={() => {
-                        if (!unlocked) {
-                          openVipPaywall(`Desbloquea el análisis completo de ${m.home} vs ${m.away} y todos los partidos del radar con tu suscripción VIP ($14.99/mes).`);
-                        } else {
-                          setSelectedMatchId(m.id);
-                        }
-                      }}
-                      className={`relative p-4 md:px-6 md:py-4 transition-all cursor-pointer ${
-                        isSelected && unlocked
-                          ? "bg-blue-950/70 border-l-4 border-l-amber-400"
-                          : "hover:bg-slate-800/40"
-                      }`}
-                    >
-                      {/* OVERLAY DE BLOQUEO VIP (FILTRO DE OPACIDAD Y CANDADO) PARA PARTIDOS 2 EN ADELANTE */}
-                      {!unlocked && (
-                        <div
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openVipPaywall(`Desbloquea el análisis completo de ${m.home} vs ${m.away} y todos los partidos del radar con tu suscripción VIP ($14.99/mes).`);
-                          }}
-                          className="absolute inset-0 bg-slate-950/80 backdrop-blur-[2px] z-20 flex flex-col sm:flex-row items-center justify-center gap-3 p-4 text-center cursor-pointer hover:bg-slate-950/90 transition-all group"
-                        >
-                          <div className="flex items-center gap-2 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black text-xs md:text-sm px-4 py-2 rounded-xl shadow-[0_0_20px_rgba(251,191,36,0.5)] transform group-hover:scale-105 transition-all">
-                            <span>🔒</span>
-                            <span>PARTIDO VIP BLOQUEADO • CLIC PARA DESBLOQUEAR ($14.99/MES)</span>
-                          </div>
-                          <span className="text-[11px] text-amber-200/90 font-medium hidden sm:inline">
-                            xG real, cuotas desmargenizadas y Montecarlo restringidos
-                          </span>
-                        </div>
-                      )}
-
-                      <div className={`transition-all ${!unlocked ? "filter blur-[1.5px] opacity-35 select-none pointer-events-none" : ""}`}>
-                        {/* FILA PRINCIPAL: 3 BLOQUES PERFECTAMENTE BALANCEADOS (4 COLS C/U) */}
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-center">
-                          {/* 1. EQUIPOS Y HORARIO (4 COLS) */}
-                          <div className="lg:col-span-4 flex items-center gap-3">
-                            <div className="text-xs font-bold text-amber-400 w-24 shrink-0 bg-slate-900/80 p-2 rounded-xl border border-slate-800 text-center">
-                              <span className="block uppercase tracking-wider">{m.date.split(",")[0].slice(0, 3)} {m.date.match(/\d+/)?.[0]}</span>
-                              <span className="text-white font-black text-xs">{m.time.replace(" ECT", "")}</span>
-                            </div>
-
-                            <div className="space-y-1.5 flex-1 min-w-0">
-                              <div className="flex items-center gap-2.5">
-                                <span className="w-7 h-7 rounded-full bg-slate-800 text-xs font-black flex items-center justify-center text-blue-300 border border-blue-400/40 shrink-0">
-                                  {m.homeInitials}
-                                </span>
-                                <span className="font-bold text-sm md:text-base text-white tracking-tight truncate">
-                                  {m.home}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2.5">
-                                <span className="w-7 h-7 rounded-full bg-slate-800 text-xs font-black flex items-center justify-center text-amber-300 border border-amber-400/40 shrink-0">
-                                  {m.awayInitials}
-                                </span>
-                                <span className="font-bold text-sm md:text-base text-slate-200 tracking-tight truncate">
-                                  {m.away}
-                                </span>
-                              </div>
-                            </div>
-
-                            <span className={`text-[11px] px-2.5 py-1 rounded-lg font-black shrink-0 tracking-wider ${
-                              isFirst
-                                ? "bg-emerald-950/90 text-emerald-400 border border-emerald-500/50"
-                                : unlocked
-                                ? "bg-emerald-950/90 text-emerald-400 border border-emerald-500/50"
-                                : "bg-amber-950/90 text-amber-300 border border-amber-500/50"
-                            }`}>
-                              {isFirst ? "🔓 ABIERTA" : unlocked ? "🔓 VIP" : "🔒 VIP"}
-                            </span>
-                          </div>
-
-                          {/* 2. BLOQUE GANADOR 1X2 (4 COLS) */}
-                          <div className="lg:col-span-4 flex flex-col justify-between">
-                            <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
-                              <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
-                                <span className="block text-xs font-bold text-slate-300 truncate">
-                                  Gana {m.homeInitials}
-                                </span>
-                                <strong className="text-base md:text-lg font-black text-white font-mono">
-                                  {m.cuotaLocal.toFixed(2)}
-                                </strong>
-                              </div>
-
-                              <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
-                                <span className="block text-xs font-bold text-slate-300">
-                                  Empate
-                                </span>
-                                <strong className="text-base md:text-lg font-black text-white font-mono">
-                                  {m.cuotaEmpate.toFixed(2)}
-                                </strong>
-                              </div>
-
-                              <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
-                                <span className="block text-xs font-bold text-slate-300 truncate">
-                                  Gana {m.awayInitials}
-                                </span>
-                                <strong className="text-base md:text-lg font-black text-white font-mono">
-                                  {m.cuotaVisita.toFixed(2)}
-                                </strong>
-                              </div>
-                            </div>
-
-                            <p className="text-xs text-slate-400 mt-2 text-center leading-snug">
-                              Multiplica tu dinero: cobras tu apuesta × cuota si aciertas quién gana o empate
-                            </p>
-                          </div>
-
-                          {/* 3. BLOQUE TOTAL GOLES Y VALOR ESPERADO EV (4 COLS) */}
-                          <div className="lg:col-span-4 grid grid-cols-3 gap-2 sm:gap-2.5 items-start">
-                            {/* 2 CUADROS DE GOLES */}
-                            <div className="col-span-2 flex flex-col justify-between">
-                              <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
-                                <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
-                                  <span className="block text-xs font-bold text-slate-300">
-                                    Más de {m.lineGoals}
-                                  </span>
-                                  <strong className="text-base md:text-lg font-black text-amber-300 font-mono">
-                                    {m.cuotaOver.toFixed(2)}
-                                  </strong>
-                                </div>
-                                <div className="bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 rounded-xl px-2.5 py-2 text-center transition-all shadow-sm">
-                                  <span className="block text-xs font-bold text-slate-300">
-                                    Menos de {m.lineGoals}
-                                  </span>
-                                  <strong className="text-base md:text-lg font-black text-amber-300 font-mono">
-                                    {m.cuotaUnder.toFixed(2)}
-                                  </strong>
-                                </div>
-                              </div>
-                              <p className="text-xs text-slate-400 mt-2 text-center leading-snug">
-                                Más: 3 o más goles | Menos: máx. 2 goles
-                              </p>
-                            </div>
-
-                            {/* 1 CUADRO DE VALOR ESPERADO EV */}
-                            <div className="col-span-1 flex flex-col justify-between">
-                              <div className={`rounded-xl px-2 py-2 text-center flex flex-col justify-center transition-all shadow-sm border ${
-                                !unlocked
-                                  ? "bg-slate-900/90 border-slate-700"
-                                  : isProfitable
-                                  ? "bg-emerald-950/90 border-emerald-500/80 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
-                                  : "bg-slate-900/90 border-slate-700"
-                              }`}>
-                                <span className="block text-[10px] sm:text-xs text-slate-300 uppercase font-black tracking-tight">
-                                  {!unlocked ? "Auditoría EV" : isProfitable ? "VALOR +EV" : "MERCADO EV"}
-                                </span>
-                                <strong className={`text-sm md:text-base font-black font-mono mt-0.5 ${
-                                  !unlocked ? "text-amber-300" : isProfitable ? "text-emerald-400" : "text-slate-300"
-                                }`}>
-                                  {unlocked ? (m.ev > 0 ? `+${m.ev}% EV` : `${m.ev}% EV`) : "🔒 VIP"}
-                                </strong>
-                              </div>
-                              <p className="text-xs text-slate-400 mt-2 text-center leading-snug">
-                                Valor pos-devigging
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* BANDEJA CONTEXTUAL DUAL COMPLETA: NOVATO (Semántica) vs PROFESIONAL (Cuantitativa xG) */}
-                        <div className="w-full mt-3.5 pt-3 border-t border-slate-800/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5 text-xs">
-                          {/* LADO NOVATO: Alertas Semánticas de APIs */}
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="bg-slate-900/90 text-purple-300 border border-purple-500/40 px-3 py-1 rounded-lg font-medium flex items-center gap-1.5 shadow-sm">
-                              {m.altitudeBadge || "⛰️ Altitud Evaluada"}
-                            </span>
-                            <span className="bg-slate-900/90 text-sky-300 border border-sky-500/40 px-3 py-1 rounded-lg font-medium flex items-center gap-1.5 shadow-sm">
-                              👨‍⚖️ <strong>Árbitro:</strong> {m.refereeName && m.refereeName !== "Por designar" ? (
-                                <>
-                                  <span>{m.refereeName}</span>
-                                  {m.refereeCardsAvg && m.refereeCardsAvg !== "N/D" && <span className="text-sky-400 font-bold ml-1">({m.refereeCardsAvg} tarj/p)</span>}
-                                </>
-                              ) : (
-                                <span className="text-slate-400 font-normal">Por designar</span>
-                              )}
-                            </span>
-                            <span className="bg-slate-900/90 text-amber-300 border border-amber-500/40 px-3 py-1 rounded-lg font-medium flex items-center gap-1.5 shadow-sm">
-                              📋 <strong>Alineación:</strong> {m.lineupStatus || "Alineación verificada en planilla"}
-                            </span>
-                            <span className="bg-slate-900/90 text-slate-300 border border-slate-700 px-3 py-1 rounded-lg font-medium hidden xl:flex items-center gap-1.5 shadow-sm">
-                              📈 <strong>Mercado:</strong> {m.marketTrend ? (m.marketTrend.length > 55 ? m.marketTrend.slice(0, 52) + "..." : m.marketTrend) : "Consenso en vivo"}
-                            </span>
-                          </div>
-
-                          {/* LADO PROFESIONAL: Métricas Cuantitativas xG y De-vigging */}
-                          <div className="flex flex-wrap items-center gap-2 font-mono">
-                            <span className="bg-blue-950/80 text-blue-300 border border-blue-500/50 px-3 py-1 rounded-lg font-bold shadow-sm flex items-center gap-1.5">
-                              📊 ΔxG: <span className="text-white">{m.xgDiff > 0 ? `+${m.xgDiff}` : m.xgDiff}</span> ({m.xgHome} vs {m.xgAway})
-                            </span>
-                            <span className="bg-slate-900/90 text-slate-300 border border-slate-700/80 px-3 py-1.5 rounded-lg shadow-sm text-xs leading-normal">
-                              <span className="text-slate-400 font-bold mr-1.5">⚖️ Prob. Limpia:</span>
-                              <span className="text-emerald-400 font-bold">
-                                {m.cleanProbX > 0 ? (
-                                  <>
-                                    Gana {m.home}: <strong className="text-white font-extrabold">{m.cleanProb1}%</strong> | Empate: <strong className="text-white font-extrabold">{m.cleanProbX}%</strong> | Gana {m.away}: <strong className="text-white font-extrabold">{m.cleanProb2}%</strong>
-                                  </>
-                                ) : (
-                                  <>
-                                    Gana {m.home}: <strong className="text-white font-extrabold">{m.cleanProb1}%</strong> | Gana {m.away}: <strong className="text-white font-extrabold">{m.cleanProb2}%</strong>
-                                  </>
-                                )}
-                              </span>
-                              <span className="text-slate-500 font-mono ml-2 text-[10px] hidden md:inline">({m.marginCasa}% margen descontado)</span>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
               {/* BANNER INFERIOR DE CONVERSIÓN FREEMIUM */}
               {matches.length > 1 && view !== "premium" && (
-                <div className="p-3.5 bg-gradient-to-r from-amber-500/15 via-slate-900 to-amber-500/15 border-t border-amber-400/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+                <div className="p-4 bg-gradient-to-r from-amber-500/15 via-slate-900 to-amber-500/15 border border-amber-400/40 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">🔒</span>
                     <div>
                       <div className="text-xs md:text-sm font-black text-amber-300">
-                        {matches.length - 1} Partidos Bloqueados en esta liga
+                        {matches.length - 1} Partidos Restantes Bloqueados en esta liga
                       </div>
                       <div className="text-[11px] text-slate-300">
-                        Solo el primer partido es gratuito. Activa tu membresía VIP para ver todos los encuentros.
+                        Solo el primer partido es gratuito. Activa tu membresía VIP para ver todos los encuentros completos.
                       </div>
                     </div>
                   </div>
                   <button
-                    onClick={() => openVipPaywall("Desbloquea todos los partidos y ligas completas con la membresía VIP ($14.99/mes).")}
+                    onClick={() =>
+                      openVipPaywall("Desbloquea todos los partidos y ligas completas con la membresía VIP ($14.99/mes).")
+                    }
                     className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-4 py-2 rounded-xl text-xs uppercase tracking-wider shrink-0 shadow-lg"
                   >
                     Desbloquear Todo VIP ($14.99)
@@ -1440,6 +1262,35 @@ export default function EcuaPronosticoDashboard() {
                 </div>
               )}
             </section>
+
+            {/* AUDITORÍA PRO: VARIABLES, ESTADÍSTICAS Y DETALLES PRO */}
+            <div id="auditoria-pro" className="scroll-mt-24 pt-6 border-t-2 border-slate-700/60">
+              <div className="mb-6 bg-gradient-to-r from-[#131d3b] via-[#1a2d5a] to-[#131d3b] border-2 border-blue-500/50 rounded-2xl p-4 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-400/50 flex items-center justify-center text-xl shrink-0">
+                    📊
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-300">
+                      Desglose Técnico y Estadístico PRO
+                    </span>
+                    <h3 className="text-base md:text-lg font-black text-white">
+                      Auditoría Matemática: {currentMatch.home} vs {currentMatch.away}
+                    </h3>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById("lista-partidos-limpia");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="text-xs bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white px-3.5 py-2 rounded-xl font-bold border border-slate-700 transition flex items-center gap-1.5"
+                >
+                  <span>↑</span>
+                  <span>Volver a la Lista de Partidos</span>
+                </button>
+              </div>
 
             {!isMatchUnlocked ? (
               <div className="rounded-2xl p-8 text-center bg-slate-800/60 border border-blue-500/40 shadow-2xl">
@@ -2061,6 +1912,7 @@ export default function EcuaPronosticoDashboard() {
 
               </div>
             )}
+            </div>
           </>
         )}
       </div>
