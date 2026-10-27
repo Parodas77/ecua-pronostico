@@ -37,14 +37,22 @@ export default function LandingPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     const validUser = username.trim().toLowerCase();
-    if (
-      (validUser === "vip" || validUser === "admin" || validUser === "pedro") &&
-      password === "ecuapronostico2026@"
-    ) {
+    const cleanPass = password.trim();
+
+    const isMasterAdmin =
+      (validUser === "admin" || validUser === "pedro") &&
+      (cleanPass === "AdminEcua2026$Master" || cleanPass === "ecuapronostico2026@");
+
+    const isVipUser =
+      validUser === "vip" &&
+      (cleanPass === "ecuapronostico2026@" || cleanPass === "AdminEcua2026$Master");
+
+    if (isMasterAdmin || isVipUser) {
       try {
         const session = {
           authenticated: true,
           username: validUser,
+          role: isMasterAdmin ? "admin" : "vip",
           lastActivity: Date.now(),
         };
         localStorage.setItem(VIP_SESSION_KEY, JSON.stringify(session));
@@ -53,7 +61,7 @@ export default function LandingPage() {
       setLoginError("");
       router.push("/radar");
     } else {
-      setLoginError("Credenciales inválidas. Usa el usuario admin y la clave ecuapronostico2026@.");
+      setLoginError("Usuario o contraseña incorrectos. Verifica tus credenciales de acceso.");
     }
   };
 

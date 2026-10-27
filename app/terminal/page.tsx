@@ -393,14 +393,24 @@ export default function EcuaPronosticoDashboard() {
 
   const handleLogin = () => {
     const validUser = username.trim().toLowerCase();
-    if ((validUser === "vip" || validUser === "admin" || validUser === "pedro") && password === "ecuapronostico2026@") {
+    const cleanPass = password.trim();
+
+    const isMasterAdmin =
+      (validUser === "admin" || validUser === "pedro") &&
+      (cleanPass === "AdminEcua2026$Master" || cleanPass === "ecuapronostico2026@");
+
+    const isVipUser =
+      validUser === "vip" &&
+      (cleanPass === "ecuapronostico2026@" || cleanPass === "AdminEcua2026$Master");
+
+    if (isMasterAdmin || isVipUser) {
       saveVipSession(validUser);
       setIsAuthenticated(true);
       setView("premium");
       setShowLoginModal(false);
       setLoginError("");
     } else {
-      setLoginError("Credenciales inválidas. Usa el usuario admin y la clave ecuapronostico2026@.");
+      setLoginError("Usuario o contraseña incorrectos. Verifica tus credenciales de acceso.");
     }
   };
 
