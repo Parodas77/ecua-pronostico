@@ -53,10 +53,16 @@ export default function HistorialAciertosPage() {
           <div className="space-y-1.5">
             <div className="flex items-center gap-3">
               <Link 
-                href="/" 
+                href="/radar" 
                 className="bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow"
               >
                 ← Volver al Radar
+              </Link>
+              <Link 
+                href="/" 
+                className="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow"
+              >
+                🏠 Portada
               </Link>
               <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-500/50 px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
