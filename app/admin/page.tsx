@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import AdminRenewalAlertBanner from "@/components/AdminRenewalAlertBanner";
 
 interface UserItem {
   id: number;
@@ -18,6 +19,20 @@ interface UserItem {
   notas_admin?: string;
 }
 
+interface SubscriptionItem {
+  id: number;
+  nombre_servicio: string;
+  fecha_renovacion: string;
+  costo: number;
+  moneda: string;
+  dias_restantes: number;
+  requiere_alerta: boolean;
+  estado_alerta: "vencida" | "urgente" | "al_dia";
+  mensaje_alerta: string;
+  url_portal?: string;
+  notas?: string;
+}
+
 export default function AdminCrmPage() {
   const [isAdminAuth, setIsAdminAuth] = useState(false);
   const [adminUser, setAdminUser] = useState("");
@@ -30,6 +45,12 @@ export default function AdminCrmPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+
+  // Suscripciones de APIs externas
+  const [subscriptions, setSubscriptions] = useState<SubscriptionItem[]>([]);
+  const [editingSubId, setEditingSubId] = useState<number | null>(null);
+  const [editDate, setEditDate] = useState<string>("");
+  const [editCost, setEditCost] = useState<number>(0);
 
   // Chequear sesión admin en localStorage
   useEffect(() => {
@@ -80,11 +101,67 @@ export default function AdminCrmPage() {
     }
   };
 
+  const fetchSubscriptions = async () => {
+    try {
+      const res = await fetch("/api/admin/subscriptions");
+      const data = await res.json();
+      if (data.success && Array.isArray(data.subscriptions)) {
+        setSubscriptions(data.subscriptions);
+      }
+    } catch (err) {
+      console.error("Error al cargar suscripciones del sistema:", err);
+    }
+  };
+
   useEffect(() => {
     if (isAdminAuth) {
       fetchUsers();
+      fetchSubscriptions();
     }
   }, [isAdminAuth, filterStatus, searchQuery]);
+
+  const handleRenewSub = async (id: number) => {
+    try {
+      const res = await fetch("/api/admin/subscriptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "renew", id, daysToAdd: 30 }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setActionSuccess(`✅ ${data.message}`);
+        setTimeout(() => setActionSuccess(null), 4000);
+        fetchSubscriptions();
+      }
+    } catch (err) {
+      console.error("Error al renovar servicio:", err);
+    }
+  };
+
+  const handleSaveSubDate = async (id: number) => {
+    if (!editDate) return;
+    try {
+      const res = await fetch("/api/admin/subscriptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update",
+          id,
+          fecha_renovacion: editDate,
+          costo: editCost,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setActionSuccess(`✅ ${data.message}`);
+        setTimeout(() => setActionSuccess(null), 4000);
+        setEditingSubId(null);
+        fetchSubscriptions();
+      }
+    } catch (err) {
+      console.error("Error al actualizar fecha de servicio:", err);
+    }
+  };
 
   const handleExtendDays = async (id: number, days: number = 30) => {
     try {
@@ -196,10 +273,14 @@ export default function AdminCrmPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070d1e] text-slate-100 font-sans selection:bg-amber-400 selection:text-slate-950 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* ENCABEZADO DEL CRM */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
+    <div className="min-h-screen bg-[#070d1e] text-slate-100 font-sans selection:bg-amber-400 selection:text-slate-950">
+      {/* BANNER DE ADVERTENCIA ADMIN-ONLY PARA RENOVACIÓN DE APIS (<= 5 DÍAS) */}
+      <AdminRenewalAlertBanner isAdmin={isAdminAuth} />
+
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* ENCABEZADO DEL CRM */}
+          <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
           <div className="flex items-center gap-3">
             <img src="/logo.png" alt="Logo" className="h-12 object-contain" />
             <div>
@@ -284,6 +365,187 @@ export default function AdminCrmPage() {
             <span className="text-xs text-red-400 font-bold uppercase tracking-wider block">🔴 Expirados</span>
             <div className="text-3xl font-black text-red-300 mt-1 font-mono">{metrics.expirados}</div>
             <span className="text-[11px] text-red-400/80">Listos para campaña de descuento</span>
+          </div>
+        </div>
+
+        {/* CONTROL DE SUSCRIPCIONES DE APIS EXTERNAS */}
+        <div id="apis" className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2.5">
+              <span className="text-2xl">⚡</span>
+              <div>
+                <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                  CONTROL DE SUSCRIPCIONES DE APIS EXTERNAS
+                  <span className="text-[10px] bg-slate-800 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
+                    API-Football & The Odds API
+                  </span>
+                </h2>
+                <p className="text-xs text-slate-400">
+                  Monitoreo de vencimientos, costos operativos y alertas de renovación anticipada (5 días o menos)
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={fetchSubscriptions}
+              className="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition flex items-center gap-1 cursor-pointer"
+            >
+              <span>🔄</span>
+              <span>Refrescar APIs</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {subscriptions.map((sub) => {
+              const isUrgent = sub.dias_restantes <= 5;
+              const isEditing = editingSubId === sub.id;
+
+              return (
+                <div
+                  key={sub.id}
+                  className={`rounded-2xl p-4 border transition-all ${
+                    isUrgent
+                      ? "bg-gradient-to-br from-amber-950/40 via-slate-900 to-slate-900 border-amber-500/60 shadow-[0_0_25px_rgba(245,158,11,0.18)]"
+                      : "bg-slate-950/70 border-slate-800 hover:border-slate-700"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xl ${
+                          sub.nombre_servicio.includes("Football")
+                            ? "bg-blue-900/60 text-blue-300 border border-blue-500/40"
+                            : "bg-emerald-900/60 text-emerald-300 border border-emerald-500/40"
+                        }`}
+                      >
+                        {sub.nombre_servicio.includes("Football") ? "⚽" : "🎲"}
+                      </div>
+                      <div>
+                        <h3 className="font-black text-white text-sm sm:text-base flex items-center gap-2">
+                          {sub.nombre_servicio}
+                          {isUrgent && (
+                            <span className="text-[10px] bg-amber-500 text-slate-950 font-black px-1.5 py-0.5 rounded uppercase animate-pulse">
+                              ¡Renovar!
+                            </span>
+                          )}
+                        </h3>
+                        <p className="text-[11px] text-slate-400 leading-tight">
+                          {sub.notas || "Servicio externo de datos"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="text-[10px] uppercase text-slate-400 block font-bold">Costo</span>
+                      <span className="text-sm sm:text-base font-black text-white font-mono">
+                        ${sub.costo.toFixed(2)} <span className="text-[10px] text-slate-400">{sub.moneda}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Próxima Renovación</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-sm font-bold text-slate-200">{sub.fecha_renovacion}</span>
+                        <span
+                          className={`text-xs font-black px-2 py-0.5 rounded-full ${
+                            sub.dias_restantes < 0
+                              ? "bg-red-950 text-red-300 border border-red-500/50"
+                              : sub.dias_restantes <= 5
+                              ? "bg-amber-950 text-amber-300 border border-amber-500/60"
+                              : "bg-emerald-950 text-emerald-300 border border-emerald-500/40"
+                          }`}
+                        >
+                          {sub.dias_restantes > 0
+                            ? `Quedan ${sub.dias_restantes} días`
+                            : sub.dias_restantes === 0
+                            ? "Vence hoy"
+                            : `Vencida hace ${Math.abs(sub.dias_restantes)} d`}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      {sub.url_portal && (
+                        <a
+                          href={sub.url_portal}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition flex items-center gap-1"
+                          title="Abrir consola de pagos"
+                        >
+                          <span>Portal</span>
+                          <span className="text-[10px]">↗</span>
+                        </a>
+                      )}
+
+                      <button
+                        onClick={() => {
+                          setEditingSubId(sub.id);
+                          setEditDate(sub.fecha_renovacion);
+                          setEditCost(sub.costo);
+                        }}
+                        className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-lg text-xs font-bold transition cursor-pointer"
+                      >
+                        Editar
+                      </button>
+
+                      <button
+                        onClick={() => handleRenewSub(sub.id)}
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-black transition shadow-sm cursor-pointer"
+                        title="Extender 30 días a partir de la fecha"
+                      >
+                        +30 Días
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* FORMULARIO DE EDICIÓN EN LÍNEA */}
+                  {isEditing && (
+                    <div className="mt-3 p-3 bg-slate-900 border border-amber-400/40 rounded-xl space-y-2 animate-in fade-in">
+                      <span className="text-xs font-bold text-amber-300 block">
+                        Modificar fecha o costo de {sub.nombre_servicio}:
+                      </span>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[10px] text-slate-400 block mb-0.5">Fecha de Renovación</label>
+                          <input
+                            type="date"
+                            value={editDate}
+                            onChange={(e) => setEditDate(e.target.value)}
+                            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white outline-none focus:border-amber-400"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-slate-400 block mb-0.5">Costo Mensual ($ USD)</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={editCost}
+                            onChange={(e) => setEditCost(Number(e.target.value))}
+                            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white outline-none focus:border-amber-400"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-2 pt-1">
+                        <button
+                          onClick={() => setEditingSubId(null)}
+                          className="px-2.5 py-1 text-xs text-slate-400 hover:text-white cursor-pointer"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={() => handleSaveSubDate(sub.id)}
+                          className="px-3 py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-lg text-xs font-black cursor-pointer"
+                        >
+                          Guardar Cambios
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -511,5 +773,6 @@ export default function AdminCrmPage() {
         </div>
       </div>
     </div>
+  </div>
   );
 }

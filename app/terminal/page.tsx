@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import AdminRenewalAlertBanner from "@/components/AdminRenewalAlertBanner";
 
 interface LeagueOption {
   id: string;
@@ -572,8 +573,12 @@ export default function EcuaPronosticoDashboard() {
   }, [currentMatch?.id]);
 
   return (
-    <div className="min-h-screen bg-[#0b132b] text-slate-50 p-3 md:p-6 font-sans">
-      <div className="max-w-[1440px] w-full mx-auto">
+    <div className="min-h-screen bg-[#0b132b] text-slate-50 font-sans">
+      {/* ALERTA VISUAL ADMIN-ONLY PARA RENOVACIÓN DE APIS (<= 5 DÍAS) */}
+      <AdminRenewalAlertBanner />
+
+      <div className="p-3 md:p-6">
+        <div className="max-w-[1440px] w-full mx-auto">
         
         {showLoginModal && (
           <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex justify-center items-center z-50 p-4">
@@ -2116,5 +2121,6 @@ export default function EcuaPronosticoDashboard() {
         )}
       </div>
     </div>
+  </div>
   );
 }

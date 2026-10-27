@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "nombre_servicio": "API-Football Pro",
+    "fecha_renovacion": "2026-10-31",
+    "costo": 39,
+    "moneda": "USD",
+    "url_portal": "https://dashboard.api-football.com",
+    "notas": "Plan Pro mensual. Fixtures, cuotas en vivo, árbitros y alineaciones oficiales.",
+    "updated_at": "2026-10-27T18:22:46.497Z"
+  },
+  {
+    "id": 2,
+    "nombre_servicio": "The Odds API",
+    "fecha_renovacion": "2026-11-14",
+    "costo": 30,
+    "moneda": "USD",
+    "url_portal": "https://the-odds-api.com",
+    "notas": "Plan v4 cuotas de casas de apuestas (1X2, Totales Over/Under y Spreads).",
+    "updated_at": "2026-10-27T18:21:55.654Z"
+  }
+]

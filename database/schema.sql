@@ -44,3 +44,35 @@ FROM usuarios
 WHERE estado_suscripcion IN ('inactivo', 'expirado')
    OR fecha_expiracion_suscripcion < CURRENT_TIMESTAMP
 ORDER BY fecha_expiracion_suscripcion DESC;
+
+-- ==============================================================================
+-- 5. TABLA DE CONTROL DE RENOVACIÓN DE APIS Y SERVICIOS EXTERNOS (ADMIN ONLY)
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS system_subscriptions (
+    id SERIAL PRIMARY KEY,
+    nombre_servicio VARCHAR(100) NOT NULL UNIQUE,
+    fecha_renovacion DATE NOT NULL,
+    costo DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    moneda VARCHAR(10) NOT NULL DEFAULT 'USD',
+    url_portal VARCHAR(255),
+    notas TEXT,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Vista de alertas de renovación administrativa (5 días o menos para vencer)
+CREATE OR REPLACE VIEW vista_alertas_renovacion_apis AS
+SELECT 
+    id,
+    nombre_servicio,
+    fecha_renovacion,
+    costo,
+    moneda,
+    (fecha_renovacion - CURRENT_DATE) AS dias_restantes,
+    CASE 
+        WHEN (fecha_renovacion - CURRENT_DATE) < 0 THEN 'vencida'
+        WHEN (fecha_renovacion - CURRENT_DATE) <= 5 THEN 'urgente'
+        ELSE 'al_dia'
+    END AS estado_alerta
+FROM system_subscriptions
+ORDER BY fecha_renovacion ASC;
+
