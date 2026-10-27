@@ -1,6 +1,55 @@
 import { NextResponse } from "next/server";
 import { getUserByUsername, verifyPassword } from "@/lib/crm";
 
+// ==============================================================================
+// BLINDAJE DE SEGURIDAD: RATE LIMITING CONTRA ATAQUES DE FUERZA BRUTA
+// ==============================================================================
+interface AttemptRecord {
+  count: number;
+  blockedUntil: number;
+}
+
+const loginAttempts = new Map<string, AttemptRecord>();
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_TIME_MS = 15 * 60 * 1000; // 15 minutos de bloqueo tras 5 fallos
+
+function getClientKey(request: Request, user: string): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  const ip = forwarded ? forwarded.split(",")[0].trim() : "unknown-ip";
+  return `${ip}::${user.toLowerCase()}`;
+}
+
+function checkRateLimit(key: string): { blocked: boolean; remainingMinutes?: number } {
+  const now = Date.now();
+  const record = loginAttempts.get(key);
+  if (!record) return { blocked: false };
+
+  if (record.blockedUntil > now) {
+    const remainingMinutes = Math.ceil((record.blockedUntil - now) / 60000);
+    return { blocked: true, remainingMinutes };
+  }
+
+  if (record.blockedUntil <= now && record.count >= MAX_ATTEMPTS) {
+    loginAttempts.delete(key);
+  }
+
+  return { blocked: false };
+}
+
+function recordFailure(key: string) {
+  const now = Date.now();
+  const record = loginAttempts.get(key) || { count: 0, blockedUntil: 0 };
+  record.count += 1;
+  if (record.count >= MAX_ATTEMPTS) {
+    record.blockedUntil = now + LOCKOUT_TIME_MS;
+  }
+  loginAttempts.set(key, record);
+}
+
+function clearFailures(key: string) {
+  loginAttempts.delete(key);
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -14,8 +63,22 @@ export async function POST(request: Request) {
       );
     }
 
+    const clientKey = getClientKey(request, username);
+    const rateStatus = checkRateLimit(clientKey);
+
+    if (rateStatus.blocked) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `⚠️ Acceso bloqueado temporalmente por seguridad tras múltiples intentos fallidos. Por favor espera ${rateStatus.remainingMinutes} minuto(s) antes de reintentar.`,
+        },
+        { status: 429 }
+      );
+    }
+
     // 1. Acceso de Superadministrador (admin / ecuapronostico2026@)
     if (username === "admin" && password.toLowerCase() === "ecuapronostico2026@") {
+      clearFailures(clientKey);
       return NextResponse.json({
         success: true,
         role: "admin",
@@ -29,6 +92,7 @@ export async function POST(request: Request) {
     // 2. Consulta en la base de datos CRM
     const user = getUserByUsername(username);
     if (!user) {
+      recordFailure(clientKey);
       return NextResponse.json(
         { success: false, error: "Usuario o contraseña incorrectos. Verifica tus credenciales." },
         { status: 401 }
@@ -38,11 +102,15 @@ export async function POST(request: Request) {
     // Verificar hash criptográfico
     const isValid = verifyPassword(password, user.password_hash);
     if (!isValid) {
+      recordFailure(clientKey);
       return NextResponse.json(
         { success: false, error: "Usuario o contraseña incorrectos. Verifica tus credenciales." },
         { status: 401 }
       );
     }
+
+    // Autenticación exitosa: limpiar intentos fallidos
+    clearFailures(clientKey);
 
     // Verificar estado de suscripción
     const now = Date.now();
