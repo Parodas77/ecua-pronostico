@@ -391,19 +391,38 @@ export default function EcuaPronosticoDashboard() {
     fetchMatchesFromServer(league);
   }, [league]);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const validUser = username.trim().toLowerCase();
-    const cleanPass = password.trim().toLowerCase();
+    const cleanPass = password.trim();
 
-    // Solo permitido: admin - ecuapronostico2026@
-    if (validUser === "admin" && cleanPass === "ecuapronostico2026@") {
+    // Acceso directo local de Administrador Maestro
+    if (validUser === "admin" && cleanPass.toLowerCase() === "ecuapronostico2026@") {
       saveVipSession("admin");
       setIsAuthenticated(true);
       setView("premium");
       setShowLoginModal(false);
       setLoginError("");
-    } else {
-      setLoginError("Usuario o contraseña incorrectos. Verifica tus credenciales.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: validUser, password: cleanPass }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        saveVipSession(data.username);
+        setIsAuthenticated(true);
+        setView("premium");
+        setShowLoginModal(false);
+        setLoginError("");
+      } else {
+        setLoginError(data.error || "Usuario o contraseña incorrectos. Verifica tus credenciales.");
+      }
+    } catch {
+      setLoginError("Error de conexión al autenticar. Verifica tu conexión a internet.");
     }
   };
 
@@ -684,6 +703,18 @@ export default function EcuaPronosticoDashboard() {
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
+              <Link
+                href="/admin"
+                className="text-xs bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-500/50 px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all"
+              >
+                <span>👥 CRM Admin</span>
+              </Link>
+              <Link
+                href="/activar"
+                className="text-xs bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/50 px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all"
+              >
+                <span>📝 Activar VIP</span>
+              </Link>
               <Link
                 href="/"
                 className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all"

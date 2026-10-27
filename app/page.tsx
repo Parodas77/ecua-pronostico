@@ -34,13 +34,13 @@ export default function LandingPage() {
     } catch {}
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const validUser = username.trim().toLowerCase();
-    const cleanPass = password.trim().toLowerCase();
+    const cleanPass = password.trim();
 
-    // Solo permitido: admin - ecuapronostico2026@
-    if (validUser === "admin" && cleanPass === "ecuapronostico2026@") {
+    // Acceso directo local de Administrador Maestro
+    if (validUser === "admin" && cleanPass.toLowerCase() === "ecuapronostico2026@") {
       try {
         const session = {
           authenticated: true,
@@ -53,8 +53,35 @@ export default function LandingPage() {
       setShowLoginModal(false);
       setLoginError("");
       router.push("/radar");
-    } else {
-      setLoginError("Usuario o contraseña incorrectos. Verifica tus credenciales.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: validUser, password: cleanPass }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        try {
+          const session = {
+            authenticated: true,
+            username: data.username,
+            role: data.role,
+            nombre: data.nombre,
+            lastActivity: Date.now(),
+          };
+          localStorage.setItem(VIP_SESSION_KEY, JSON.stringify(session));
+        } catch {}
+        setShowLoginModal(false);
+        setLoginError("");
+        router.push("/radar");
+      } else {
+        setLoginError(data.error || "Usuario o contraseña incorrectos. Verifica tus credenciales.");
+      }
+    } catch {
+      setLoginError("Error de conexión al autenticar. Verifica tu conexión a internet.");
     }
   };
 
@@ -194,8 +221,16 @@ export default function LandingPage() {
 
           <nav className="flex items-center gap-2 sm:gap-3">
             <Link
+              href="/activar"
+              className="text-xs bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/50 px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 transition-all shadow-sm"
+            >
+              <span>📝</span>
+              <span className="hidden sm:inline">Activar</span> VIP
+            </Link>
+
+            <Link
               href="/aciertos"
-              className="text-xs bg-slate-900/90 hover:bg-slate-800 text-emerald-300 border border-emerald-500/40 px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 transition-all shadow-sm"
+              className="text-xs bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 transition-all shadow-sm"
             >
               <span>✅</span>
               <span className="hidden sm:inline">Historial de</span> Aciertos
