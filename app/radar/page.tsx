@@ -395,27 +395,15 @@ export default function EcuaPronosticoDashboard() {
     const validUser = username.trim().toLowerCase();
     const cleanPass = password.trim().toLowerCase();
 
-    const allowedUsers = ["admin", "pedro", "administrador", "master", "vip"];
-    const allowedPasswords = [
-      "adminecua2026$master",
-      "admin2026",
-      "ecuapronostico2026@",
-      "ecuapronostico2026",
-      "adminecua2026",
-      "admin",
-      "pedro2026",
-      "vip2026",
-      "ecuapronostico"
-    ];
-
-    if (allowedUsers.includes(validUser) && allowedPasswords.includes(cleanPass)) {
-      saveVipSession(validUser);
+    // Solo permitido: admin - ecuapronostico2026@
+    if (validUser === "admin" && cleanPass === "ecuapronostico2026@") {
+      saveVipSession("admin");
       setIsAuthenticated(true);
       setView("premium");
       setShowLoginModal(false);
       setLoginError("");
     } else {
-      setLoginError("Usuario o contraseña incorrectos. Verifica tus credenciales de acceso.");
+      setLoginError("Usuario o contraseña incorrectos. Verifica tus credenciales.");
     }
   };
 
@@ -640,7 +628,7 @@ export default function EcuaPronosticoDashboard() {
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Usuario (ej: admin o vip)"
+                      placeholder="Usuario (admin)"
                       autoCapitalize="none"
                       autoCorrect="off"
                       spellCheck={false}

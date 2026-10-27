@@ -39,25 +39,13 @@ export default function LandingPage() {
     const validUser = username.trim().toLowerCase();
     const cleanPass = password.trim().toLowerCase();
 
-    const allowedUsers = ["admin", "pedro", "administrador", "master", "vip"];
-    const allowedPasswords = [
-      "adminecua2026$master",
-      "admin2026",
-      "ecuapronostico2026@",
-      "ecuapronostico2026",
-      "adminecua2026",
-      "admin",
-      "pedro2026",
-      "vip2026",
-      "ecuapronostico"
-    ];
-
-    if (allowedUsers.includes(validUser) && allowedPasswords.includes(cleanPass)) {
+    // Solo permitido: admin - ecuapronostico2026@
+    if (validUser === "admin" && cleanPass === "ecuapronostico2026@") {
       try {
         const session = {
           authenticated: true,
-          username: validUser,
-          role: validUser === "vip" ? "vip" : "admin",
+          username: "admin",
+          role: "admin",
           lastActivity: Date.now(),
         };
         localStorage.setItem(VIP_SESSION_KEY, JSON.stringify(session));
@@ -66,7 +54,7 @@ export default function LandingPage() {
       setLoginError("");
       router.push("/radar");
     } else {
-      setLoginError("Usuario o contraseña incorrectos. Verifica tus credenciales de acceso.");
+      setLoginError("Usuario o contraseña incorrectos. Verifica tus credenciales.");
     }
   };
 
@@ -119,13 +107,13 @@ export default function LandingPage() {
             <form onSubmit={handleLogin} className="space-y-3.5">
               <div>
                 <label className="text-[11px] font-black uppercase tracking-wider text-slate-300 block mb-1">
-                  Usuario (Admin o VIP)
+                  Usuario Administrador
                 </label>
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Usuario (ej: admin o vip)"
+                  placeholder="admin"
                   autoCapitalize="none"
                   autoCorrect="off"
                   spellCheck={false}
