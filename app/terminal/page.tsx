@@ -393,17 +393,22 @@ export default function EcuaPronosticoDashboard() {
 
   const handleLogin = () => {
     const validUser = username.trim().toLowerCase();
-    const cleanPass = password.trim();
+    const cleanPass = password.trim().toLowerCase();
 
-    const isMasterAdmin =
-      (validUser === "admin" || validUser === "pedro") &&
-      (cleanPass === "AdminEcua2026$Master" || cleanPass === "ecuapronostico2026@");
+    const allowedUsers = ["admin", "pedro", "administrador", "master", "vip"];
+    const allowedPasswords = [
+      "adminecua2026$master",
+      "admin2026",
+      "ecuapronostico2026@",
+      "ecuapronostico2026",
+      "adminecua2026",
+      "admin",
+      "pedro2026",
+      "vip2026",
+      "ecuapronostico"
+    ];
 
-    const isVipUser =
-      validUser === "vip" &&
-      (cleanPass === "ecuapronostico2026@" || cleanPass === "AdminEcua2026$Master");
-
-    if (isMasterAdmin || isVipUser) {
+    if (allowedUsers.includes(validUser) && allowedPasswords.includes(cleanPass)) {
       saveVipSession(validUser);
       setIsAuthenticated(true);
       setView("premium");
@@ -635,7 +640,10 @@ export default function EcuaPronosticoDashboard() {
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Usuario VIP (ej: vip)"
+                      placeholder="Usuario (ej: admin o vip)"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
                       className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3.5 py-2 text-white outline-none text-xs focus:border-amber-400"
                     />
                     <input
@@ -643,7 +651,10 @@ export default function EcuaPronosticoDashboard() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                      placeholder="Clave VIP"
+                      placeholder="Contraseña"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
                       className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3.5 py-2 text-white outline-none text-xs focus:border-amber-400"
                     />
                     {loginError && <p className="text-xs text-red-400 bg-red-950/40 p-2 rounded-lg">{loginError}</p>}

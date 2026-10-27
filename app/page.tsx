@@ -37,22 +37,27 @@ export default function LandingPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     const validUser = username.trim().toLowerCase();
-    const cleanPass = password.trim();
+    const cleanPass = password.trim().toLowerCase();
 
-    const isMasterAdmin =
-      (validUser === "admin" || validUser === "pedro") &&
-      (cleanPass === "AdminEcua2026$Master" || cleanPass === "ecuapronostico2026@");
+    const allowedUsers = ["admin", "pedro", "administrador", "master", "vip"];
+    const allowedPasswords = [
+      "adminecua2026$master",
+      "admin2026",
+      "ecuapronostico2026@",
+      "ecuapronostico2026",
+      "adminecua2026",
+      "admin",
+      "pedro2026",
+      "vip2026",
+      "ecuapronostico"
+    ];
 
-    const isVipUser =
-      validUser === "vip" &&
-      (cleanPass === "ecuapronostico2026@" || cleanPass === "AdminEcua2026$Master");
-
-    if (isMasterAdmin || isVipUser) {
+    if (allowedUsers.includes(validUser) && allowedPasswords.includes(cleanPass)) {
       try {
         const session = {
           authenticated: true,
           username: validUser,
-          role: isMasterAdmin ? "admin" : "vip",
+          role: validUser === "vip" ? "vip" : "admin",
           lastActivity: Date.now(),
         };
         localStorage.setItem(VIP_SESSION_KEY, JSON.stringify(session));
@@ -114,13 +119,16 @@ export default function LandingPage() {
             <form onSubmit={handleLogin} className="space-y-3.5">
               <div>
                 <label className="text-[11px] font-black uppercase tracking-wider text-slate-300 block mb-1">
-                  Usuario VIP
+                  Usuario (Admin o VIP)
                 </label>
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Usuario (ej: vip o admin)"
+                  placeholder="Usuario (ej: admin o vip)"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
                   className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white outline-none text-sm focus:border-amber-400 transition"
                   required
                 />
@@ -128,13 +136,16 @@ export default function LandingPage() {
 
               <div>
                 <label className="text-[11px] font-black uppercase tracking-wider text-slate-300 block mb-1">
-                  Contraseña VIP
+                  Contraseña
                 </label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Tu contraseña secreta"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
                   className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white outline-none text-sm focus:border-amber-400 transition"
                   required
                 />
