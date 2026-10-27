@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAllUsers, updateUser, extendSubscription } from "@/lib/crm";
+import { getAllUsers, updateUser, extendSubscription, approveAndActivateUser } from "@/lib/crm";
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       users = users.filter((u) => u.estado_suscripcion === filterStatus);
     }
 
-    // Búsqueda por nombre, apellido, username, correo, teléfono o ciudad
+    // Búsqueda por nombre, apellido, username, correo, teléfono, ciudad o referencia de pago
     if (searchQuery) {
       users = users.filter(
         (u) =>
@@ -22,13 +22,15 @@ export async function GET(request: NextRequest) {
           u.username.toLowerCase().includes(searchQuery) ||
           u.correo.toLowerCase().includes(searchQuery) ||
           u.telefono_whatsapp.includes(searchQuery) ||
-          u.ciudad.toLowerCase().includes(searchQuery)
+          u.ciudad.toLowerCase().includes(searchQuery) ||
+          (u.referencia_pago && u.referencia_pago.toLowerCase().includes(searchQuery))
       );
     }
 
     const all = getAllUsers();
     const metrics = {
       total: all.length,
+      pendientes: all.filter((u) => u.estado_suscripcion === "pendiente").length,
       activos: all.filter((u) => u.estado_suscripcion === "activo").length,
       inactivos: all.filter((u) => u.estado_suscripcion === "inactivo").length,
       expirados: all.filter((u) => u.estado_suscripcion === "expirado").length,
@@ -57,14 +59,16 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
-    const { id, estado_suscripcion, extendDays, notas_admin } = body;
+    const { id, action, estado_suscripcion, extendDays, notas_admin } = body;
 
     if (!id) {
       return NextResponse.json({ success: false, error: "ID de usuario requerido." }, { status: 400 });
     }
 
     let result;
-    if (extendDays && typeof extendDays === "number") {
+    if (action === "approve") {
+      result = approveAndActivateUser(id, extendDays || 30);
+    } else if (extendDays && typeof extendDays === "number") {
       result = extendSubscription(id, extendDays);
     } else {
       const updates: any = {};
@@ -80,7 +84,10 @@ export async function PATCH(request: Request) {
     const { password_hash, ...safeUser } = result.user;
     return NextResponse.json({
       success: true,
-      message: "Usuario actualizado con éxito.",
+      message:
+        action === "approve"
+          ? `¡Pago verificado! Usuario ${safeUser.nombre} autorizado con éxito. Sus 30 días han comenzado hoy.`
+          : "Usuario actualizado con éxito.",
       user: safeUser,
     });
   } catch (err: any) {

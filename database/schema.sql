@@ -3,7 +3,7 @@
 -- ==============================================================================
 
 -- 1. TIPO ENUM PARA ESTADOS DE SUSCRIPCIÓN
-CREATE TYPE estado_suscripcion_enum AS ENUM ('activo', 'inactivo', 'expirado');
+CREATE TYPE estado_suscripcion_enum AS ENUM ('pendiente', 'activo', 'inactivo', 'expirado');
 
 -- 2. TABLA DE CLIENTES Y USUARIOS VIP (CRM)
 CREATE TABLE IF NOT EXISTS usuarios (
@@ -15,9 +15,13 @@ CREATE TABLE IF NOT EXISTS usuarios (
     correo VARCHAR(150) NOT NULL UNIQUE,
     username VARCHAR(50) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    estado_suscripcion estado_suscripcion_enum NOT NULL DEFAULT 'activo',
-    fecha_inicio_suscripcion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_expiracion_suscripcion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (CURRENT_TIMESTAMP + INTERVAL '30 days'),
+    estado_suscripcion estado_suscripcion_enum NOT NULL DEFAULT 'pendiente',
+    metodo_pago VARCHAR(50) DEFAULT 'Transferencia Bancaria',
+    referencia_pago VARCHAR(150),
+    monto_pago DECIMAL(10, 2) DEFAULT 14.99,
+    fecha_inicio_suscripcion TIMESTAMP WITH TIME ZONE,
+    fecha_expiracion_suscripcion TIMESTAMP WITH TIME ZONE,
+    fecha_aprobacion TIMESTAMP WITH TIME ZONE,
     notas_admin TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

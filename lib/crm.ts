@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 
-export type EstadoSuscripcion = "activo" | "inactivo" | "expirado";
+export type EstadoSuscripcion = "pendiente" | "activo" | "inactivo" | "expirado";
 
 export interface UserRecord {
   id: number;
@@ -14,6 +14,11 @@ export interface UserRecord {
   username: string;
   password_hash: string;
   estado_suscripcion: EstadoSuscripcion;
+  metodo_pago?: string;
+  referencia_pago?: string;
+  monto_pago?: number;
+  aprobado_por_admin?: boolean;
+  fecha_aprobacion?: string;
   fecha_inicio_suscripcion: string;
   fecha_expiracion_suscripcion: string;
   created_at: string;
@@ -44,6 +49,10 @@ const INITIAL_USERS: UserRecord[] = [
     username: "admin",
     password_hash: hashPassword("ecuapronostico2026@"),
     estado_suscripcion: "activo",
+    metodo_pago: "Acceso Maestro",
+    referencia_pago: "Superadmin",
+    monto_pago: 0,
+    aprobado_por_admin: true,
     fecha_inicio_suscripcion: new Date(Date.now() - 60 * 86400000).toISOString(),
     fecha_expiracion_suscripcion: new Date(Date.now() + 365 * 86400000).toISOString(),
     created_at: new Date(Date.now() - 60 * 86400000).toISOString(),
@@ -59,6 +68,10 @@ const INITIAL_USERS: UserRecord[] = [
     username: "carlosm",
     password_hash: hashPassword("carlos123"),
     estado_suscripcion: "activo",
+    metodo_pago: "Banco Pichincha",
+    referencia_pago: "Transf #893012",
+    monto_pago: 14.99,
+    aprobado_por_admin: true,
     fecha_inicio_suscripcion: new Date(Date.now() - 10 * 86400000).toISOString(),
     fecha_expiracion_suscripcion: new Date(Date.now() + 20 * 86400000).toISOString(),
     created_at: new Date(Date.now() - 10 * 86400000).toISOString(),
@@ -66,6 +79,25 @@ const INITIAL_USERS: UserRecord[] = [
   },
   {
     id: 3,
+    nombre: "Wilson",
+    apellido: "Salazar",
+    telefono_whatsapp: "+593981122334",
+    ciudad: "Machala",
+    correo: "wilson.salazar@gmail.com",
+    username: "wilsons",
+    password_hash: hashPassword("wilson2026"),
+    estado_suscripcion: "pendiente",
+    metodo_pago: "Banco Pichincha (Deuna)",
+    referencia_pago: "Comprobante Deuna #948271 por $14.99",
+    monto_pago: 14.99,
+    aprobado_por_admin: false,
+    fecha_inicio_suscripcion: "",
+    fecha_expiracion_suscripcion: "",
+    created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+    notas_admin: "Comprobante enviado por WhatsApp. Pendiente de verificación en cuenta bancaria.",
+  },
+  {
+    id: 4,
     nombre: "Javier",
     apellido: "Alvarado",
     telefono_whatsapp: "+593987654321",
@@ -74,13 +106,17 @@ const INITIAL_USERS: UserRecord[] = [
     username: "javier_alv",
     password_hash: hashPassword("javier2026"),
     estado_suscripcion: "expirado",
+    metodo_pago: "Banco Guayaquil",
+    referencia_pago: "Depósito #120938",
+    monto_pago: 14.99,
+    aprobado_por_admin: true,
     fecha_inicio_suscripcion: new Date(Date.now() - 35 * 86400000).toISOString(),
     fecha_expiracion_suscripcion: new Date(Date.now() - 5 * 86400000).toISOString(),
     created_at: new Date(Date.now() - 35 * 86400000).toISOString(),
     notas_admin: "Suscripción mensual vencida hace 5 días. Candidato a descuento de reenganche 20%",
   },
   {
-    id: 4,
+    id: 5,
     nombre: "Andrés",
     apellido: "García",
     telefono_whatsapp: "+593998877665",
@@ -89,6 +125,10 @@ const INITIAL_USERS: UserRecord[] = [
     username: "andresg",
     password_hash: hashPassword("andres2026"),
     estado_suscripcion: "inactivo",
+    metodo_pago: "Banco Pichincha",
+    referencia_pago: "Transf #772810",
+    monto_pago: 14.99,
+    aprobado_por_admin: true,
     fecha_inicio_suscripcion: new Date(Date.now() - 40 * 86400000).toISOString(),
     fecha_expiracion_suscripcion: new Date(Date.now() - 10 * 86400000).toISOString(),
     created_at: new Date(Date.now() - 40 * 86400000).toISOString(),
@@ -113,7 +153,11 @@ function readDb(): UserRecord[] {
     const now = Date.now();
     let modified = false;
     for (const u of users) {
-      if (u.estado_suscripcion === "activo" && new Date(u.fecha_expiracion_suscripcion).getTime() < now) {
+      if (
+        u.estado_suscripcion === "activo" &&
+        u.fecha_expiracion_suscripcion &&
+        new Date(u.fecha_expiracion_suscripcion).getTime() < now
+      ) {
         // El admin nunca expira
         if (u.username !== "admin") {
           u.estado_suscripcion = "expirado";
@@ -140,7 +184,7 @@ function writeDb(users: UserRecord[]): void {
     }
     fs.writeFileSync(DB_PATH, JSON.stringify(users, null, 2), "utf-8");
   } catch (err) {
-    console.error("Error al escribir users_db.json:", err);
+    console.error("Error al guardar users_db.json:", err);
   }
 }
 
@@ -170,6 +214,9 @@ export interface CreateUserInput {
   correo: string;
   username: string;
   password: string;
+  metodo_pago?: string;
+  referencia_pago?: string;
+  monto_pago?: number;
   estado_suscripcion?: EstadoSuscripcion;
   dias_suscripcion?: number;
   notas_admin?: string;
@@ -193,9 +240,18 @@ export function createUser(input: CreateUserInput): { success: boolean; user?: U
   const maxId = users.reduce((max, u) => Math.max(max, u.id || 0), 0);
   const newId = maxId + 1;
 
-  const dias = input.dias_suscripcion || 30;
   const now = new Date();
-  const expiracion = new Date(now.getTime() + dias * 86400000);
+  const estado = input.estado_suscripcion || "pendiente";
+
+  let fechaInicio = "";
+  let fechaExpiracion = "";
+
+  // Si se crea directamente como activo (por ejemplo creado manualmente por el admin)
+  if (estado === "activo") {
+    const dias = input.dias_suscripcion || 30;
+    fechaInicio = now.toISOString();
+    fechaExpiracion = new Date(now.getTime() + dias * 86400000).toISOString();
+  }
 
   const newUser: UserRecord = {
     id: newId,
@@ -206,11 +262,16 @@ export function createUser(input: CreateUserInput): { success: boolean; user?: U
     correo: cleanEmail,
     username: cleanUsername,
     password_hash: hashPassword(input.password.trim()),
-    estado_suscripcion: input.estado_suscripcion || "activo",
-    fecha_inicio_suscripcion: now.toISOString(),
-    fecha_expiracion_suscripcion: expiracion.toISOString(),
+    estado_suscripcion: estado,
+    metodo_pago: input.metodo_pago || "Transferencia Bancaria",
+    referencia_pago: input.referencia_pago || "Comprobante enviado por WhatsApp",
+    monto_pago: input.monto_pago || 14.99,
+    aprobado_por_admin: estado === "activo",
+    fecha_aprobacion: estado === "activo" ? now.toISOString() : "",
+    fecha_inicio_suscripcion: fechaInicio,
+    fecha_expiracion_suscripcion: fechaExpiracion,
     created_at: now.toISOString(),
-    notas_admin: input.notas_admin || "Registro post-pago VIP",
+    notas_admin: input.notas_admin || "Registro post-pago pendiente de verificación",
   };
 
   users.push(newUser);
@@ -219,7 +280,34 @@ export function createUser(input: CreateUserInput): { success: boolean; user?: U
   return { success: true, user: newUser };
 }
 
-export function updateUser(id: number, updates: Partial<UserRecord>): { success: boolean; user?: UserRecord; error?: string } {
+// AUTORIZACIÓN OFICIAL DEL ADMINISTRADOR:
+// Activa la cuenta e inicia el conteo de 30 días exactamente a partir de este momento
+export function approveAndActivateUser(
+  id: number,
+  days: number = 30
+): { success: boolean; user?: UserRecord; error?: string } {
+  const users = readDb();
+  const user = users.find((u) => u.id === id);
+  if (!user) return { success: false, error: "Usuario no encontrado" };
+
+  const now = new Date();
+  const expiracion = new Date(now.getTime() + days * 86400000);
+
+  user.estado_suscripcion = "activo";
+  user.aprobado_por_admin = true;
+  user.fecha_aprobacion = now.toISOString();
+  user.fecha_inicio_suscripcion = now.toISOString();
+  user.fecha_expiracion_suscripcion = expiracion.toISOString();
+  user.notas_admin = `${user.notas_admin || ""} | Pago verificado y autorizado por Admin el ${now.toLocaleDateString("es-EC")}`.trim();
+
+  writeDb(users);
+  return { success: true, user };
+}
+
+export function updateUser(
+  id: number,
+  updates: Partial<UserRecord>
+): { success: boolean; user?: UserRecord; error?: string } {
   const users = readDb();
   const index = users.findIndex((u) => u.id === id);
   if (index === -1) {
@@ -245,52 +333,44 @@ export function updateUser(id: number, updates: Partial<UserRecord>): { success:
   return { success: true, user: updated };
 }
 
-export function extendSubscription(id: number, additionalDays: number = 30): { success: boolean; user?: UserRecord; error?: string } {
+export function extendSubscription(
+  id: number,
+  additionalDays: number = 30
+): { success: boolean; user?: UserRecord; error?: string } {
   const users = readDb();
   const user = users.find((u) => u.id === id);
   if (!user) return { success: false, error: "Usuario no encontrado" };
 
-  const currentExp = new Date(user.fecha_expiracion_suscripcion).getTime();
-  const baseTime = currentExp > Date.now() ? currentExp : Date.now();
+  const now = Date.now();
+  const currentExp = user.fecha_expiracion_suscripcion ? new Date(user.fecha_expiracion_suscripcion).getTime() : 0;
+  const baseTime = currentExp > now ? currentExp : now;
   const newExp = new Date(baseTime + additionalDays * 86400000);
 
   user.fecha_expiracion_suscripcion = newExp.toISOString();
   user.estado_suscripcion = "activo";
+  user.aprobado_por_admin = true;
+  if (!user.fecha_inicio_suscripcion) {
+    user.fecha_inicio_suscripcion = new Date().toISOString();
+  }
 
   writeDb(users);
   return { success: true, user };
 }
 
-// Filtro rápido para campañas de retención (inactivos o expirados)
 export function getRetargetingUsers(): UserRecord[] {
   const users = readDb();
-  const now = Date.now();
   return users.filter(
     (u) =>
       u.username !== "admin" &&
-      (u.estado_suscripcion === "inactivo" ||
-        u.estado_suscripcion === "expirado" ||
-        new Date(u.fecha_expiracion_suscripcion).getTime() < now)
+      (u.estado_suscripcion === "inactivo" || u.estado_suscripcion === "expirado")
   );
 }
 
-// Generador de archivo CSV para remarketing por WhatsApp
 export function generateRetargetingCsv(users: UserRecord[]): string {
-  const headers = ["ID", "Nombre", "Apellido", "WhatsApp", "Ciudad", "Correo", "Estado", "Fecha_Expiracion", "Dias_Vencido"];
+  const header = "ID,Nombre,Apellido,Telefono_WhatsApp,Ciudad,Correo,Usuario,Estado,Fecha_Expiracion\n";
   const rows = users.map((u) => {
-    const diffDays = Math.max(0, Math.round((Date.now() - new Date(u.fecha_expiracion_suscripcion).getTime()) / 86400000));
-    return [
-      u.id,
-      `"${u.nombre.replace(/"/g, '""')}"`,
-      `"${u.apellido.replace(/"/g, '""')}"`,
-      `"${u.telefono_whatsapp}"`,
-      `"${u.ciudad}"`,
-      `"${u.correo}"`,
-      u.estado_suscripcion,
-      u.fecha_expiracion_suscripcion.slice(0, 10),
-      diffDays,
-    ].join(",");
+    const exp = u.fecha_expiracion_suscripcion ? u.fecha_expiracion_suscripcion.slice(0, 10) : "N/A";
+    return `"${u.id}","${u.nombre}","${u.apellido}","${u.telefono_whatsapp}","${u.ciudad}","${u.correo}","${u.username}","${u.estado_suscripcion}","${exp}"`;
   });
-
-  return [headers.join(","), ...rows].join("\n");
+  return header + rows.join("\n");
 }

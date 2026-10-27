@@ -114,7 +114,21 @@ export async function POST(request: Request) {
 
     // Verificar estado de suscripción
     const now = Date.now();
-    const isExpired = new Date(user.fecha_expiracion_suscripcion).getTime() < now;
+    const isExpired = user.fecha_expiracion_suscripcion
+      ? new Date(user.fecha_expiracion_suscripcion).getTime() < now
+      : false;
+
+    if (user.estado_suscripcion === "pendiente" || !user.aprobado_por_admin) {
+      return NextResponse.json(
+        {
+          success: false,
+          pending: true,
+          error:
+            "⏳ Tu cuenta está registrada pero se encuentra pendiente de verificación de pago por el administrador. En cuanto tu pago sea autorizado, tus 30 días de acceso VIP comenzarán a correr de inmediato.",
+        },
+        { status: 403 }
+      );
+    }
 
     if (user.estado_suscripcion === "inactivo") {
       return NextResponse.json(

@@ -33,12 +33,24 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    let { nombre, apellido, telefono_whatsapp, ciudad, correo, username, password } = body;
+    let {
+      nombre,
+      apellido,
+      telefono_whatsapp,
+      ciudad,
+      correo,
+      username,
+      password,
+      metodo_pago,
+      referencia_pago,
+    } = body;
 
     // 1. Sanitización de texto
     nombre = sanitizeText(nombre);
     apellido = sanitizeText(apellido);
     ciudad = sanitizeText(ciudad);
+    metodo_pago = sanitizeText(metodo_pago) || "Transferencia Bancaria";
+    referencia_pago = sanitizeText(referencia_pago) || "Comprobante enviado por WhatsApp";
     correo = (correo || "").trim().toLowerCase();
     username = (username || "").trim().toLowerCase();
     telefono_whatsapp = (telefono_whatsapp || "").replace(/[^\d+]/g, "").trim();
@@ -102,7 +114,7 @@ export async function POST(request: Request) {
     current.count += 1;
     registerAttempts.set(ip, current);
 
-    // Crear usuario en base de datos CRM
+    // Crear usuario en base de datos CRM en estado PENDIENTE DE AUTORIZACIÓN
     const result = createUser({
       nombre,
       apellido,
@@ -111,9 +123,11 @@ export async function POST(request: Request) {
       correo,
       username,
       password,
-      estado_suscripcion: "activo",
-      dias_suscripcion: 30, // 30 días de suscripción inicial
-      notas_admin: "Alta directa vía formulario post-pago WhatsApp",
+      metodo_pago,
+      referencia_pago,
+      monto_pago: 14.99,
+      estado_suscripcion: "pendiente",
+      notas_admin: `Comprobante: ${referencia_pago} (${metodo_pago})`,
     });
 
     if (!result.success || !result.user) {
@@ -127,7 +141,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "¡Registro VIP completado exitosamente! Tu cuenta ha sido activada.",
+      pending: true,
+      message:
+        "¡Solicitud de registro recibida con éxito! Tu pago está en cola de verificación por el administrador.",
       user: safeUser,
     });
   } catch (err: any) {
