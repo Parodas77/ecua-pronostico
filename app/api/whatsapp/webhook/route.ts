@@ -172,10 +172,12 @@ export async function POST(request: NextRequest) {
       recordId: record.id,
     });
   } catch (err: any) {
+    if (err?.digest?.startsWith("NEXT_PRERENDER")) throw err;
     console.error("Error en POST /api/whatsapp/webhook:", err);
+    // Meta Cloud API requiere una respuesta HTTP 200 para confirmar recepción y evitar reintentos continuos
     return NextResponse.json(
-      { success: false, error: "Error interno al procesar webhook de WhatsApp" },
-      { status: 500 }
+      { success: false, handled: true, error: "Error interno gestionado en webhook de WhatsApp" },
+      { status: 200 }
     );
   }
 }
