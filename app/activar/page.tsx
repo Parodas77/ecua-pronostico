@@ -28,19 +28,13 @@ const CIUDADES_ECUADOR = [
   "Otra Ciudad (Ecuador o Exterior)",
 ];
 
-const METODOS_PAGO = [
-  "Banco Pichincha (Transferencia Directa)",
-  "Banco Pichincha (Deuna / QR)",
-  "Banco Guayaquil",
-  "Banco del Pacífico",
-  "Produbanco / Servipagos",
-  "Western Union / Pago Internacional",
-  "Efectivo / Depósito en Agente",
-  "Otro Método",
-];
-
 function ActivacionVipForm() {
   const searchParams = useSearchParams();
+
+  // Estados de control de acceso por token
+  const [tokenStatus, setTokenStatus] = useState<"validating" | "authorized" | "unauthorized">("validating");
+  const [tokenError, setTokenError] = useState("");
+  const [currentToken, setCurrentToken] = useState("");
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -59,27 +53,51 @@ function ActivacionVipForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successData, setSuccessData] = useState<any>(null);
-  const [isPreVerified, setIsPreVerified] = useState(false);
-  const [verifiedAmount, setVerifiedAmount] = useState<string | null>(null);
+  const [verifiedAmount, setVerifiedAmount] = useState<number>(14.99);
 
+  // 1. VALIDACIÓN DEL TOKEN ÚNICO DE ACTIVACIÓN
   useEffect(() => {
-    try {
-      const tel = searchParams.get("tel");
-      const ref = searchParams.get("ref");
-      const amt = searchParams.get("amt");
-      const bank = searchParams.get("bank");
+    const rawToken = searchParams.get("token");
+    if (!rawToken || !rawToken.trim()) {
+      setTokenStatus("unauthorized");
+      setTokenError(
+        "Acceso Restringido: Este formulario de registro es exclusivo para suscriptores VIP con pago verificado. Para recibir tu enlace único, realiza tu transferencia bancaria y envía el comprobante por WhatsApp."
+      );
+      return;
+    }
 
-      if (tel || ref || amt) {
-        setIsPreVerified(true);
-        if (amt) setVerifiedAmount(amt);
-        setFormData((prev) => ({
-          ...prev,
-          telefono_whatsapp: tel ? tel.trim() : prev.telefono_whatsapp,
-          referencia_pago: ref ? ref.trim() : prev.referencia_pago,
-          metodo_pago: bank ? `Transferencia ${bank}` : prev.metodo_pago,
-        }));
-      }
-    } catch {}
+    const tokenVal = rawToken.trim();
+    setCurrentToken(tokenVal);
+
+    // Consultar al backend para validar autenticidad y estado de no-uso del token
+    fetch(`/api/auth/validate-token?token=${encodeURIComponent(tokenVal)}`)
+      .then(async (res) => {
+        const data = await res.json();
+        if (res.ok && data.valid) {
+          setTokenStatus("authorized");
+          if (data.tokenData) {
+            const td = data.tokenData;
+            setVerifiedAmount(td.amount || 14.99);
+            setFormData((prev) => ({
+              ...prev,
+              telefono_whatsapp: td.phone || prev.telefono_whatsapp,
+              referencia_pago: td.reference || prev.referencia_pago,
+              metodo_pago: td.bank ? `Transferencia ${td.bank}` : prev.metodo_pago,
+            }));
+          }
+        } else {
+          setTokenStatus("unauthorized");
+          setTokenError(
+            data.error ||
+              "El token de activación no es válido, ha expirado o ya fue utilizado previamente para registrar una cuenta."
+          );
+        }
+      })
+      .catch((err) => {
+        console.error("Error al validar token:", err);
+        setTokenStatus("unauthorized");
+        setTokenError("Error de conexión al verificar el token de seguridad. Por favor intenta recargar la página.");
+      });
   }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -105,6 +123,7 @@ function ActivacionVipForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          token: currentToken,
           nombre: formData.nombre.trim(),
           apellido: formData.apellido.trim(),
           telefono_whatsapp: formData.telefono_whatsapp.trim(),
@@ -113,7 +132,7 @@ function ActivacionVipForm() {
           username: formData.username.trim(),
           password: formData.password,
           metodo_pago: formData.metodo_pago,
-          referencia_pago: formData.referencia_pago.trim() || "Comprobante enviado por WhatsApp",
+          referencia_pago: formData.referencia_pago.trim() || "Comprobante verificado",
         }),
       });
 
@@ -125,6 +144,20 @@ function ActivacionVipForm() {
         return;
       }
 
+      // Guardar sesión VIP automática en localStorage
+      try {
+        localStorage.setItem(
+          "ecuapronostico_vip_session_v1",
+          JSON.stringify({
+            authenticated: true,
+            username: data.user.username,
+            role: "vip",
+            expiresAt: data.user.fecha_expiracion_suscripcion,
+            activatedAt: Date.now(),
+          })
+        );
+      } catch {}
+
       setSuccessData(data.user);
     } catch (err) {
       console.error(err);
@@ -135,22 +168,20 @@ function ActivacionVipForm() {
   };
 
   const adminWhatsappNumber = "593979198755";
-  const whatsappNotifyMessage = successData
-    ? `Hola Administrador de Ecuapronóstico. Acabo de registrar mi cuenta VIP con los siguientes datos:\n\n• Nombre: ${successData.nombre} ${successData.apellido}\n• Usuario: ${successData.username}\n• WhatsApp: ${successData.telefono_whatsapp}\n• Método: ${successData.metodo_pago || formData.metodo_pago}\n• Comprobante: ${successData.referencia_pago || formData.referencia_pago || "Adjunto comprobante"}\n\nPor favor autoricen mi cuenta para que inicien mis 30 días de acceso VIP. ¡Muchas gracias!`
-    : "";
-
-  const whatsappNotifyUrl = `https://wa.me/${adminWhatsappNumber}?text=${encodeURIComponent(whatsappNotifyMessage)}`;
+  const whatsappSolicitudUrl = `https://wa.me/${adminWhatsappNumber}?text=${encodeURIComponent(
+    "Hola, quiero activar mi suscripción Premium en EcuaPronóstico ($14.99/mes) para desbloquear las 4 Fijas del Día. ¿Me ayudan con los datos de pago?"
+  )}`;
 
   return (
-    <div className="min-h-screen bg-[#070d1e] text-slate-100 font-sans selection:bg-amber-400 selection:text-slate-950 py-8 px-4 sm:px-6 relative overflow-hidden">
+    <div className="min-h-screen bg-[#070d1e] text-slate-100 font-sans selection:bg-amber-400 selection:text-slate-950 py-8 px-4 sm:px-6 relative overflow-hidden flex flex-col justify-center">
       {/* GLOW DECORATIVO DE FONDO */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-emerald-500/15 rounded-full blur-[140px]" />
         <div className="absolute top-[50%] -right-32 w-[500px] h-[500px] bg-amber-400/10 rounded-full blur-[160px]" />
       </div>
 
-      <div className="max-w-xl mx-auto relative z-10">
-        {/* LOGO SUPERIOR Y TÍTULO */}
+      <div className="max-w-xl mx-auto w-full relative z-10">
+        {/* LOGO SUPERIOR */}
         <div className="text-center mb-6">
           <Link href="/" className="inline-block group mb-3">
             <img
@@ -159,334 +190,362 @@ function ActivacionVipForm() {
               className="h-16 mx-auto object-contain drop-shadow-[0_0_20px_rgba(56,189,248,0.4)] group-hover:scale-105 transition-transform"
             />
           </Link>
-
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-xs font-black uppercase tracking-wider mb-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span>Registro y Verificación VIP • Link Oficial</span>
-          </div>
-
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            Crea tu Perfil y Registra tu Pago
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-md mx-auto">
-            Ingresa tus datos y tu comprobante de pago ($14.99). El administrador verificará tu
-            transferencia y autorizará tu cuenta para iniciar tus 30 días.
-          </p>
         </div>
 
-        {/* VISTA DE CONFIRMACIÓN TRAS COMPLETAR REGISTRO */}
-        {isPreVerified && !successData && (
-          <div className="mb-6 p-4 bg-emerald-950/90 border-2 border-emerald-500 rounded-2xl flex items-center gap-3 shadow-[0_0_30px_rgba(16,185,129,0.25)] animate-in fade-in">
-            <span className="text-2xl">🟢</span>
-            <div className="text-left">
-              <h3 className="text-xs sm:text-sm font-black text-emerald-300">
-                ¡Comprobante Validado por WhatsApp con IA!
-              </h3>
-              <p className="text-[11px] sm:text-xs text-emerald-200/90 mt-0.5">
-                Detectamos tu pago{verifiedAmount ? ` de $${verifiedAmount}` : ""}. Hemos prellenado tus datos; solo elige tu usuario y contraseña.
-              </p>
-            </div>
+        {/* ============================================================== */}
+        {/* CASO 1: CARGANDO Y VERIFICANDO TOKEN DE SEGURIDAD */}
+        {/* ============================================================== */}
+        {tokenStatus === "validating" && (
+          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-8 text-center space-y-4 shadow-2xl">
+            <div className="w-12 h-12 border-3 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto" />
+            <h2 className="text-lg font-black text-white">Validando Token de Activación VIP...</h2>
+            <p className="text-xs text-slate-400 max-w-sm mx-auto">
+              Verificando la autenticidad y vigencia de tu enlace privado de registro de un solo uso.
+            </p>
           </div>
         )}
 
-        {successData ? (
-          <div className="bg-slate-900/90 border-2 border-amber-400/80 rounded-3xl p-6 sm:p-8 shadow-[0_0_50px_rgba(251,191,36,0.25)] text-center animate-in fade-in zoom-in duration-300">
-            <div className="w-16 h-16 rounded-full bg-amber-400/20 border-2 border-amber-400 text-3xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(251,191,36,0.4)]">
-              ⏳
+        {/* ============================================================== */}
+        {/* CASO 2: ACCESO DENEGADO / TOKEN INVÁLIDO O SIN TOKEN */}
+        {/* ============================================================== */}
+        {tokenStatus === "unauthorized" && (
+          <div className="bg-slate-900/95 border-2 border-red-500/60 rounded-3xl p-6 sm:p-8 text-center space-y-5 shadow-[0_0_50px_rgba(239,68,68,0.2)] animate-in fade-in zoom-in duration-300">
+            <div className="w-16 h-16 rounded-full bg-red-950/80 border-2 border-red-500 text-3xl flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(239,68,68,0.3)]">
+              🔒
             </div>
 
-            <span className="bg-amber-400 text-slate-950 font-black text-xs px-3.5 py-1 rounded-full uppercase tracking-wider">
-              En Espera de Autorización
-            </span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-950 border border-red-500/60 text-red-300 text-xs font-black uppercase tracking-wider">
+              <span>Blindaje de Seguridad Activo</span>
+            </div>
 
-            <h2 className="text-2xl sm:text-3xl font-black text-white mt-3">
-              ¡Datos Registrados con Éxito, {successData.nombre}!
+            <h2 className="text-2xl sm:text-3xl font-black text-white">
+              Acceso Restringido • Registro Exclusivo VIP
             </h2>
 
-            <p className="text-sm text-slate-300 mt-2 max-w-md mx-auto leading-relaxed">
-              Tu usuario ha sido creado y tu comprobante de pago está en la cola de verificación del
-              administrador. En cuanto sea autorizado,{" "}
-              <strong className="text-amber-300 font-bold">
-                tus 30 días de suscripción VIP comenzarán a correr desde ese momento exacto
-              </strong>
-              .
+            <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
+              {tokenError}
             </p>
 
-            {/* RESUMEN DE LOS DATOS REGISTRADOS */}
-            <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 my-6 text-left space-y-2 text-xs">
-              <div className="flex justify-between items-center py-1 border-b border-slate-800/60">
-                <span className="text-slate-400">Usuario elegido:</span>
-                <span className="font-mono font-bold text-amber-300 text-sm">
-                  {successData.username}
+            {/* CAJA DE PASOS PARA OBTENER EL ENLACE */}
+            <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 text-left text-xs space-y-2.5">
+              <span className="font-bold text-amber-300 block uppercase tracking-wider text-[11px]">
+                ¿Cómo obtener tu enlace único de activación?
+              </span>
+              <div className="flex items-start gap-2.5 text-slate-300">
+                <span className="bg-slate-800 text-white font-bold w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 mt-0.5">
+                  1
+                </span>
+                <span>
+                  Realiza tu transferencia de <strong>$14.99 USD</strong> a Banco Pichincha o Banco del Guayaquil.
                 </span>
               </div>
-              <div className="flex justify-between items-center py-1 border-b border-slate-800/60">
-                <span className="text-slate-400">WhatsApp registrado:</span>
-                <span className="font-mono font-bold text-white">
-                  {successData.telefono_whatsapp}
+              <div className="flex items-start gap-2.5 text-slate-300">
+                <span className="bg-slate-800 text-white font-bold w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 mt-0.5">
+                  2
+                </span>
+                <span>
+                  Envía la foto de tu comprobante por WhatsApp a nuestro bot institucional.
                 </span>
               </div>
-              <div className="flex justify-between items-center py-1 border-b border-slate-800/60">
-                <span className="text-slate-400">Método de Pago:</span>
-                <span className="font-bold text-white">
-                  {successData.metodo_pago || formData.metodo_pago}
+              <div className="flex items-start gap-2.5 text-slate-300">
+                <span className="bg-slate-800 text-white font-bold w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 mt-0.5">
+                  3
                 </span>
-              </div>
-              <div className="flex justify-between items-center py-1 border-b border-slate-800/60">
-                <span className="text-slate-400">Comprobante / Referencia:</span>
-                <span className="font-mono text-emerald-300 font-bold">
-                  {successData.referencia_pago || formData.referencia_pago || "Enviado por chat"}
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-1">
-                <span className="text-slate-400">Estado de Cuenta:</span>
-                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-950 text-amber-300 border border-amber-500/50">
-                  Pendiente de Autorización
+                <span>
+                  Nuestra IA auditará el comprobante al instante y te entregará tu enlace privado de registro de un solo uso.
                 </span>
               </div>
             </div>
 
-            {/* BOTÓN WHATSAPP PARA ACELERAR AUTORIZACIÓN */}
-            <div className="space-y-3">
+            <div className="space-y-2 pt-2">
               <a
-                href={whatsappNotifyUrl}
+                href={whatsappSolicitudUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-black py-3.5 px-4 rounded-xl text-sm flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(37,211,102,0.4)] transition hover:scale-[1.02] cursor-pointer"
+                className="w-full bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-black py-3.5 px-4 rounded-xl text-sm uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 transition-transform hover:scale-[1.02]"
               >
-                <span className="text-lg">📲</span>
-                <span>Notificar al Administrador por WhatsApp (Acelerar Autorización)</span>
+                <span>📲</span>
+                <span>Solicitar Cuentas Bancarias por WhatsApp</span>
               </a>
 
               <Link
                 href="/radar"
-                className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-xl text-xs block transition"
+                className="w-full inline-block bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold py-2.5 px-4 rounded-xl text-xs transition"
               >
-                ← Ir a la Portada / Terminal
+                ← Volver al Radar de Partidos
               </Link>
             </div>
           </div>
-        ) : (
-          /* FORMULARIO DE REGISTRO POST-PAGO */
-          <form
-            onSubmit={handleSubmit}
-            className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-sm space-y-4 text-left"
-          >
-            {errorMessage && (
-              <div className="bg-red-950/80 border border-red-500/50 text-red-200 text-xs p-3.5 rounded-xl flex items-center gap-2 animate-shake">
-                <span className="text-base">⚠️</span>
-                <span>{errorMessage}</span>
-              </div>
-            )}
+        )}
 
-            {/* SECCIÓN 1: DATOS PERSONALES */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-bold text-slate-300 block mb-1">Nombre *</label>
-                <input
-                  type="text"
-                  name="nombre"
-                  value={formData.nombre}
-                  onChange={handleChange}
-                  placeholder="Ej: Wilson"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-amber-400 transition"
-                  required
-                />
-              </div>
+        {/* ============================================================== */}
+        {/* CASO 3: TOKEN VÁLIDO -> VISTA DE ÉXITO O FORMULARIO PRIVADO */}
+        {/* ============================================================== */}
+        {tokenStatus === "authorized" && (
+          <>
+            {/* VISTA DE CONFIRMACIÓN TRAS REGISTRO EXITOSO (CUENTA ACTIVA) */}
+            {successData ? (
+              <div className="bg-slate-900/90 border-2 border-emerald-500 rounded-3xl p-6 sm:p-8 shadow-[0_0_50px_rgba(16,185,129,0.3)] text-center animate-in fade-in zoom-in duration-300">
+                <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-400 text-3xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
+                  🎉
+                </div>
 
-              <div>
-                <label className="text-xs font-bold text-slate-300 block mb-1">Apellido *</label>
-                <input
-                  type="text"
-                  name="apellido"
-                  value={formData.apellido}
-                  onChange={handleChange}
-                  placeholder="Ej: Salazar"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-amber-400 transition"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* TELÉFONO WHATSAPP */}
-            <div>
-              <label className="text-xs font-bold text-slate-300 block mb-1">
-                Número de Teléfono / WhatsApp *
-                <span className="text-[10px] text-slate-400 font-normal ml-1">
-                  (Para autorizar tu cuenta y enviarte notificaciones)
+                <span className="bg-emerald-400 text-slate-950 font-black text-xs px-3.5 py-1 rounded-full uppercase tracking-wider">
+                  🟢 Membresía VIP Activada (30 Días)
                 </span>
-              </label>
-              <input
-                type="tel"
-                name="telefono_whatsapp"
-                value={formData.telefono_whatsapp}
-                onChange={handleChange}
-                placeholder="+593 99 123 4567"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono outline-none focus:border-amber-400 transition"
-                required
-              />
-            </div>
 
-            {/* CIUDAD */}
-            <div>
-              <label className="text-xs font-bold text-slate-300 block mb-1">Ciudad de Residencia *</label>
-              <select
-                name="ciudad"
-                value={formData.ciudad}
-                onChange={handleChange}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-amber-400 transition cursor-pointer"
-              >
-                {CIUDADES_ECUADOR.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+                <h2 className="text-2xl sm:text-3xl font-black text-white mt-3">
+                  ¡Bienvenido a Ecuapronóstico VIP, {successData.nombre}!
+                </h2>
 
-              {formData.ciudad === "Otra Ciudad (Ecuador o Exterior)" && (
-                <input
-                  type="text"
-                  name="ciudadOtra"
-                  value={formData.ciudadOtra}
-                  onChange={handleChange}
-                  placeholder="Escribe el nombre de tu ciudad o país"
-                  className="w-full mt-2 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white outline-none focus:border-amber-400 transition"
-                  required
-                />
-              )}
-            </div>
+                <p className="text-sm text-slate-300 mt-2 max-w-md mx-auto leading-relaxed">
+                  Tu usuario ha sido configurado con éxito y tu token de activación ha sido consumido.{" "}
+                  <strong className="text-emerald-300 font-bold">
+                    Tus 30 días de acceso total al Radar Cuantitativo ya están activos.
+                  </strong>
+                </p>
 
-            {/* CORREO ELECTRÓNICO */}
-            <div>
-              <label className="text-xs font-bold text-slate-300 block mb-1">Correo Electrónico *</label>
-              <input
-                type="email"
-                name="correo"
-                value={formData.correo}
-                onChange={handleChange}
-                placeholder="ejemplo@correo.com"
-                autoCapitalize="none"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-amber-400 transition"
-                required
-              />
-            </div>
-
-            {/* SECCIÓN 2: INFORMACIÓN DE PAGO */}
-            <div className="pt-2 border-t border-slate-800">
-              <span className="text-[11px] font-black text-amber-400 uppercase tracking-wider block mb-2">
-                💳 Información de tu Pago ($14.99 USD)
-              </span>
-
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">Método de Pago Utilizado *</label>
-                  <select
-                    name="metodo_pago"
-                    value={formData.metodo_pago}
-                    onChange={handleChange}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-amber-400 transition cursor-pointer"
-                  >
-                    {METODOS_PAGO.map((m) => (
-                      <option key={m} value={m}>
-                        {m}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">
-                    Número de Comprobante / Referencia de Transferencia *
-                  </label>
-                  <input
-                    type="text"
-                    name="referencia_pago"
-                    value={formData.referencia_pago}
-                    onChange={handleChange}
-                    placeholder="Ej: Comprobante #12345678 o Nombre del titular de la cuenta"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono outline-none focus:border-amber-400 transition"
-                    required
-                  />
-                  <span className="text-[10px] text-slate-400 mt-0.5 block">
-                    El administrador usará este dato para verificar el depósito y activar tu cuenta.
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* SECCIÓN 3: CREDENCIALES DE ACCESO ELEGIDAS */}
-            <div className="pt-2 border-t border-slate-800">
-              <span className="text-[11px] font-black text-amber-400 uppercase tracking-wider block mb-2">
-                🔐 Elige tus Credenciales de Acceso
-              </span>
-
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">
-                    Nombre de Usuario Deseado *
-                  </label>
-                  <input
-                    type="text"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    placeholder="Ej: wilsons2026"
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono outline-none focus:border-amber-400 transition"
-                    required
-                  />
-                  <span className="text-[10px] text-slate-400 mt-0.5 block">
-                    Solo letras y números, sin espacios ni tildes.
-                  </span>
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">Contraseña *</label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      name="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      placeholder="Mínimo 6 caracteres"
-                      autoCapitalize="none"
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-amber-400 transition pr-10"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs cursor-pointer"
-                    >
-                      {showPassword ? "Ocultar" : "Ver"}
-                    </button>
+                {/* RESUMEN DE LA CUENTA */}
+                <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 my-6 text-left space-y-2 text-xs">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/60">
+                    <span className="text-slate-400">Usuario VIP:</span>
+                    <span className="font-mono font-bold text-amber-300 text-sm">
+                      {successData.username}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/60">
+                    <span className="text-slate-400">WhatsApp Vinculado:</span>
+                    <span className="font-mono font-bold text-white">
+                      {successData.telefono_whatsapp}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/60">
+                    <span className="text-slate-400">Estado de Suscripción:</span>
+                    <span className="text-emerald-400 font-bold uppercase text-[11px]">
+                      🟢 Activo • 30 Días Corriendo
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-slate-400">Válido Hasta:</span>
+                    <span className="font-mono text-emerald-300 font-bold">
+                      {successData.fecha_expiracion_suscripcion
+                        ? new Date(successData.fecha_expiracion_suscripcion).toLocaleDateString("es-EC", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          })
+                        : "30 días a partir de hoy"}
+                    </span>
                   </div>
                 </div>
+
+                <Link
+                  href="/radar"
+                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black py-3.5 px-4 rounded-xl text-sm md:text-base uppercase tracking-wider shadow-[0_0_25px_rgba(16,185,129,0.4)] flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
+                >
+                  <span>🚀</span>
+                  <span>Ingresar a la Terminal Radar VIP</span>
+                </Link>
               </div>
-            </div>
+            ) : (
+              /* FORMULARIO PRIVADO DE REGISTRO CON TOKEN VÁLIDO */
+              <form
+                onSubmit={handleSubmit}
+                className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-4 animate-in fade-in"
+              >
+                {/* BANNER DE PAGO VERIFICADO POR TOKEN */}
+                <div className="p-4 bg-emerald-950/80 border-2 border-emerald-500/70 rounded-2xl flex items-center gap-3 shadow-[0_0_25px_rgba(16,185,129,0.2)]">
+                  <span className="text-2xl">🟢</span>
+                  <div className="text-left">
+                    <h3 className="text-xs sm:text-sm font-black text-emerald-300 uppercase tracking-wide">
+                      Pago Verificado • Token de Activación Activo
+                    </h3>
+                    <p className="text-[11px] text-emerald-200/90 mt-0.5">
+                      Comprobante validado por ${verifiedAmount.toFixed(2)} USD. Elige tu usuario y contraseña para activar tus 30 días VIP.
+                    </p>
+                  </div>
+                </div>
 
-            {/* BOTÓN SUBMIT */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full mt-4 bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black py-3.5 px-4 rounded-xl text-sm md:text-base uppercase tracking-wider shadow-[0_0_25px_rgba(251,191,36,0.35)] transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 cursor-pointer"
-            >
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
-                  <span>Enviando Registro...</span>
-                </span>
-              ) : (
-                "Enviar Registro y Comprobante de Pago 🚀"
-              )}
-            </button>
+                <div className="text-center pt-2 pb-1">
+                  <h1 className="text-xl sm:text-2xl font-black text-white">
+                    Configura tus Credenciales de Acceso
+                  </h1>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Este formulario de un solo uso registrará tu cuenta y la activará de inmediato
+                  </p>
+                </div>
 
-            <p className="text-[11px] text-slate-400 text-center mt-2 leading-relaxed">
-              Al enviar tu formulario, tus datos son enviados al CRM y tu comprobante entra a
-              revisión administrativa. Tus 30 días VIP inician desde el momento de la autorización.
-            </p>
-          </form>
+                {errorMessage && (
+                  <div className="p-3 bg-red-950/80 border border-red-500/50 rounded-xl text-xs text-red-300 font-bold flex items-center gap-2">
+                    <span>⚠️</span>
+                    <span>{errorMessage}</span>
+                  </div>
+                )}
+
+                {/* DATOS PERSONALES */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">Nombre *</label>
+                    <input
+                      type="text"
+                      name="nombre"
+                      value={formData.nombre}
+                      onChange={handleChange}
+                      placeholder="Ej: Wilson"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-amber-400"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">Apellido *</label>
+                    <input
+                      type="text"
+                      name="apellido"
+                      value={formData.apellido}
+                      onChange={handleChange}
+                      placeholder="Ej: Salazar"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-amber-400"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* WHATSAPP Y CIUDAD */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">
+                      WhatsApp Vinculado al Pago *
+                    </label>
+                    <input
+                      type="text"
+                      name="telefono_whatsapp"
+                      value={formData.telefono_whatsapp}
+                      onChange={handleChange}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-amber-400"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">Ciudad *</label>
+                    <select
+                      name="ciudad"
+                      value={formData.ciudad}
+                      onChange={handleChange}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-amber-400"
+                      required
+                    >
+                      {CIUDADES_ECUADOR.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {formData.ciudad === "Otra Ciudad (Ecuador o Exterior)" && (
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">
+                      Escribe el nombre de tu ciudad o país *
+                    </label>
+                    <input
+                      type="text"
+                      name="ciudadOtra"
+                      value={formData.ciudadOtra}
+                      onChange={handleChange}
+                      placeholder="Ej: Manta / New York"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-amber-400"
+                      required
+                    />
+                  </div>
+                )}
+
+                {/* CORREO */}
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Correo Electrónico *</label>
+                  <input
+                    type="email"
+                    name="correo"
+                    value={formData.correo}
+                    onChange={handleChange}
+                    placeholder="tu.correo@ejemplo.com"
+                    autoCapitalize="none"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-amber-400"
+                    required
+                  />
+                </div>
+
+                {/* CREDENCIALES */}
+                <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-2xl space-y-3">
+                  <span className="text-[11px] font-black text-amber-400 uppercase tracking-wider block">
+                    🔐 Elige tu Usuario y Contraseña para Ingresar a la Terminal
+                  </span>
+
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">
+                      Nombre de Usuario Deseado *
+                    </label>
+                    <input
+                      type="text"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      placeholder="Ej: wilsons2026"
+                      autoCapitalize="none"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-amber-400"
+                      required
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">
+                      Solo letras y números, sin espacios ni caracteres raros.
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">Contraseña *</label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        placeholder="Mínimo 6 caracteres"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-amber-400 pr-12"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs cursor-pointer"
+                      >
+                        {showPassword ? "Ocultar" : "Ver"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SUBMIT BUTTON */}
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black py-3.5 px-4 rounded-xl text-sm uppercase tracking-wider shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+                >
+                  {isLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                      <span>Activando Membresía VIP...</span>
+                    </span>
+                  ) : (
+                    "Completar Registro y Activar 30 Días VIP 🚀"
+                  )}
+                </button>
+
+                <p className="text-[10px] text-slate-500 text-center leading-relaxed">
+                  Al enviar este formulario, tu token de activación será invalidado para garantizar la seguridad de tu enlace y tu cuenta iniciará sesión automáticamente.
+                </p>
+              </form>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -498,9 +557,9 @@ export default function ActivacionVipPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-[#070d1e] text-slate-100 flex items-center justify-center p-4">
-          <div className="flex items-center gap-2 text-amber-400 font-bold">
-            <span className="w-5 h-5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
-            <span>Cargando formulario de activación...</span>
+          <div className="flex items-center gap-2 text-amber-400 font-bold text-xs">
+            <span className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+            <span>Verificando token de activación...</span>
           </div>
         </div>
       }

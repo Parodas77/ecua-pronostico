@@ -7,6 +7,7 @@ import {
   ReceiptAuditRecord,
 } from "@/lib/receiptsDb";
 import { analyzeComprobanteWithGemini } from "@/lib/geminiAuditor";
+import { createActivationToken } from "@/lib/activationTokens";
 
 export async function GET(request: NextRequest) {
   try {
@@ -46,6 +47,22 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { action, id, imageBase64, mimeType, phone, newStatus, adminNotes } = body;
+
+    // Acción 0: Generar enlace único de activación con token para el administrador
+    if (action === "generate_token") {
+      const clientPhone = phone || "+593979198755";
+      const tokenResult = createActivationToken({
+        phone: clientPhone,
+        reference: adminNotes || "INVITACION_MANUAL_ADMIN",
+        amount: 14.99,
+        bank: "Transferencia Bancaria",
+      });
+      return NextResponse.json({
+        success: true,
+        token: tokenResult.token,
+        link: tokenResult.link,
+      });
+    }
 
     // Acción 1: Modificar estado de comprobante existente (Autorizar manual o rechazar)
     if (action === "update_status" && id) {

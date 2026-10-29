@@ -714,12 +714,15 @@ export default function EcuaPronosticoDashboard() {
               >
                 <span>👥 CRM Admin</span>
               </Link>
-              <Link
-                href="/activar"
-                className="text-xs bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/50 px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all"
+              <a
+                href={whatsappLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs bg-[#25D366]/20 hover:bg-[#25D366]/30 text-emerald-300 border border-[#25D366]/50 px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all"
+                title="Solicitar datos bancarios para membresía VIP por WhatsApp"
               >
-                <span>📝 Activar VIP</span>
-              </Link>
+                <span>📲 Solicitar VIP</span>
+              </a>
               <Link
                 href="/"
                 className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all"

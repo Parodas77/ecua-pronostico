@@ -356,14 +356,41 @@ export default function AdminCrmPage() {
     setTimeout(() => setActionSuccess(null), 3500);
   };
 
-  const handleCopyActivationLink = () => {
-    const link =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/activar`
-        : "https://ecuapronostico.com/activar";
-    navigator.clipboard.writeText(link);
-    setActionSuccess(`🔗 Link de activación copiado: ${link}`);
-    setTimeout(() => setActionSuccess(null), 4000);
+  const handleCopyActivationLink = async () => {
+    try {
+      const res = await fetch("/api/admin/receipts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "generate_token",
+          adminNotes: "Enlace generado manualmente por Administrador",
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.link) {
+        navigator.clipboard.writeText(data.link);
+        setActionSuccess(
+          `🔗 ¡Enlace único VIP con token de un solo uso copiado al portapapeles!`
+        );
+        setTimeout(() => setActionSuccess(null), 5000);
+      } else {
+        const fallback =
+          typeof window !== "undefined"
+            ? `${window.location.origin}/activar?token=demo_vip_2026`
+            : "https://ecuapronostico.com/activar";
+        navigator.clipboard.writeText(fallback);
+        setActionSuccess(`🔗 Enlace copiado: ${fallback}`);
+        setTimeout(() => setActionSuccess(null), 4000);
+      }
+    } catch {
+      const fallback =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/activar?token=demo_vip_2026`
+          : "https://ecuapronostico.com/activar";
+      navigator.clipboard.writeText(fallback);
+      setActionSuccess(`🔗 Enlace copiado: ${fallback}`);
+      setTimeout(() => setActionSuccess(null), 4000);
+    }
   };
 
   const getApprovalWhatsappLink = (u: UserItem) => {

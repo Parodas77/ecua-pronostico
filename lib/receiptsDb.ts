@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import { ComprobanteAuditResult } from "./geminiAuditor";
+import { createActivationToken } from "./activationTokens";
 
 export interface ReceiptAuditRecord {
   id: string;
@@ -33,19 +34,12 @@ export function generateActivationLink(
   referencia: string,
   monto: number
 ): { link: string; token: string } {
-  const token = crypto.randomBytes(8).toString("hex");
-  const cleanPhone = telefono.replace(/[^\d+]/g, "");
-  const baseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    process.env.VERCEL_PROJECT_PRODUCTION_URL ||
-    "https://ecua-pronostico-git-main-parodas77-8597s-projects.vercel.app";
-
-  const cleanBase = baseUrl.startsWith("http") ? baseUrl : `https://${baseUrl}`;
-  const link = `${cleanBase}/activar?token=${token}&tel=${encodeURIComponent(
-    cleanPhone
-  )}&ref=${encodeURIComponent(referencia)}&amt=${monto}`;
-
-  return { link, token };
+  const tokenData = createActivationToken({
+    phone: telefono,
+    reference: referencia,
+    amount: monto,
+  });
+  return { link: tokenData.link, token: tokenData.token };
 }
 
 // Datos semilla de demostración para el panel de administración

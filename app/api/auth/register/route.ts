@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createUserAsync } from "@/lib/crm";
+import { validateActivationToken, consumeActivationToken } from "@/lib/activationTokens";
 
 // Rate limiting para prevenir spam de creación masiva de cuentas
 const registerAttempts = new Map<string, { count: number; resetAt: number }>();
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     let {
+      token,
       nombre,
       apellido,
       telefono_whatsapp,
@@ -44,6 +46,32 @@ export async function POST(request: Request) {
       metodo_pago,
       referencia_pago,
     } = body;
+
+    // 0. BLINDAJE POR TOKEN ÚNICO DE ACTIVACIÓN (UN SOLO USO)
+    const cleanToken = (token || "").trim();
+    if (!cleanToken) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Acceso restringido: Se requiere un token único de activación tras verificar tu pago por WhatsApp para crear tu cuenta VIP.",
+        },
+        { status: 403 }
+      );
+    }
+
+    const tokenCheck = validateActivationToken(cleanToken);
+    if (!tokenCheck.valid) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            tokenCheck.error ||
+            "El token de activación no es válido o ya fue utilizado previamente.",
+        },
+        { status: 403 }
+      );
+    }
 
     // 1. Sanitización de texto
     nombre = sanitizeText(nombre);
@@ -114,20 +142,27 @@ export async function POST(request: Request) {
     current.count += 1;
     registerAttempts.set(ip, current);
 
-    // Crear usuario en base de datos CRM en estado PENDIENTE DE AUTORIZACIÓN
+    // Crear usuario en base de datos CRM en estado ACTIVO POR 30 DÍAS (pago ya verificado por token)
+    const tokenData = tokenCheck.tokenData;
+    const finalPhone = tokenData?.phone || telefono_whatsapp;
+    const finalAmount = tokenData?.amount || 14.99;
+    const finalRef = tokenData?.reference || referencia_pago;
+    const finalBank = tokenData?.bank || metodo_pago;
+
     const result = await createUserAsync({
       nombre,
       apellido,
-      telefono_whatsapp,
+      telefono_whatsapp: finalPhone,
       ciudad,
       correo,
       username,
       password,
-      metodo_pago,
-      referencia_pago,
-      monto_pago: 14.99,
-      estado_suscripcion: "pendiente",
-      notas_admin: `Comprobante: ${referencia_pago} (${metodo_pago})`,
+      metodo_pago: finalBank,
+      referencia_pago: finalRef,
+      monto_pago: finalAmount,
+      estado_suscripcion: "activo",
+      dias_suscripcion: 30,
+      notas_admin: `Activado con Token único [${cleanToken}] verificado tras pago por WhatsApp`,
     });
 
     if (!result.success || !result.user) {
@@ -137,14 +172,18 @@ export async function POST(request: Request) {
       );
     }
 
+    // Invalidar inmediatamente el token para evitar reuso
+    consumeActivationToken(cleanToken, username);
+
     const { password_hash, ...safeUser } = result.user;
 
     return NextResponse.json({
       success: true,
-      pending: true,
+      active: true,
       message:
-        "¡Solicitud de registro recibida con éxito! Tu pago está en cola de verificación por el administrador.",
+        "🎉 ¡Cuenta VIP activada con éxito! Tus 30 días de acceso total al Radar Cuantitativo comenzaron hoy.",
       user: safeUser,
+      redirect: "/radar",
     });
   } catch (err: any) {
     console.error("Error en /api/auth/register:", err);
