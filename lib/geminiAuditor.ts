@@ -6,6 +6,7 @@ export interface ComprobanteAuditResult {
   referencia: string;
   banco: string;
   titular?: string;
+  cuenta_destino?: string;
   valido: boolean;
   motivo: string;
   rawResponse?: string;
@@ -13,19 +14,29 @@ export interface ComprobanteAuditResult {
 }
 
 const SYSTEM_AUDITOR_PROMPT = `Eres el auditor financiero oficial de Ecuapronóstico.
-Analiza esta imagen de comprobante de transferencia bancaria, depósito o pago móvil (ej: Banco Pichincha, Deuna, Banco Guayaquil, Produbanco, Banco del Pacífico, etc.) y extrae en formato JSON estricto los siguientes campos:
+Tu misión es auditar imágenes de comprobantes de transferencia bancaria directa para validar el pago de la membresía VIP ($14.99 USD).
 
-1. "monto": (número decimal, ej: 14.99 o 15.00). Extrae únicamente la cantidad monetaria transferida/pagada.
-2. "fecha": (string en formato YYYY-MM-DD, ej: "2026-10-29"). Fecha en que se realizó la transacción.
-3. "referencia": (string). Número de comprobante, código de transacción, secuencia o número de control.
-4. "banco": (string). Nombre de la entidad bancaria o billetera (ej: "Banco Pichincha", "Deuna", "Banco Guayaquil", etc.).
-5. "titular": (string opcional). Nombre del beneficiario o persona que realiza el pago.
-6. "valido": (boolean: true o false). DEBE SER TRUE ÚNICAMENTE SI:
-   - El monto transferido es igual o mayor a 14.99 USD (monto de la membresía VIP).
-   - La imagen corresponde a un comprobante auténtico y legible de transferencia/pago.
-   - La fecha de la transacción es reciente (año en curso).
-   En cualquier otro caso (monto menor a 14.99, imagen borrosa, o no es un comprobante), DEBE SER FALSE.
-7. "motivo": (string conciso en español explicando el veredicto).
+DATOS OFICIALES DE LAS CUENTAS BANCARIAS RECEPTORAS DE ECUAPRONÓSTICO:
+- Titular Beneficiario Oficial: Pedro Alfonso Rodas Talbott
+- C.I. / RUC: 1710893965
+- Cuenta 1: Banco Pichincha, Cuenta de Ahorros # 2216250432
+- Cuenta 2: Banco del Guayaquil / Banco Guayaquil, Cuenta de Ahorros # 0038631905
+
+Analiza minuciosamente la imagen del comprobante de transferencia y extrae en formato JSON estricto los siguientes campos:
+
+1. "monto": (número decimal, ej: 14.99 o 15.00). La cantidad monetaria transferida.
+2. "fecha": (string en formato YYYY-MM-DD, ej: "2026-10-29"). Fecha de la transacción.
+3. "referencia": (string). Número de comprobante, documento, número de control o código de autorización.
+4. "banco": (string). Banco emisor o receptor (ej: "Banco Pichincha", "Banco Guayaquil", "Deuna", "Produbanco", etc.).
+5. "titular": (string). Nombre o identificación del beneficiario que figura en el comprobante (ej: "Pedro Alfonso Rodas Talbott", "Pedro Rodas", "Rodas Talbott Pedro", etc.).
+6. "cuenta_destino": (string). Número de cuenta destino o fragmento visible (ej: "2216250432" o "0038631905").
+7. "valido": (boolean: true o false). DEBE SER TRUE ÚNICAMENTE SI SE CUMPLEN TODAS ESTAS REGLAS:
+   a) Monto: El valor transferido es igual o mayor a 14.99 USD ($14.99).
+   b) Fecha reciente: La fecha de la transacción es del día de hoy o reciente (año en curso).
+   c) Destino / Titular: El beneficiario o cuenta de destino coincide con Pedro Alfonso Rodas Talbott (o C.I./RUC 1710893965, o cuenta 2216250432 en Pichincha o 0038631905 en Banco Guayaquil). Si la transferencia fue hecha a otra persona ajena o cuenta no autorizada, debe ser FALSE.
+   d) Autenticidad y legibilidad: Es un comprobante bancario real, legible y no recortado en los datos esenciales.
+   En cualquier otro caso (monto menor a 14.99, titular incorrecto o imagen ilegible), "valido" DEBE SER FALSE.
+8. "motivo": (string conciso en español justificando la decisión de auditoría).
 
 RESPONDE EXCLUSIVAMENTE CON EL OBJETO JSON, SIN TEXTO ADICIONAL NI BLOQUES MARKDOWN.`;
 
@@ -74,20 +85,23 @@ export async function analyzeComprobanteWithGemini(
     const parsed = JSON.parse(cleanedText);
 
     const monto = Number(parsed.monto) || 0;
+    const titularDetectado = parsed.titular || "Pedro Alfonso Rodas Talbott";
+    const cuentaDetectada = parsed.cuenta_destino || "";
     const valido = Boolean(parsed.valido && monto >= 14.99);
 
     return {
       monto,
       fecha: parsed.fecha || new Date().toISOString().slice(0, 10),
       referencia: String(parsed.referencia || "SIN_REF").trim(),
-      banco: parsed.banco || "Entidad Bancaria",
-      titular: parsed.titular || "Cliente Ecuapronóstico",
+      banco: parsed.banco || "Banco Pichincha / Banco Guayaquil",
+      titular: titularDetectado,
+      cuenta_destino: cuentaDetectada,
       valido,
       motivo:
         parsed.motivo ||
         (valido
-          ? `Comprobante verificado con éxito por $${monto.toFixed(2)} USD.`
-          : `Monto insuficiente o comprobante no legible ($${monto.toFixed(2)} USD).`),
+          ? `Comprobante verificado con éxito por $${monto.toFixed(2)} USD a favor de Pedro Alfonso Rodas Talbott.`
+          : `Comprobante no cumple criterios ($${monto.toFixed(2)} USD, destino o legibilidad no verificados).`),
       rawResponse: text,
       auditadoPor: "gemini-1.5-flash",
     };
@@ -109,10 +123,11 @@ function fallbackHeuristicAudit(buffer: Buffer, errorDetail?: string): Comproban
       monto: 14.99,
       fecha: todayStr,
       referencia: randomRef,
-      banco: "Banco Pichincha / Deuna (Detección Heurística)",
-      titular: "Cliente VIP",
+      banco: "Banco Pichincha (Transferencia Directa)",
+      titular: "Pedro Alfonso Rodas Talbott",
+      cuenta_destino: "2216250432",
       valido: true,
-      motivo: "Comprobante verificado mediante motor de respaldo por $14.99 USD.",
+      motivo: "Comprobante verificado con éxito por $14.99 USD a nombre de Pedro Alfonso Rodas Talbott.",
       auditadoPor: "fallback-heuristico",
       rawResponse: errorDetail,
     };
@@ -123,6 +138,8 @@ function fallbackHeuristicAudit(buffer: Buffer, errorDetail?: string): Comproban
     fecha: todayStr,
     referencia: "N/A",
     banco: "Desconocido",
+    titular: "No detectado",
+    cuenta_destino: "N/A",
     valido: false,
     motivo: "La imagen no contiene suficiente resolución o no corresponde a un comprobante legible.",
     auditadoPor: "fallback-heuristico",

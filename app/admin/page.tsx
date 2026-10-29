@@ -1005,15 +1005,30 @@ export default function AdminCrmPage() {
               </div>
             </div>
 
-            {/* REGLA DEL SYSTEM PROMPT FINANCIERO */}
-            <div className="bg-slate-950/60 border border-emerald-500/20 rounded-xl p-3 text-xs text-slate-300 flex items-start gap-2.5">
-              <span className="text-base text-emerald-400">💡</span>
-              <div className="space-y-0.5">
-                <span className="font-bold text-white block">Regla Financiera Estricta Gemini Vision:</span>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
-                  &quot;Extrae <code className="text-emerald-300 font-mono">monto</code>, <code className="text-emerald-300 font-mono">fecha</code>, <code className="text-emerald-300 font-mono">referencia</code>, y <code className="text-emerald-300 font-mono">valido</code> (true si monto ≥ 14.99 USD y reciente). Si es válido, genera enlace único de registro prellenado y responde al cliente por WhatsApp automáticamente.&quot;
-                </p>
+            {/* CUENTAS BANCARIAS OFICIALES Y REGLA DE AUDITORÍA */}
+            <div className="bg-slate-950/60 border border-emerald-500/20 rounded-xl p-3 text-xs text-slate-300 space-y-2">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <span className="font-black text-white flex items-center gap-1.5">
+                  <span>🏦</span>
+                  <span>Cuentas de Transferencia Directa Configuradas en el Bot:</span>
+                </span>
+                <span className="text-[10px] text-emerald-400 font-mono">
+                  Titular: Pedro Alfonso Rodas Talbott • C.I. 1710893965
+                </span>
               </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
+                <div className="bg-slate-900/90 border border-slate-800 p-2 rounded-lg flex items-center justify-between">
+                  <span>Banco Pichincha (Ahorros):</span>
+                  <span className="text-amber-300 font-bold">2216250432</span>
+                </div>
+                <div className="bg-slate-900/90 border border-slate-800 p-2 rounded-lg flex items-center justify-between">
+                  <span>Banco del Guayaquil (Ahorros):</span>
+                  <span className="text-amber-300 font-bold">0038631905</span>
+                </div>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-relaxed border-t border-slate-800/80 pt-1.5">
+                💡 <span className="font-bold text-slate-300">Regla Estricta Gemini Vision:</span> Valida que el monto sea ≥ $14.99 USD, fecha del día/reciente, y que el beneficiario coincida con Pedro Alfonso Rodas Talbott (o C.I. 1710893965 / Cuentas oficiales).
+              </p>
             </div>
           </div>
 

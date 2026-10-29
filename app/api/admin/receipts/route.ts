@@ -72,12 +72,13 @@ export async function POST(request: NextRequest) {
         activationData = generateActivationLink(clientPhone, audit.referencia, audit.monto);
         clientMessage = `¡Pago verificado con éxito! 🟢 Tu comprobante por $${audit.monto.toFixed(
           2
-        )} ha sido validado. Ingresa al enlace para configurar tu usuario y contraseña VIP: ${
+        )} ha sido validado a nombre de Pedro Alfonso Rodas Talbott.\n\nIngresa al siguiente enlace para configurar tu usuario y contraseña VIP:\n🔗 ${
           activationData.link
-        }`;
+        }\n\n¡Tus 30 días VIP comenzarán en cuanto completes tu usuario y contraseña! Bienvenido a EcuaPronóstico 🚀⚽`;
       } else {
-        clientMessage =
-          "Hola, no pudimos validar automáticamente tu comprobante (imagen ilegible o monto incorrecto). Un administrador revisará tu caso en breve para activarte manualmente.";
+        clientMessage = `Hola, no pudimos validar automáticamente tu comprobante (${
+          audit.motivo || "imagen poco legible, monto menor a $14.99 o titular no coincide"
+        }).\n\nPor favor envía una foto clara y nítida donde se aprecie la cuenta de destino (Pedro Alfonso Rodas Talbott) y el valor transferido ($14.99), o espera un momento a que un administrador valide tu comprobante manualmente. 🤝`;
       }
 
       const record: ReceiptAuditRecord = {

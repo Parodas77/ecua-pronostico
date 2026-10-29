@@ -7,6 +7,27 @@ import {
   ReceiptAuditRecord,
 } from "@/lib/receiptsDb";
 
+// TEXTO INSTITUCIONAL OFICIAL DE RESPUESTA CON DATOS BANCARIOS LOCALES
+export const WHATSAPP_BANK_DETAILS_MESSAGE = `¡Hola! 👋 Qué gusto saludarte. Claro que sí, con mucho gusto te ayudamos a activar tu acceso VIP a *EcuaPronóstico* ($14.99/mes) para desbloquear todas las ligas y Las 4 Fijas del Día. ⚽📊
+
+Realiza tu transferencia directa a cualquiera de nuestras cuentas oficiales:
+
+🏦 *Banco Pichincha*
+* *Tipo de Cuenta:* Ahorros
+* *Nro de Cuenta:* \`2216250432\`
+* *Titular:* Pedro Alfonso Rodas Talbott
+* *C.I. / RUC:* \`1710893965\`
+
+🏦 *Banco del Guayaquil*
+* *Tipo de Cuenta:* Ahorros
+* *Nro de Cuenta:* \`0038631905\`
+* *Titular:* Pedro Alfonso Rodas Talbott
+* *C.I. / RUC:* \`1710893965\`
+
+⚠️ *(Nota: Trabajamos exclusivamente mediante transferencia bancaria directa).*
+
+👉 *Siguiente paso:* Una vez realizada la transferencia, *envía por aquí la foto de tu comprobante de pago*. Nuestro sistema de auditoría por IA lo validará al instante y te entregará tu enlace para configurar tu usuario y contraseña VIP. ¡Quedamos atentos! 🚀`;
+
 // 1. VERIFICACIÓN DEL WEBHOOK DE META (CHALLENGE)
 export async function GET(request: NextRequest) {
   try {
@@ -56,16 +77,22 @@ export async function POST(request: NextRequest) {
     const messageType = message.type;
     const messageId = message.id;
 
-    // Solo procesamos mensajes de tipo imagen (comprobantes de transferencia)
+    // 1. GESTIÓN DE MENSAJES DE TEXTO: RESPUESTA AUTOMÁTICA CON DATOS BANCARIOS OFICIALES
     if (messageType !== "image") {
-      // Si el cliente envía texto, le enviamos recordatorio
-      if (messageType === "text") {
-        await sendWhatsAppMessage(
-          fromPhone,
-          "Hola 👋 Para activar tu membresía VIP en Ecuapronóstico ($14.99/mes), por favor envía la foto o captura legible de tu comprobante de transferencia bancaria por este medio."
-        );
-      }
-      return NextResponse.json({ status: "non_image_handled" }, { status: 200 });
+      const incomingText = message.text?.body || "";
+      console.log(`[WHATSAPP BOT] Mensaje entrante de ${fromPhone}: "${incomingText}"`);
+
+      // El bot responde de inmediato con el mensaje institucional y las cuentas de transferencia directa
+      await sendWhatsAppMessage(fromPhone, WHATSAPP_BANK_DETAILS_MESSAGE);
+
+      return NextResponse.json(
+        {
+          status: "bank_details_sent",
+          recipient: fromPhone,
+          message: "Datos bancarios oficiales enviados exitosamente al cliente",
+        },
+        { status: 200 }
+      );
     }
 
     const imageObj = message.image;
@@ -81,7 +108,7 @@ export async function POST(request: NextRequest) {
     if (!imageBuffer) {
       await sendWhatsAppMessage(
         fromPhone,
-        "Hola, tuvimos un problema al descargar tu comprobante de WhatsApp. Por favor intenta reenviarlo."
+        "Hola, tuvimos un problema al descargar la imagen de tu comprobante desde WhatsApp. Por favor intenta reenviar la foto nuevamente con buena señal de internet."
       );
       return NextResponse.json({ error: "Fallo al descargar media de Meta" }, { status: 500 });
     }
@@ -100,15 +127,16 @@ export async function POST(request: NextRequest) {
 
       clientMessage = `¡Pago verificado con éxito! 🟢 Tu comprobante por $${auditResult.monto.toFixed(
         2
-      )} ha sido validado.\n\nIngresa al siguiente enlace para configurar tu usuario y contraseña VIP:\n🔗 ${
+      )} ha sido validado a nombre de Pedro Alfonso Rodas Talbott.\n\nIngresa al siguiente enlace para configurar tu usuario y contraseña VIP:\n🔗 ${
         activationData.link
-      }\n\n¡Tus 30 días comenzarán en cuanto completes tu usuario!`;
+      }\n\n¡Tus 30 días VIP comenzarán en cuanto completes tu usuario y contraseña! Bienvenido a EcuaPronóstico 🚀⚽`;
 
       // Enviar respuesta automática por WhatsApp
       await sendWhatsAppMessage(fromPhone, clientMessage);
     } else {
-      clientMessage =
-        "Hola, no pudimos validar automáticamente tu comprobante (imagen ilegible o monto incorrecto). Un administrador revisará tu caso en breve para activarte manualmente.";
+      clientMessage = `Hola, no pudimos validar automáticamente tu comprobante (${
+        auditResult.motivo || "imagen poco legible, monto menor a $14.99 o titular no coincide"
+      }).\n\nPor favor envía una foto clara y nítida donde se aprecie la cuenta de destino (Pedro Alfonso Rodas Talbott) y el valor transferido ($14.99), o espera un momento a que un administrador valide tu comprobante manualmente. 🤝`;
 
       await sendWhatsAppMessage(fromPhone, clientMessage);
     }
@@ -213,12 +241,13 @@ async function handleDirectTestAudit(body: any) {
     activationData = generateActivationLink(phone, auditResult.referencia, auditResult.monto);
     clientMessage = `¡Pago verificado con éxito! 🟢 Tu comprobante por $${auditResult.monto.toFixed(
       2
-    )} ha sido validado.\n\nIngresa al siguiente enlace para configurar tu usuario y contraseña VIP:\n🔗 ${
+    )} ha sido validado a nombre de Pedro Alfonso Rodas Talbott.\n\nIngresa al siguiente enlace para configurar tu usuario y contraseña VIP:\n🔗 ${
       activationData.link
-    }`;
+    }\n\n¡Tus 30 días VIP comenzarán en cuanto completes tu usuario y contraseña! Bienvenido a EcuaPronóstico 🚀⚽`;
   } else {
-    clientMessage =
-      "Hola, no pudimos validar automáticamente tu comprobante (imagen ilegible o monto incorrecto). Un administrador revisará tu caso en breve para activarte manualmente.";
+    clientMessage = `Hola, no pudimos validar automáticamente tu comprobante (${
+      auditResult.motivo || "imagen poco legible, monto menor a $14.99 o titular no coincide"
+    }).\n\nPor favor envía una foto clara y nítida donde se aprecie la cuenta de destino (Pedro Alfonso Rodas Talbott) y el valor transferido ($14.99), o espera un momento a que un administrador valide tu comprobante manualmente. 🤝`;
   }
 
   const record: ReceiptAuditRecord = {
