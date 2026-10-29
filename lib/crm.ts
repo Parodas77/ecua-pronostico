@@ -563,3 +563,103 @@ export function generateRetargetingCsv(users: UserRecord[]): string {
   });
   return header + rows.join("\n");
 }
+
+/**
+ * REACTIVACIÓN DE CUENTA EXISTENTE MEDIANTE TOKEN VIP DE WHATSAPP (Evita duplicados)
+ * Valida credenciales, suma +30 días a la cuenta existente y preserva el historial.
+ */
+export async function authenticateAndReactivateUserAsync(
+  identifier: string,
+  password: string,
+  tokenData?: { reference?: string; amount?: number; bank?: string; token?: string },
+  additionalDays: number = 30
+): Promise<{ success: boolean; user?: UserRecord; error?: string }> {
+  const clean = (identifier || "").trim().toLowerCase();
+  if (!clean || !password) {
+    return { success: false, error: "Debes ingresar tu usuario/correo y contraseña." };
+  }
+
+  const supabase = getSupabase();
+  let foundUser: UserRecord | undefined = undefined;
+
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("usuarios")
+        .select("*")
+        .or(`username.ilike.${clean},correo.ilike.${clean}`)
+        .maybeSingle();
+
+      if (!error && data) {
+        foundUser = data as UserRecord;
+      }
+    } catch (err) {
+      console.error("Error al buscar usuario en Supabase:", err);
+    }
+  }
+
+  if (!foundUser) {
+    const localUsers = readDb();
+    foundUser = localUsers.find(
+      (u) => u.username.toLowerCase() === clean || u.correo.toLowerCase() === clean
+    );
+  }
+
+  if (!foundUser) {
+    return {
+      success: false,
+      error: "No se encontró ninguna cuenta registrada con ese usuario o correo electrónico.",
+    };
+  }
+
+  // Validar contraseña
+  if (!verifyPassword(password.trim(), foundUser.password_hash)) {
+    return { success: false, error: "La contraseña ingresada no es correcta." };
+  }
+
+  // Calcular nueva fecha de expiración (+30 días acumulativos si estaba activo, o desde hoy si ya venció)
+  const now = Date.now();
+  const currentExp = foundUser.fecha_expiracion_suscripcion
+    ? new Date(foundUser.fecha_expiracion_suscripcion).getTime()
+    : 0;
+  const baseTime = currentExp > now ? currentExp : now;
+  const newExp = new Date(baseTime + additionalDays * 86400000);
+
+  const newRef = tokenData?.reference || foundUser.referencia_pago || "Reactivación WhatsApp";
+  const newBank = tokenData?.bank || foundUser.metodo_pago || "Transferencia Bancaria";
+  const newAmount = tokenData?.amount || 14.99;
+  const logNote = ` | Reactivado +${additionalDays}d VIP [Token: ${tokenData?.token || "manual"}] el ${new Date().toLocaleDateString("es-EC")}`;
+  const updatedNotes = `${foundUser.notas_admin || ""}${logNote}`.trim();
+
+  const updates = {
+    estado_suscripcion: "activo" as EstadoSuscripcion,
+    aprobado_por_admin: true,
+    fecha_aprobacion: new Date().toISOString(),
+    fecha_expiracion_suscripcion: newExp.toISOString(),
+    referencia_pago: newRef,
+    metodo_pago: newBank,
+    monto_pago: newAmount,
+    notas_admin: updatedNotes,
+  };
+
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("usuarios")
+        .update(updates)
+        .eq("id", foundUser.id)
+        .select()
+        .single();
+
+      if (!error && data) {
+        updateUser(foundUser.id, updates);
+        return { success: true, user: data as UserRecord };
+      }
+    } catch (err) {
+      console.error("Error al actualizar reactivación en Supabase:", err);
+    }
+  }
+
+  const localRes = updateUser(foundUser.id, updates);
+  return localRes;
+}

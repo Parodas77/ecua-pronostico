@@ -718,10 +718,10 @@ export default function EcuaPronosticoDashboard() {
                 href={whatsappLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs bg-[#25D366]/20 hover:bg-[#25D366]/30 text-emerald-300 border border-[#25D366]/50 px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all"
-                title="Solicitar datos bancarios para membresía VIP por WhatsApp"
+                className="text-xs bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-black px-3 py-2 rounded-lg flex items-center gap-1.5 transition-all shadow-md shadow-[#25D366]/20 hover:scale-105"
+                title="Activar membresía VIP por WhatsApp ($14.99/mes)"
               >
-                <span>📲 Solicitar VIP</span>
+                <span>📲 Activar VIP ($14.99)</span>
               </a>
               <Link
                 href="/"

@@ -224,11 +224,11 @@ export default function LandingPage() {
               href={whatsappLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs bg-[#25D366]/20 hover:bg-[#25D366]/30 text-emerald-300 border border-[#25D366]/50 px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 transition-all shadow-sm"
-              title="Solicitar datos bancarios para membresía VIP por WhatsApp"
+              className="text-xs bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 px-3.5 py-2 rounded-xl font-black flex items-center gap-1.5 transition-all shadow-md shadow-[#25D366]/25 hover:scale-105"
+              title="Activar VIP por WhatsApp ($14.99/mes)"
             >
               <span>📲</span>
-              <span className="hidden sm:inline">Solicitar</span> VIP
+              <span>Activar VIP ($14.99)</span>
             </a>
 
             <Link
