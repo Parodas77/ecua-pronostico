@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
+import { getSupabase, isSupabaseConfigured } from "./supabase";
 
 export type EstadoSuscripcion = "pendiente" | "activo" | "inactivo" | "expirado";
 
@@ -246,7 +247,6 @@ export function createUser(input: CreateUserInput): { success: boolean; user?: U
   let fechaInicio = "";
   let fechaExpiracion = "";
 
-  // Si se crea directamente como activo (por ejemplo creado manualmente por el admin)
   if (estado === "activo") {
     const dias = input.dias_suscripcion || 30;
     fechaInicio = now.toISOString();
@@ -281,7 +281,6 @@ export function createUser(input: CreateUserInput): { success: boolean; user?: U
 }
 
 // AUTORIZACIÓN OFICIAL DEL ADMINISTRADOR:
-// Activa la cuenta e inicia el conteo de 30 días exactamente a partir de este momento
 export function approveAndActivateUser(
   id: number,
   days: number = 30
@@ -316,7 +315,6 @@ export function updateUser(
 
   const current = users[index];
 
-  // Si cambia password, hashearlo
   let newPassHash = current.password_hash;
   if ((updates as any).password) {
     newPassHash = hashPassword((updates as any).password);
@@ -355,6 +353,197 @@ export function extendSubscription(
 
   writeDb(users);
   return { success: true, user };
+}
+
+// ==============================================================================
+// OPERACIONES HÍBRIDAS CON SUPABASE (CON FALLBACK LOCAL AUTOMÁTICO)
+// ==============================================================================
+
+export async function getAllUsersAsync(): Promise<UserRecord[]> {
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("usuarios")
+        .select("*")
+        .order("id", { ascending: true });
+      if (!error && Array.isArray(data) && data.length > 0) {
+        writeDb(data as UserRecord[]);
+        return data as UserRecord[];
+      }
+    } catch (err) {
+      console.error("Supabase getAllUsersAsync fallback a local:", err);
+    }
+  }
+  return getAllUsers();
+}
+
+export async function getUserByUsernameAsync(username: string): Promise<UserRecord | undefined> {
+  const clean = username.trim().toLowerCase();
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("usuarios")
+        .select("*")
+        .ilike("username", clean)
+        .maybeSingle();
+      if (!error && data) {
+        return data as UserRecord;
+      }
+    } catch (err) {
+      console.error("Supabase getUserByUsernameAsync fallback a local:", err);
+    }
+  }
+  return getUserByUsername(username);
+}
+
+export async function createUserAsync(
+  input: CreateUserInput
+): Promise<{ success: boolean; user?: UserRecord; error?: string }> {
+  const supabase = getSupabase();
+  const cleanUsername = input.username.trim().toLowerCase();
+  const cleanEmail = input.correo.trim().toLowerCase();
+  const now = new Date();
+  const estado = input.estado_suscripcion || "pendiente";
+
+  let fechaInicio: string | null = null;
+  let fechaExpiracion: string | null = null;
+
+  if (estado === "activo") {
+    const dias = input.dias_suscripcion || 30;
+    fechaInicio = now.toISOString();
+    fechaExpiracion = new Date(now.getTime() + dias * 86400000).toISOString();
+  }
+
+  const passHash = hashPassword(input.password.trim());
+
+  if (supabase) {
+    try {
+      // Verificar unicidad en Supabase
+      const { data: existingUser } = await supabase
+        .from("usuarios")
+        .select("id")
+        .or(`username.ilike.${cleanUsername},correo.ilike.${cleanEmail}`)
+        .maybeSingle();
+
+      if (existingUser) {
+        return { success: false, error: "El nombre de usuario o correo ya se encuentra registrado." };
+      }
+
+      const { data, error } = await supabase
+        .from("usuarios")
+        .insert({
+          nombre: input.nombre.trim(),
+          apellido: input.apellido.trim(),
+          telefono_whatsapp: input.telefono_whatsapp.trim(),
+          ciudad: input.ciudad.trim(),
+          correo: cleanEmail,
+          username: cleanUsername,
+          password_hash: passHash,
+          estado_suscripcion: estado,
+          metodo_pago: input.metodo_pago || "Transferencia Bancaria",
+          referencia_pago: input.referencia_pago || "Comprobante enviado por WhatsApp",
+          monto_pago: input.monto_pago || 14.99,
+          aprobado_por_admin: estado === "activo",
+          fecha_aprobacion: estado === "activo" ? now.toISOString() : null,
+          fecha_inicio_suscripcion: fechaInicio,
+          fecha_expiracion_suscripcion: fechaExpiracion,
+          notas_admin: input.notas_admin || "Registro post-pago pendiente de verificación",
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error al registrar en Supabase:", error);
+        return { success: false, error: error.message };
+      }
+
+      if (data) {
+        const local = readDb();
+        local.push(data as UserRecord);
+        writeDb(local);
+        return { success: true, user: data as UserRecord };
+      }
+    } catch (err: any) {
+      console.error("Error al guardar en Supabase, aplicando fallback local:", err);
+    }
+  }
+
+  return createUser(input);
+}
+
+export async function approveAndActivateUserAsync(
+  id: number,
+  days: number = 30
+): Promise<{ success: boolean; user?: UserRecord; error?: string }> {
+  const supabase = getSupabase();
+  const now = new Date();
+  const expiracion = new Date(now.getTime() + days * 86400000);
+
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("usuarios")
+        .update({
+          estado_suscripcion: "activo",
+          aprobado_por_admin: true,
+          fecha_aprobacion: now.toISOString(),
+          fecha_inicio_suscripcion: now.toISOString(),
+          fecha_expiracion_suscripcion: expiracion.toISOString(),
+        })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (!error && data) {
+        approveAndActivateUser(id, days);
+        return { success: true, user: data as UserRecord };
+      }
+    } catch (err) {
+      console.error("Error al autorizar en Supabase, aplicando fallback local:", err);
+    }
+  }
+
+  return approveAndActivateUser(id, days);
+}
+
+export async function extendSubscriptionAsync(
+  id: number,
+  additionalDays: number = 30
+): Promise<{ success: boolean; user?: UserRecord; error?: string }> {
+  const supabase = getSupabase();
+  const now = Date.now();
+  const user = (await getUserByUsernameAsync(id.toString())) || getUserById(id);
+  const currentExp = user?.fecha_expiracion_suscripcion
+    ? new Date(user.fecha_expiracion_suscripcion).getTime()
+    : 0;
+  const baseTime = currentExp > now ? currentExp : now;
+  const newExp = new Date(baseTime + additionalDays * 86400000);
+
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("usuarios")
+        .update({
+          estado_suscripcion: "activo",
+          aprobado_por_admin: true,
+          fecha_expiracion_suscripcion: newExp.toISOString(),
+        })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (!error && data) {
+        extendSubscription(id, additionalDays);
+        return { success: true, user: data as UserRecord };
+      }
+    } catch (err) {
+      console.error("Error al extender en Supabase, aplicando fallback local:", err);
+    }
+  }
+
+  return extendSubscription(id, additionalDays);
 }
 
 export function getRetargetingUsers(): UserRecord[] {

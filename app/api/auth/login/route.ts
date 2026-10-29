@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getUserByUsername, verifyPassword } from "@/lib/crm";
+import { getUserByUsernameAsync, verifyPassword } from "@/lib/crm";
 
 // ==============================================================================
 // BLINDAJE DE SEGURIDAD: RATE LIMITING CONTRA ATAQUES DE FUERZA BRUTA
@@ -90,7 +90,7 @@ export async function POST(request: Request) {
     }
 
     // 2. Consulta en la base de datos CRM
-    const user = getUserByUsername(username);
+    const user = await getUserByUsernameAsync(username);
     if (!user) {
       recordFailure(clientKey);
       return NextResponse.json(

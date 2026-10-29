@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createUser } from "@/lib/crm";
+import { createUserAsync } from "@/lib/crm";
 
 // Rate limiting para prevenir spam de creación masiva de cuentas
 const registerAttempts = new Map<string, { count: number; resetAt: number }>();
@@ -115,7 +115,7 @@ export async function POST(request: Request) {
     registerAttempts.set(ip, current);
 
     // Crear usuario en base de datos CRM en estado PENDIENTE DE AUTORIZACIÓN
-    const result = createUser({
+    const result = await createUserAsync({
       nombre,
       apellido,
       telefono_whatsapp,

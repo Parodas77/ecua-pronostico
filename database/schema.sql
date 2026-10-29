@@ -1,9 +1,14 @@
 -- ==============================================================================
--- ECUAPRONÓSTICO - ESQUEMA DE BASE DE DATOS CRM Y RETENCIÓN DE USUARIOS
+-- ECUAPRONÓSTICO - ESQUEMA DE BASE DE DATOS SUPABASE / POSTGRESQL
 -- ==============================================================================
 
--- 1. TIPO ENUM PARA ESTADOS DE SUSCRIPCIÓN
-CREATE TYPE estado_suscripcion_enum AS ENUM ('pendiente', 'activo', 'inactivo', 'expirado');
+-- 1. TIPO ENUM IDEMPOTENTE PARA ESTADOS DE SUSCRIPCIÓN
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'estado_suscripcion_enum') THEN
+        CREATE TYPE estado_suscripcion_enum AS ENUM ('pendiente', 'activo', 'inactivo', 'expirado');
+    END IF;
+END $$;
 
 -- 2. TABLA DE CLIENTES Y USUARIOS VIP (CRM)
 CREATE TABLE IF NOT EXISTS usuarios (
@@ -16,15 +21,19 @@ CREATE TABLE IF NOT EXISTS usuarios (
     username VARCHAR(50) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     estado_suscripcion estado_suscripcion_enum NOT NULL DEFAULT 'pendiente',
-    metodo_pago VARCHAR(50) DEFAULT 'Transferencia Bancaria',
+    metodo_pago VARCHAR(80) DEFAULT 'Transferencia Bancaria',
     referencia_pago VARCHAR(150),
     monto_pago DECIMAL(10, 2) DEFAULT 14.99,
+    aprobado_por_admin BOOLEAN DEFAULT FALSE,
+    fecha_aprobacion TIMESTAMP WITH TIME ZONE,
     fecha_inicio_suscripcion TIMESTAMP WITH TIME ZONE,
     fecha_expiracion_suscripcion TIMESTAMP WITH TIME ZONE,
-    fecha_aprobacion TIMESTAMP WITH TIME ZONE,
     notas_admin TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- DESACTIVAR RLS PARA PERMITIR OPERACIONES DIRECTAS DESDE EL BACKEND NEXT.JS
+ALTER TABLE usuarios DISABLE ROW LEVEL SECURITY;
 
 -- 3. ÍNDICES DE RENDIMIENTO Y CONSULTA RÁPIDA
 CREATE INDEX IF NOT EXISTS idx_usuarios_estado ON usuarios(estado_suscripcion);
@@ -41,12 +50,14 @@ SELECT
     telefono_whatsapp,
     ciudad,
     correo,
+    username,
     estado_suscripcion,
+    referencia_pago,
     fecha_expiracion_suscripcion,
     ROUND(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - fecha_expiracion_suscripcion)) / 86400) AS dias_expirado
 FROM usuarios
 WHERE estado_suscripcion IN ('inactivo', 'expirado')
-   OR fecha_expiracion_suscripcion < CURRENT_TIMESTAMP
+   OR (fecha_expiracion_suscripcion IS NOT NULL AND fecha_expiracion_suscripcion < CURRENT_TIMESTAMP)
 ORDER BY fecha_expiracion_suscripcion DESC;
 
 -- ==============================================================================
@@ -62,6 +73,8 @@ CREATE TABLE IF NOT EXISTS system_subscriptions (
     notas TEXT,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE system_subscriptions DISABLE ROW LEVEL SECURITY;
 
 -- Vista de alertas de renovación administrativa (5 días o menos para vencer)
 CREATE OR REPLACE VIEW vista_alertas_renovacion_apis AS
@@ -80,3 +93,36 @@ SELECT
 FROM system_subscriptions
 ORDER BY fecha_renovacion ASC;
 
+-- ==============================================================================
+-- 6. DATOS INICIALES SEMILLA (SUPERADMIN Y APIS EXTERNAS)
+-- ==============================================================================
+INSERT INTO usuarios (
+    id, nombre, apellido, telefono_whatsapp, ciudad, correo, username, password_hash,
+    estado_suscripcion, metodo_pago, referencia_pago, monto_pago, aprobado_por_admin,
+    fecha_inicio_suscripcion, fecha_expiracion_suscripcion, notas_admin
+)
+VALUES (
+    1,
+    'Pedro',
+    'Administrador',
+    '+593979198755',
+    'Guayaquil',
+    'admin@ecuapronostico.com',
+    'admin',
+    'ea2a0205f866271a3574f67adc125d7f067898c82875d988dade3b1e177e477a',
+    'activo',
+    'Acceso Maestro',
+    'Superadmin Ecuapronóstico',
+    0,
+    TRUE,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP + INTERVAL '365 days',
+    'Superadministrador del sistema'
+)
+ON CONFLICT (username) DO NOTHING;
+
+INSERT INTO system_subscriptions (id, nombre_servicio, fecha_renovacion, costo, moneda, url_portal, notas)
+VALUES 
+    (1, 'API-Football Pro', CURRENT_DATE + INTERVAL '4 days', 39.00, 'USD', 'https://dashboard.api-football.com', 'Plan Pro mensual. Fixtures, cuotas en vivo, árbitros y alineaciones oficiales.'),
+    (2, 'The Odds API', CURRENT_DATE + INTERVAL '18 days', 30.00, 'USD', 'https://the-odds-api.com', 'Plan v4 cuotas de casas de apuestas (1X2, Totales Over/Under y Spreads).')
+ON CONFLICT (nombre_servicio) DO NOTHING;

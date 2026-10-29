@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAllUsers, updateUser, extendSubscription, approveAndActivateUser } from "@/lib/crm";
+import {
+  getAllUsers,
+  getAllUsersAsync,
+  updateUser,
+  extendSubscription,
+  extendSubscriptionAsync,
+  approveAndActivateUser,
+  approveAndActivateUserAsync,
+} from "@/lib/crm";
 
 export async function GET(request: NextRequest) {
   try {
     const filterStatus = request.nextUrl.searchParams.get("status") || "todos";
     const searchQuery = (request.nextUrl.searchParams.get("q") || "").trim().toLowerCase();
 
-    let users = getAllUsers();
+    let users = await getAllUsersAsync();
 
     // Filtro por estado
     if (filterStatus !== "todos") {
@@ -67,9 +75,9 @@ export async function PATCH(request: Request) {
 
     let result;
     if (action === "approve") {
-      result = approveAndActivateUser(id, extendDays || 30);
+      result = await approveAndActivateUserAsync(id, extendDays || 30);
     } else if (extendDays && typeof extendDays === "number") {
-      result = extendSubscription(id, extendDays);
+      result = await extendSubscriptionAsync(id, extendDays);
     } else {
       const updates: any = {};
       if (estado_suscripcion) updates.estado_suscripcion = estado_suscripcion;
