@@ -63,6 +63,29 @@ export default function AdminCrmPage() {
   const [editDate, setEditDate] = useState<string>("");
   const [editCost, setEditCost] = useState<number>(0);
 
+  // Pestaña principal de navegación
+  const [activeTab, setActiveTab] = useState<"crm" | "auditoria_ia" | "apis">("crm");
+
+  // Auditoría IA de Comprobantes (WhatsApp + Gemini Vision)
+  const [receipts, setReceipts] = useState<any[]>([]);
+  const [receiptsLoading, setReceiptsLoading] = useState(false);
+  const [receiptFilter, setReceiptFilter] = useState<"todos" | "aprobados" | "revision">("todos");
+  const [receiptStats, setReceiptStats] = useState({
+    total: 0,
+    aprobadosAutomaticos: 0,
+    requiereRevision: 0,
+    autorizadosManual: 0,
+  });
+
+  // Probador / Simulador en vivo de Gemini Vision
+  const [testPhone, setTestPhone] = useState("+593981122334");
+  const [testPreview, setTestPreview] = useState<string | null>(null);
+  const [testBase64, setTestBase64] = useState<string>("");
+  const [testMimeType, setTestMimeType] = useState<string>("image/jpeg");
+  const [isAuditing, setIsAuditing] = useState(false);
+  const [auditResult, setAuditResult] = useState<any>(null);
+  const [auditError, setAuditError] = useState<string>("");
+
   // Chequear sesión admin en localStorage
   useEffect(() => {
     try {
@@ -124,12 +147,101 @@ export default function AdminCrmPage() {
     }
   };
 
+  const fetchReceipts = async () => {
+    setReceiptsLoading(true);
+    try {
+      const res = await fetch(`/api/admin/receipts?filter=${receiptFilter}`);
+      const data = await res.json();
+      if (data.success) {
+        setReceipts(data.receipts || []);
+        if (data.stats) setReceiptStats(data.stats);
+      }
+    } catch (err) {
+      console.error("Error al cargar auditorías de comprobantes:", err);
+    } finally {
+      setReceiptsLoading(false);
+    }
+  };
+
+  const handleFileForAudit = (file: File) => {
+    if (!file) return;
+    setAuditError("");
+    setAuditResult(null);
+    setTestMimeType(file.type || "image/jpeg");
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setTestPreview(result);
+      setTestBase64(result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRunGeminiAudit = async () => {
+    if (!testBase64) {
+      setAuditError("Por favor selecciona o arrastra una imagen de comprobante primero.");
+      return;
+    }
+    setIsAuditing(true);
+    setAuditError("");
+    try {
+      const res = await fetch("/api/admin/receipts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "audit_image",
+          imageBase64: testBase64,
+          mimeType: testMimeType,
+          phone: testPhone,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAuditResult(data);
+        setActionSuccess(
+          `🎉 Comprobante analizado con Gemini Vision. Resultado: ${
+            data.audit.valido ? "🟢 VÁLIDO ($" + data.audit.monto + ")" : "🟡 REQUIERE REVISIÓN"
+          }`
+        );
+        setTimeout(() => setActionSuccess(null), 6000);
+        fetchReceipts();
+      } else {
+        setAuditError(data.error || "No se pudo auditar el comprobante con Gemini.");
+      }
+    } catch (err) {
+      console.error(err);
+      setAuditError("Error de conexión al ejecutar auditoría.");
+    } finally {
+      setIsAuditing(false);
+    }
+  };
+
+  const handleUpdateReceiptStatus = async (id: string, newStatus: string) => {
+    try {
+      const res = await fetch("/api/admin/receipts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update_status", id, newStatus }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setActionSuccess(`Comprobante ${id} actualizado a "${newStatus}".`);
+        setTimeout(() => setActionSuccess(null), 4000);
+        fetchReceipts();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     if (isAdminAuth) {
       fetchUsers();
       fetchSubscriptions();
+      fetchReceipts();
     }
-  }, [isAdminAuth, filterStatus, searchQuery]);
+  }, [isAdminAuth, filterStatus, searchQuery, receiptFilter]);
 
   // AUTORIZAR PAGO: Inicia los 30 días exactamente en este momento
   const handleApproveUser = async (id: number) => {
@@ -387,259 +499,131 @@ export default function AdminCrmPage() {
             </div>
           )}
 
-          {/* BANNER DESTACADO SI HAY PAGOS PENDIENTES DE AUTORIZACIÓN */}
-          {metrics.pendientes > 0 && (
-            <div className="bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 border-2 border-amber-400 p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[0_0_30px_rgba(251,191,36,0.25)]">
-              <div className="flex items-center gap-3 text-center sm:text-left">
-                <span className="text-3xl animate-bounce">🔔</span>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="bg-amber-400 text-slate-950 font-black text-xs px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                      Acción Requerida
-                    </span>
-                    <span className="text-xs text-amber-300 font-bold font-mono">
-                      {metrics.pendientes} pago(s) registrado(s)
-                    </span>
-                  </div>
-                  <h3 className="text-base font-black text-white mt-1">
-                    Tienes {metrics.pendientes} usuario(s) nuevo(s) esperando tu autorización.
-                  </h3>
-                  <p className="text-xs text-amber-200/90">
-                    Revisa el comprobante y presiona &quot;Autorizar Pago&quot; para activar sus 30 días VIP.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setFilterStatus("pendiente")}
-                className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-xl uppercase tracking-wider transition shadow-lg cursor-pointer shrink-0"
-              >
-                Ver Pagos Pendientes ⚡
-              </button>
-            </div>
-          )}
-
-          {/* KPIS DE SUSCRIPTORES */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
-              <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Total Clientes</span>
-              <div className="text-3xl font-black text-white mt-1 font-mono">{metrics.total}</div>
-              <span className="text-[11px] text-slate-500">Perfiles en CRM</span>
-            </div>
-
-            {/* KPI PENDIENTES */}
-            <div className="bg-slate-900/80 border-2 border-amber-400/80 rounded-2xl p-4 relative overflow-hidden shadow-[0_0_20px_rgba(251,191,36,0.15)]">
+          {/* SELECTOR DE PESTAÑAS PRINCIPAL DEL PANEL */}
+          <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-2">
+            <button
+              onClick={() => setActiveTab("crm")}
+              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2 ${
+                activeTab === "crm"
+                  ? "bg-amber-400 text-slate-950 shadow-lg shadow-amber-400/20"
+                  : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+              }`}
+            >
+              <span>👥</span>
+              <span>CRM & Suscriptores VIP</span>
               {metrics.pendientes > 0 && (
-                <div className="absolute top-2 right-2 bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded uppercase animate-pulse">
-                  Por Autorizar
+                <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-black animate-pulse">
+                  {metrics.pendientes}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab("auditoria_ia");
+                fetchReceipts();
+              }}
+              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2 ${
+                activeTab === "auditoria_ia"
+                  ? "bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-950 shadow-lg shadow-emerald-400/20"
+                  : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+              }`}
+            >
+              <span>🤖</span>
+              <span>Auditoría IA de Comprobantes (WhatsApp + Gemini)</span>
+              <span className="bg-emerald-950 text-emerald-300 border border-emerald-500/50 text-[10px] px-2 py-0.5 rounded font-mono">
+                Meta Cloud
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("apis")}
+              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2 ${
+                activeTab === "apis"
+                  ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
+                  : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+              }`}
+            >
+              <span>⚡</span>
+              <span>Alertas APIs Externas</span>
+            </button>
+          </div>
+
+          {/* ================= PESTAÑA 1: CRM & SUSCRIPTORES VIP ================= */}
+          {activeTab === "crm" && (
+            <div className="space-y-6 animate-in fade-in">
+              {/* BANNER DESTACADO SI HAY PAGOS PENDIENTES DE AUTORIZACIÓN */}
+              {metrics.pendientes > 0 && (
+                <div className="bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 border-2 border-amber-400 p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[0_0_30px_rgba(251,191,36,0.25)]">
+                  <div className="flex items-center gap-3 text-center sm:text-left">
+                    <span className="text-3xl animate-bounce">🔔</span>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="bg-amber-400 text-slate-950 font-black text-xs px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                          Acción Requerida
+                        </span>
+                        <span className="text-xs text-amber-300 font-bold font-mono">
+                          {metrics.pendientes} pago(s) registrado(s)
+                        </span>
+                      </div>
+                      <h3 className="text-base font-black text-white mt-1">
+                        Tienes {metrics.pendientes} usuario(s) nuevo(s) esperando tu autorización.
+                      </h3>
+                      <p className="text-xs text-amber-200/90">
+                        Revisa el comprobante y presiona &quot;Autorizar Pago&quot; para activar sus 30 días VIP.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setFilterStatus("pendiente")}
+                    className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-xl uppercase tracking-wider transition shadow-lg cursor-pointer shrink-0"
+                  >
+                    Ver Pagos Pendientes ⚡
+                  </button>
                 </div>
               )}
-              <span className="text-xs text-amber-300 font-bold uppercase tracking-wider block">🟡 Por Autorizar</span>
-              <div className="text-3xl font-black text-amber-300 mt-1 font-mono">{metrics.pendientes}</div>
-              <span className="text-[11px] text-amber-300/80">Pagos listos para activar</span>
-            </div>
 
-            <div className="bg-slate-900/80 border border-emerald-500/30 rounded-2xl p-4">
-              <span className="text-xs text-emerald-400 font-bold uppercase tracking-wider block">🟢 Activos VIP</span>
-              <div className="text-3xl font-black text-emerald-300 mt-1 font-mono">{metrics.activos}</div>
-              <span className="text-[11px] text-emerald-400/80">30 días corriendo</span>
-            </div>
+              {/* KPIS DE SUSCRIPTORES */}
+              <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
+                  <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Total Clientes</span>
+                  <div className="text-3xl font-black text-white mt-1 font-mono">{metrics.total}</div>
+                  <span className="text-[11px] text-slate-500">Perfiles en CRM</span>
+                </div>
 
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
-              <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">⚪ Inactivos</span>
-              <div className="text-3xl font-black text-slate-300 mt-1 font-mono">{metrics.inactivos}</div>
-              <span className="text-[11px] text-slate-500">Pausados</span>
-            </div>
+                {/* KPI PENDIENTES */}
+                <div className="bg-slate-900/80 border-2 border-amber-400/80 rounded-2xl p-4 relative overflow-hidden shadow-[0_0_20px_rgba(251,191,36,0.15)]">
+                  {metrics.pendientes > 0 && (
+                    <div className="absolute top-2 right-2 bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded uppercase animate-pulse">
+                      Por Autorizar
+                    </div>
+                  )}
+                  <span className="text-xs text-amber-300 font-bold uppercase tracking-wider block">🟡 Por Autorizar</span>
+                  <div className="text-3xl font-black text-amber-300 mt-1 font-mono">{metrics.pendientes}</div>
+                  <span className="text-[11px] text-amber-300/80">Pagos listos para activar</span>
+                </div>
 
-            <div className="bg-slate-900/80 border border-red-500/30 rounded-2xl p-4 relative overflow-hidden">
-              <span className="text-xs text-red-400 font-bold uppercase tracking-wider block">🔴 Expirados</span>
-              <div className="text-3xl font-black text-red-300 mt-1 font-mono">{metrics.expirados}</div>
-              <span className="text-[11px] text-red-400/80">Listos para remarketing</span>
-            </div>
-          </div>
+                <div className="bg-slate-900/80 border border-emerald-500/30 rounded-2xl p-4">
+                  <span className="text-xs text-emerald-400 font-bold uppercase tracking-wider block">🟢 Activos VIP</span>
+                  <div className="text-3xl font-black text-emerald-300 mt-1 font-mono">{metrics.activos}</div>
+                  <span className="text-[11px] text-emerald-400/80">30 días corriendo</span>
+                </div>
 
-          {/* CONTROL DE SUSCRIPCIONES DE APIS EXTERNAS */}
-          <div id="apis" className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2.5">
-                <span className="text-2xl">⚡</span>
-                <div>
-                  <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
-                    CONTROL DE SUSCRIPCIONES DE APIS EXTERNAS
-                    <span className="text-[10px] bg-slate-800 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
-                      API-Football & The Odds API
-                    </span>
-                  </h2>
-                  <p className="text-xs text-slate-400">
-                    Monitoreo de vencimientos, costos operativos y alertas de renovación anticipada (5 días o menos)
-                  </p>
+                <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
+                  <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">⚪ Inactivos</span>
+                  <div className="text-3xl font-black text-slate-300 mt-1 font-mono">{metrics.inactivos}</div>
+                  <span className="text-[11px] text-slate-500">Pausados</span>
+                </div>
+
+                <div className="bg-slate-900/80 border border-red-500/30 rounded-2xl p-4 relative overflow-hidden">
+                  <span className="text-xs text-red-400 font-bold uppercase tracking-wider block">🔴 Expirados</span>
+                  <div className="text-3xl font-black text-red-300 mt-1 font-mono">{metrics.expirados}</div>
+                  <span className="text-[11px] text-red-400/80">Listos para remarketing</span>
                 </div>
               </div>
-              <button
-                onClick={fetchSubscriptions}
-                className="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition flex items-center gap-1 cursor-pointer"
-              >
-                <span>🔄</span>
-                <span>Refrescar APIs</span>
-              </button>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {subscriptions.map((sub) => {
-                const isUrgent = sub.dias_restantes <= 5;
-                const isEditing = editingSubId === sub.id;
-
-                return (
-                  <div
-                    key={sub.id}
-                    className={`rounded-2xl p-4 border transition-all ${
-                      isUrgent
-                        ? "bg-gradient-to-br from-amber-950/40 via-slate-900 to-slate-900 border-amber-500/60 shadow-[0_0_25px_rgba(245,158,11,0.18)]"
-                        : "bg-slate-950/70 border-slate-800 hover:border-slate-700"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xl ${
-                            sub.nombre_servicio.includes("Football")
-                              ? "bg-blue-900/60 text-blue-300 border border-blue-500/40"
-                              : "bg-emerald-900/60 text-emerald-300 border border-emerald-500/40"
-                          }`}
-                        >
-                          {sub.nombre_servicio.includes("Football") ? "⚽" : "🎲"}
-                        </div>
-                        <div>
-                          <h3 className="font-black text-white text-sm sm:text-base flex items-center gap-2">
-                            {sub.nombre_servicio}
-                            {isUrgent && (
-                              <span className="text-[10px] bg-amber-500 text-slate-950 font-black px-1.5 py-0.5 rounded uppercase animate-pulse">
-                                ¡Renovar!
-                              </span>
-                            )}
-                          </h3>
-                          <p className="text-[11px] text-slate-400 leading-tight">
-                            {sub.notas || "Servicio externo de datos"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="text-right shrink-0">
-                        <span className="text-[10px] uppercase text-slate-400 block font-bold">Costo</span>
-                        <span className="text-sm sm:text-base font-black text-white font-mono">
-                          ${sub.costo.toFixed(2)} <span className="text-[10px] text-slate-400">{sub.moneda}</span>
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <span className="text-[10px] uppercase font-bold text-slate-400 block">Próxima Renovación</span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-sm font-bold text-slate-200">{sub.fecha_renovacion}</span>
-                          <span
-                            className={`text-xs font-black px-2 py-0.5 rounded-full ${
-                              sub.dias_restantes < 0
-                                ? "bg-red-950 text-red-300 border border-red-500/50"
-                                : sub.dias_restantes <= 5
-                                ? "bg-amber-950 text-amber-300 border border-amber-500/60"
-                                : "bg-emerald-950 text-emerald-300 border border-emerald-500/40"
-                            }`}
-                          >
-                            {sub.dias_restantes > 0
-                              ? `Quedan ${sub.dias_restantes} días`
-                              : sub.dias_restantes === 0
-                              ? "Vence hoy"
-                              : `Vencida hace ${Math.abs(sub.dias_restantes)} d`}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        {sub.url_portal && (
-                          <a
-                            href={sub.url_portal}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition flex items-center gap-1"
-                            title="Abrir consola de pagos"
-                          >
-                            <span>Portal</span>
-                            <span className="text-[10px]">↗</span>
-                          </a>
-                        )}
-
-                        <button
-                          onClick={() => {
-                            setEditingSubId(sub.id);
-                            setEditDate(sub.fecha_renovacion);
-                            setEditCost(sub.costo);
-                          }}
-                          className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-lg text-xs font-bold transition cursor-pointer"
-                        >
-                          Editar
-                        </button>
-
-                        <button
-                          onClick={() => handleRenewSub(sub.id)}
-                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-black transition shadow-sm cursor-pointer"
-                          title="Extender 30 días a partir de la fecha"
-                        >
-                          +30 Días
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* FORMULARIO DE EDICIÓN EN LÍNEA */}
-                    {isEditing && (
-                      <div className="mt-3 p-3 bg-slate-900 border border-amber-400/40 rounded-xl space-y-2 animate-in fade-in">
-                        <span className="text-xs font-bold text-amber-300 block">
-                          Modificar fecha o costo de {sub.nombre_servicio}:
-                        </span>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="text-[10px] text-slate-400 block mb-0.5">Fecha de Renovación</label>
-                            <input
-                              type="date"
-                              value={editDate}
-                              onChange={(e) => setEditDate(e.target.value)}
-                              className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white outline-none focus:border-amber-400"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] text-slate-400 block mb-0.5">Costo Mensual ($ USD)</label>
-                            <input
-                              type="number"
-                              step="0.01"
-                              value={editCost}
-                              onChange={(e) => setEditCost(Number(e.target.value))}
-                              className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white outline-none focus:border-amber-400"
-                            />
-                          </div>
-                        </div>
-                        <div className="flex justify-end gap-2 pt-1">
-                          <button
-                            onClick={() => setEditingSubId(null)}
-                            className="px-2.5 py-1 text-xs text-slate-400 hover:text-white cursor-pointer"
-                          >
-                            Cancelar
-                          </button>
-                          <button
-                            onClick={() => handleSaveSubDate(sub.id)}
-                            className="px-3 py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-lg text-xs font-black cursor-pointer"
-                          >
-                            Guardar Cambios
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* BARRA DE HERRAMIENTAS Y SEGMENTACIÓN */}
+              {/* BARRA DE HERRAMIENTAS Y SEGMENTACIÓN */}
           <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-4">
             <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-3">
               {/* FILTROS POR ESTADO CON PESTAÑA PENDIENTES */}
@@ -933,6 +917,735 @@ export default function AdminCrmPage() {
               </table>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ================= PESTAÑA 2: AUDITORÍA IA DE COMPROBANTES (WHATSAPP + GEMINI) ================= */}
+      {activeTab === "auditoria_ia" && (
+        <div className="space-y-6 animate-in fade-in">
+          {/* FICHA TÉCNICA Y WEBHOOK META CLOUD */}
+          <div className="bg-gradient-to-r from-emerald-950/70 via-slate-900 to-slate-900 border-2 border-emerald-500/50 rounded-2xl p-6 shadow-2xl space-y-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-emerald-500/20 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400 flex items-center justify-center text-2xl">
+                  🤖
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg sm:text-xl font-black text-white">
+                      MICROSERVICIO DE AUDITORÍA IA DE COMPROBANTES
+                    </h2>
+                    <span className="text-[10px] bg-emerald-400 text-slate-950 font-black px-2 py-0.5 rounded uppercase">
+                      Activo
+                    </span>
+                  </div>
+                  <p className="text-xs text-emerald-200/80">
+                    WhatsApp Meta Cloud API + Google Gemini 1.5 Flash Vision Multimodal
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={fetchReceipts}
+                className="text-xs bg-emerald-900 hover:bg-emerald-800 text-emerald-200 border border-emerald-500/40 px-3.5 py-2 rounded-xl font-bold flex items-center gap-1.5 transition cursor-pointer"
+              >
+                <span>🔄</span>
+                <span>Actualizar Comprobantes</span>
+              </button>
+            </div>
+
+            {/* DETALLES DE CONEXIÓN WEBHOOK META */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs">
+              <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 space-y-1.5">
+                <span className="text-slate-400 font-bold block text-[11px] uppercase">
+                  🔗 Webhook Callback URL (Meta Developers):
+                </span>
+                <div className="flex items-center justify-between gap-2 bg-slate-900 p-2 rounded-lg font-mono text-[11px] text-emerald-300 border border-slate-800">
+                  <span className="truncate">
+                    https://ecua-pronostico-git-main-parodas77-8597s-projects.vercel.app/api/whatsapp/webhook
+                  </span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        "https://ecua-pronostico-git-main-parodas77-8597s-projects.vercel.app/api/whatsapp/webhook"
+                      );
+                      setActionSuccess("📋 Callback URL copiada al portapapeles.");
+                      setTimeout(() => setActionSuccess(null), 3000);
+                    }}
+                    className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-2 py-1 rounded cursor-pointer shrink-0"
+                  >
+                    Copiar
+                  </button>
+                </div>
+                <span className="text-[10px] text-slate-500 block">
+                  Endpoint que recibe la notificación de imagen de WhatsApp y descarga el media de Meta.
+                </span>
+              </div>
+
+              <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 space-y-1.5">
+                <span className="text-slate-400 font-bold block text-[11px] uppercase">
+                  🔑 Token de Verificación (Verify Token):
+                </span>
+                <div className="flex items-center justify-between gap-2 bg-slate-900 p-2 rounded-lg font-mono text-[11px] text-amber-300 border border-slate-800">
+                  <span>ecuapronostico_verify_token_2026</span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText("ecuapronostico_verify_token_2026");
+                      setActionSuccess("📋 Token de verificación copiado.");
+                      setTimeout(() => setActionSuccess(null), 3000);
+                    }}
+                    className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-2 py-1 rounded cursor-pointer shrink-0"
+                  >
+                    Copiar
+                  </button>
+                </div>
+                <span className="text-[10px] text-slate-500 block">
+                  Pega este token en el dashboard de Meta Developers al configurar el Webhook de WhatsApp.
+                </span>
+              </div>
+            </div>
+
+            {/* REGLA DEL SYSTEM PROMPT FINANCIERO */}
+            <div className="bg-slate-950/60 border border-emerald-500/20 rounded-xl p-3 text-xs text-slate-300 flex items-start gap-2.5">
+              <span className="text-base text-emerald-400">💡</span>
+              <div className="space-y-0.5">
+                <span className="font-bold text-white block">Regla Financiera Estricta Gemini Vision:</span>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  &quot;Extrae <code className="text-emerald-300 font-mono">monto</code>, <code className="text-emerald-300 font-mono">fecha</code>, <code className="text-emerald-300 font-mono">referencia</code>, y <code className="text-emerald-300 font-mono">valido</code> (true si monto ≥ 14.99 USD y reciente). Si es válido, genera enlace único de registro prellenado y responde al cliente por WhatsApp automáticamente.&quot;
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* KPIS DE AUDITORÍA */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
+              <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Total Comprobantes</span>
+              <div className="text-3xl font-black text-white mt-1 font-mono">{receiptStats.total}</div>
+              <span className="text-[11px] text-slate-500">Recibidos o auditados</span>
+            </div>
+
+            <div className="bg-slate-900/80 border border-emerald-500/30 rounded-2xl p-4">
+              <span className="text-xs text-emerald-400 font-bold uppercase tracking-wider block">🟢 Aprobados IA</span>
+              <div className="text-3xl font-black text-emerald-300 mt-1 font-mono">{receiptStats.aprobadosAutomaticos}</div>
+              <span className="text-[11px] text-emerald-400/80">≥ $14.99 verificados</span>
+            </div>
+
+            <div className="bg-slate-900/80 border border-amber-500/30 rounded-2xl p-4">
+              <span className="text-xs text-amber-300 font-bold uppercase tracking-wider block">🟡 Requieren Revisión</span>
+              <div className="text-3xl font-black text-amber-300 mt-1 font-mono">{receiptStats.requiereRevision}</div>
+              <span className="text-[11px] text-amber-300/80">Monto menor o ilegible</span>
+            </div>
+
+            <div className="bg-slate-900/80 border border-blue-500/30 rounded-2xl p-4">
+              <span className="text-xs text-blue-400 font-bold uppercase tracking-wider block">🔵 Autorizados Manual</span>
+              <div className="text-3xl font-black text-blue-300 mt-1 font-mono">{receiptStats.autorizadosManual}</div>
+              <span className="text-[11px] text-blue-400/80">Aprobados por el Admin</span>
+            </div>
+          </div>
+
+          {/* SIMULADOR EN VIVO DRAG & DROP DE GEMINI VISION */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+              <span className="text-2xl">⚡</span>
+              <div>
+                <h3 className="text-base font-black text-white">
+                  SIMULADOR Y AUDITOR EN VIVO CON GEMINI VISION
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Sube o arrastra cualquier captura de transferencia (Banco Pichincha, Guayaquil, Deuna, Produbanco) para auditarla en tiempo real
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* ZONA DE ARRASTRE Y FORMULARIO */}
+              <div className="lg:col-span-5 space-y-4">
+                <label className="text-xs font-bold text-slate-300 block">
+                  Teléfono de WhatsApp del Cliente (Simulación):
+                </label>
+                <input
+                  type="text"
+                  value={testPhone}
+                  onChange={(e) => setTestPhone(e.target.value)}
+                  placeholder="+593981122334"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-emerald-400"
+                />
+
+                {/* DROPZONE */}
+                <div
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                      handleFileForAudit(e.dataTransfer.files[0]);
+                    }
+                  }}
+                  className="border-2 border-dashed border-slate-700 hover:border-emerald-400/70 rounded-2xl p-6 text-center bg-slate-950/60 transition cursor-pointer flex flex-col items-center justify-center min-h-[180px]"
+                  onClick={() => {
+                    const fileInput = document.getElementById("receipt-file-input");
+                    fileInput?.click();
+                  }}
+                >
+                  <input
+                    id="receipt-file-input"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        handleFileForAudit(e.target.files[0]);
+                      }
+                    }}
+                  />
+                  {testPreview ? (
+                    <div className="space-y-2">
+                      <img
+                        src={testPreview}
+                        alt="Comprobante a auditar"
+                        className="max-h-36 mx-auto rounded-lg object-contain border border-emerald-500/40"
+                      />
+                      <span className="text-[11px] text-emerald-400 font-bold block">
+                        ✓ Imagen cargada lista para auditar
+                      </span>
+                      <span className="text-[10px] text-slate-400 block">
+                        Haz clic para cambiar imagen
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <span className="text-3xl block">📥</span>
+                      <span className="text-xs font-bold text-slate-200 block">
+                        Arrastra aquí el comprobante o haz clic para subir
+                      </span>
+                      <span className="text-[10px] text-slate-400 block">
+                        Formatos soportados: JPG, PNG, WEBP
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {auditError && (
+                  <p className="text-xs text-red-400 bg-red-950/40 border border-red-500/30 p-2.5 rounded-xl">
+                    {auditError}
+                  </p>
+                )}
+
+                <button
+                  onClick={handleRunGeminiAudit}
+                  disabled={isAuditing || !testBase64}
+                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black py-3 rounded-xl text-xs uppercase tracking-wider shadow-lg transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  {isAuditing ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                      <span>Analizando con Gemini Vision...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>🔍</span>
+                      <span>Auditar Comprobante con Gemini Vision</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* TARJETA DE RESULTADOS DE LA IA */}
+              <div className="lg:col-span-7 bg-slate-950/90 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-3">
+                    <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <span>📊</span>
+                      <span>Resultado del Análisis OCR & Financiero</span>
+                    </span>
+                    <span className="text-[10px] font-mono bg-slate-800 text-slate-400 px-2 py-0.5 rounded">
+                      Gemini 1.5 Flash
+                    </span>
+                  </div>
+
+                  {auditResult ? (
+                    <div className="space-y-3 animate-in fade-in">
+                      {/* STATUS BADGE */}
+                      <div
+                        className={`p-3 rounded-xl border flex items-center justify-between ${
+                          auditResult.audit.valido
+                            ? "bg-emerald-950/80 border-emerald-500 text-emerald-200"
+                            : "bg-amber-950/80 border-amber-500 text-amber-200"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">{auditResult.audit.valido ? "🟢" : "🟡"}</span>
+                          <div>
+                            <span className="font-black text-xs sm:text-sm block uppercase tracking-wide">
+                              {auditResult.audit.valido
+                                ? "COMPROBANTE VÁLIDO (PAGO CONFIRMADO)"
+                                : "REQUIERE REVISIÓN MANUAL"}
+                            </span>
+                            <span className="text-[11px] block opacity-90">
+                              {auditResult.audit.motivo}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="text-[10px] uppercase font-bold block opacity-75">Monto</span>
+                          <span className="text-base sm:text-lg font-black font-mono">
+                            ${auditResult.audit.monto?.toFixed(2) || "0.00"} USD
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* DETALLES EXTRAÍDOS */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                        <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold block">Banco</span>
+                          <span className="font-semibold text-slate-200 truncate block mt-0.5">
+                            {auditResult.audit.banco || "Detectado"}
+                          </span>
+                        </div>
+                        <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold block">Referencia</span>
+                          <span className="font-mono font-bold text-amber-300 truncate block mt-0.5">
+                            {auditResult.audit.referencia || "N/A"}
+                          </span>
+                        </div>
+                        <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold block">Fecha</span>
+                          <span className="font-mono text-slate-200 truncate block mt-0.5">
+                            {auditResult.audit.fecha || "Reciente"}
+                          </span>
+                        </div>
+                        <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold block">Titular</span>
+                          <span className="font-semibold text-slate-200 truncate block mt-0.5">
+                            {auditResult.audit.titular || "Ecuapronóstico"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* ENLACE DE ACTIVACIÓN GENERADO */}
+                      {auditResult.record?.enlace_activacion && (
+                        <div className="bg-slate-900 border border-emerald-500/30 p-3 rounded-xl space-y-1.5">
+                          <span className="text-[11px] font-bold text-emerald-400 block uppercase">
+                            🔗 Enlace Único de Activación Prellenado Generado:
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              readOnly
+                              value={auditResult.record.enlace_activacion}
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono truncate"
+                            />
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(auditResult.record.enlace_activacion);
+                                setActionSuccess("📋 Enlace de activación copiado.");
+                                setTimeout(() => setActionSuccess(null), 3000);
+                              }}
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black rounded-lg text-xs cursor-pointer shrink-0"
+                            >
+                              Copiar
+                            </button>
+                            <a
+                              href={auditResult.record.enlace_activacion}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg text-xs shrink-0"
+                            >
+                              Abrir ↗
+                            </a>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* MENSAJE DE RESPUESTA AUTOMÁTICA DE WHATSAPP */}
+                      <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 block uppercase">
+                          💬 Mensaje que el Bot de WhatsApp envía al cliente:
+                        </span>
+                        <p className="text-xs text-slate-200 bg-slate-950 p-2.5 rounded-lg border border-slate-800 leading-relaxed font-sans">
+                          {auditResult.record?.mensaje_cliente}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-64 flex flex-col items-center justify-center text-center p-6 text-slate-500">
+                      <span className="text-4xl mb-2">🤖</span>
+                      <p className="text-xs text-slate-400 max-w-sm">
+                        Arrastra un comprobante en el cuadro de la izquierda y presiona &quot;Auditar Comprobante&quot; para ver la extracción de datos y la decisión automática.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* TABLA DE AUDITORÍAS DE COMPROBANTES */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-3">
+              <div>
+                <h3 className="text-base font-black text-white flex items-center gap-2">
+                  <span>📋</span>
+                  <span>HISTORIAL DE COMPROBANTES AUDITADOS</span>
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Registro cronológico de transferencias recibidas por WhatsApp y analizadas con Gemini Vision
+                </p>
+              </div>
+
+              {/* FILTROS */}
+              <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <button
+                  onClick={() => setReceiptFilter("todos")}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition cursor-pointer ${
+                    receiptFilter === "todos" ? "bg-slate-700 text-white" : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Todos ({receiptStats.total})
+                </button>
+                <button
+                  onClick={() => setReceiptFilter("aprobados")}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition cursor-pointer ${
+                    receiptFilter === "aprobados" ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Aprobados ({receiptStats.aprobadosAutomaticos})
+                </button>
+                <button
+                  onClick={() => setReceiptFilter("revision")}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition cursor-pointer ${
+                    receiptFilter === "revision" ? "bg-amber-500 text-slate-950" : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Revisión ({receiptStats.requiereRevision})
+                </button>
+              </div>
+            </div>
+
+            {/* TABLA */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-800 text-[11px] uppercase tracking-wider text-slate-400 bg-slate-950/50">
+                    <th className="py-3 px-3">Fecha / ID</th>
+                    <th className="py-3 px-3">Cliente (WhatsApp)</th>
+                    <th className="py-3 px-3">Banco & Referencia</th>
+                    <th className="py-3 px-3 text-right">Monto</th>
+                    <th className="py-3 px-3 text-center">Estado Auditoría</th>
+                    <th className="py-3 px-3 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 font-sans">
+                  {receiptsLoading ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-slate-400">
+                        <span className="inline-block w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mr-2" />
+                        Cargando auditorías...
+                      </td>
+                    </tr>
+                  ) : receipts.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-slate-500">
+                        No hay comprobantes auditados con este filtro.
+                      </td>
+                    </tr>
+                  ) : (
+                    receipts.map((rec) => {
+                      const isAutoApproved = rec.estado === "aprobado_automatico";
+                      const isManualApproved = rec.estado === "autorizado_manual";
+                      const needsRevision = rec.estado === "requiere_revision_manual";
+
+                      return (
+                        <tr key={rec.id} className="hover:bg-slate-800/40 transition">
+                          <td className="py-3 px-3">
+                            <span className="font-mono text-white font-bold block">{rec.id}</span>
+                            <span className="text-[10px] text-slate-500 block">
+                              {rec.timestamp ? new Date(rec.timestamp).toLocaleString("es-EC") : "N/A"}
+                            </span>
+                          </td>
+
+                          <td className="py-3 px-3">
+                            <span className="font-mono text-slate-200 block font-semibold">
+                              {rec.telefono}
+                            </span>
+                            {rec.titular && (
+                              <span className="text-[10px] text-slate-400 block">{rec.titular}</span>
+                            )}
+                          </td>
+
+                          <td className="py-3 px-3">
+                            <span className="text-slate-300 font-bold block">{rec.banco || "Transferencia"}</span>
+                            <span className="text-[10px] text-amber-300/90 font-mono block">
+                              Ref: {rec.referencia || "N/A"}
+                            </span>
+                          </td>
+
+                          <td className="py-3 px-3 text-right">
+                            <span className="font-mono text-sm font-black text-white">
+                              ${rec.monto ? rec.monto.toFixed(2) : "0.00"}
+                            </span>
+                            <span className="text-[10px] text-slate-400 block">USD</span>
+                          </td>
+
+                          <td className="py-3 px-3 text-center">
+                            <span
+                              className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                                isAutoApproved
+                                  ? "bg-emerald-950 text-emerald-300 border border-emerald-500/50"
+                                  : isManualApproved
+                                  ? "bg-blue-950 text-blue-300 border border-blue-500/50"
+                                  : "bg-amber-950 text-amber-300 border border-amber-500/50"
+                              }`}
+                            >
+                              {isAutoApproved
+                                ? "🟢 Aprobado IA"
+                                : isManualApproved
+                                ? "🔵 Aprobado Manual"
+                                : "🟡 Requiere Revisión"}
+                            </span>
+                            <span
+                              className="text-[10px] text-slate-400 block mt-0.5 max-w-[200px] mx-auto truncate"
+                              title={rec.motivo}
+                            >
+                              {rec.motivo}
+                            </span>
+                          </td>
+
+                          <td className="py-3 px-3 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {needsRevision && (
+                                <button
+                                  onClick={() => handleUpdateReceiptStatus(rec.id, "autorizado_manual")}
+                                  className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-slate-950 text-[10px] font-black rounded-lg transition cursor-pointer"
+                                  title="Autorizar manualmente este comprobante"
+                                >
+                                  Autorizar
+                                </button>
+                              )}
+
+                              {rec.enlace_activacion && (
+                                <button
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(rec.enlace_activacion);
+                                    setActionSuccess("📋 Enlace de activación copiado.");
+                                    setTimeout(() => setActionSuccess(null), 3000);
+                                  }}
+                                  className="p-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 rounded-lg text-xs transition cursor-pointer"
+                                  title="Copiar enlace de activación"
+                                >
+                                  🔗
+                                </button>
+                              )}
+
+                              <a
+                                href={`https://wa.me/${rec.telefono.replace(/\D/g, "")}?text=${encodeURIComponent(
+                                  rec.mensaje_cliente ||
+                                    "Hola, tu comprobante ha sido revisado por el equipo de Ecuapronóstico."
+                                )}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 rounded-lg text-xs transition"
+                                title="Contactar al cliente por WhatsApp"
+                              >
+                                📲
+                              </a>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= PESTAÑA 3: CONTROL DE APIS EXTERNAS ================= */}
+      {activeTab === "apis" && (
+        <div className="space-y-6 animate-in fade-in">
+          <div id="apis" className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="text-2xl">⚡</span>
+                <div>
+                  <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                    CONTROL DE SUSCRIPCIONES DE APIS EXTERNAS
+                    <span className="text-[10px] bg-slate-800 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
+                      API-Football & The Odds API
+                    </span>
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    Monitoreo de vencimientos, costos operativos y alertas de renovación anticipada (5 días o menos)
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={fetchSubscriptions}
+                className="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition flex items-center gap-1 cursor-pointer"
+              >
+                <span>🔄</span>
+                <span>Refrescar APIs</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {subscriptions.map((sub) => {
+                const isUrgent = sub.dias_restantes <= 5;
+                const isEditing = editingSubId === sub.id;
+
+                return (
+                  <div
+                    key={sub.id}
+                    className={`rounded-2xl p-4 border transition-all ${
+                      isUrgent
+                        ? "bg-gradient-to-br from-amber-950/40 via-slate-900 to-slate-900 border-amber-500/60 shadow-[0_0_25px_rgba(245,158,11,0.18)]"
+                        : "bg-slate-950/70 border-slate-800 hover:border-slate-700"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xl ${
+                            sub.nombre_servicio.includes("Football")
+                              ? "bg-blue-900/60 text-blue-300 border border-blue-500/40"
+                              : "bg-emerald-900/60 text-emerald-300 border border-emerald-500/40"
+                          }`}
+                        >
+                          {sub.nombre_servicio.includes("Football") ? "⚽" : "🎲"}
+                        </div>
+                        <div>
+                          <h3 className="font-black text-white text-sm sm:text-base flex items-center gap-2">
+                            {sub.nombre_servicio}
+                            {isUrgent && (
+                              <span className="text-[10px] bg-amber-500 text-slate-950 font-black px-1.5 py-0.5 rounded uppercase animate-pulse">
+                                ¡Renovar!
+                              </span>
+                            )}
+                          </h3>
+                          <p className="text-[11px] text-slate-400 leading-tight">
+                            {sub.notas || "Servicio externo de datos"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <span className="text-[10px] uppercase text-slate-400 block font-bold">Costo</span>
+                        <span className="text-sm sm:text-base font-black text-white font-mono">
+                          ${sub.costo.toFixed(2)} <span className="text-[10px] text-slate-400">{sub.moneda}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block">Próxima Renovación</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-sm font-bold text-slate-200">{sub.fecha_renovacion}</span>
+                          <span
+                            className={`text-xs font-black px-2 py-0.5 rounded-full ${
+                              sub.dias_restantes < 0
+                                ? "bg-red-950 text-red-300 border border-red-500/50"
+                                : sub.dias_restantes <= 5
+                                ? "bg-amber-950 text-amber-300 border border-amber-500/60"
+                                : "bg-emerald-950 text-emerald-300 border border-emerald-500/40"
+                            }`}
+                          >
+                            {sub.dias_restantes > 0
+                              ? `Quedan ${sub.dias_restantes} días`
+                              : sub.dias_restantes === 0
+                              ? "Vence hoy"
+                              : `Vencida hace ${Math.abs(sub.dias_restantes)} d`}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        {sub.url_portal && (
+                          <a
+                            href={sub.url_portal}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition flex items-center gap-1"
+                            title="Abrir consola de pagos"
+                          >
+                            <span>Portal</span>
+                            <span className="text-[10px]">↗</span>
+                          </a>
+                        )}
+
+                        <button
+                          onClick={() => {
+                            setEditingSubId(sub.id);
+                            setEditDate(sub.fecha_renovacion);
+                            setEditCost(sub.costo);
+                          }}
+                          className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-lg text-xs font-bold transition cursor-pointer"
+                        >
+                          Editar
+                        </button>
+
+                        <button
+                          onClick={() => handleRenewSub(sub.id)}
+                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-black transition shadow-sm cursor-pointer"
+                          title="Extender 30 días a partir de la fecha"
+                        >
+                          +30 Días
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* FORMULARIO DE EDICIÓN EN LÍNEA */}
+                    {isEditing && (
+                      <div className="mt-3 p-3 bg-slate-900 border border-amber-400/40 rounded-xl space-y-2 animate-in fade-in">
+                        <span className="text-xs font-bold text-amber-300 block">
+                          Modificar fecha o costo de {sub.nombre_servicio}:
+                        </span>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[10px] text-slate-400 block mb-0.5">Fecha de Renovación</label>
+                            <input
+                              type="date"
+                              value={editDate}
+                              onChange={(e) => setEditDate(e.target.value)}
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white outline-none focus:border-amber-400"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-slate-400 block mb-0.5">Costo Mensual ($ USD)</label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={editCost}
+                              onChange={(e) => setEditCost(Number(e.target.value))}
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white outline-none focus:border-amber-400"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex justify-end gap-2 pt-1">
+                          <button
+                            onClick={() => setEditingSubId(null)}
+                            className="px-2.5 py-1 text-xs text-slate-400 hover:text-white cursor-pointer"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            onClick={() => handleSaveSubDate(sub.id)}
+                            className="px-3 py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-lg text-xs font-black cursor-pointer"
+                          >
+                            Guardar Cambios
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
         </div>
       </div>
     </div>

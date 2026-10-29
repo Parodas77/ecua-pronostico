@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 const CIUDADES_ECUADOR = [
@@ -38,7 +39,9 @@ const METODOS_PAGO = [
   "Otro Método",
 ];
 
-export default function ActivacionVipPage() {
+function ActivacionVipForm() {
+  const searchParams = useSearchParams();
+
   const [formData, setFormData] = useState({
     nombre: "",
     apellido: "",
@@ -56,6 +59,28 @@ export default function ActivacionVipPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successData, setSuccessData] = useState<any>(null);
+  const [isPreVerified, setIsPreVerified] = useState(false);
+  const [verifiedAmount, setVerifiedAmount] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const tel = searchParams.get("tel");
+      const ref = searchParams.get("ref");
+      const amt = searchParams.get("amt");
+      const bank = searchParams.get("bank");
+
+      if (tel || ref || amt) {
+        setIsPreVerified(true);
+        if (amt) setVerifiedAmount(amt);
+        setFormData((prev) => ({
+          ...prev,
+          telefono_whatsapp: tel ? tel.trim() : prev.telefono_whatsapp,
+          referencia_pago: ref ? ref.trim() : prev.referencia_pago,
+          metodo_pago: bank ? `Transferencia ${bank}` : prev.metodo_pago,
+        }));
+      }
+    } catch {}
+  }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
@@ -150,6 +175,20 @@ export default function ActivacionVipPage() {
         </div>
 
         {/* VISTA DE CONFIRMACIÓN TRAS COMPLETAR REGISTRO */}
+        {isPreVerified && !successData && (
+          <div className="mb-6 p-4 bg-emerald-950/90 border-2 border-emerald-500 rounded-2xl flex items-center gap-3 shadow-[0_0_30px_rgba(16,185,129,0.25)] animate-in fade-in">
+            <span className="text-2xl">🟢</span>
+            <div className="text-left">
+              <h3 className="text-xs sm:text-sm font-black text-emerald-300">
+                ¡Comprobante Validado por WhatsApp con IA!
+              </h3>
+              <p className="text-[11px] sm:text-xs text-emerald-200/90 mt-0.5">
+                Detectamos tu pago{verifiedAmount ? ` de $${verifiedAmount}` : ""}. Hemos prellenado tus datos; solo elige tu usuario y contraseña.
+              </p>
+            </div>
+          </div>
+        )}
+
         {successData ? (
           <div className="bg-slate-900/90 border-2 border-amber-400/80 rounded-3xl p-6 sm:p-8 shadow-[0_0_50px_rgba(251,191,36,0.25)] text-center animate-in fade-in zoom-in duration-300">
             <div className="w-16 h-16 rounded-full bg-amber-400/20 border-2 border-amber-400 text-3xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(251,191,36,0.4)]">
@@ -451,5 +490,22 @@ export default function ActivacionVipPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ActivacionVipPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#070d1e] text-slate-100 flex items-center justify-center p-4">
+          <div className="flex items-center gap-2 text-amber-400 font-bold">
+            <span className="w-5 h-5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+            <span>Cargando formulario de activación...</span>
+          </div>
+        </div>
+      }
+    >
+      <ActivacionVipForm />
+    </Suspense>
   );
 }
