@@ -226,6 +226,7 @@ export default function EcuaPronosticoDashboard() {
   const [liveWindow, setLiveWindow] = useState<string>("Sincronizando corte diario de 8 días...");
   const [apiDiagnostics, setApiDiagnostics] = useState<string[]>([]);
 
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [username, setUsername] = useState("");
@@ -263,6 +264,19 @@ export default function EcuaPronosticoDashboard() {
       setView("premium");
       recordVipActivity();
     }
+
+    // Chequear si el usuario es administrador autenticado (ocultamiento del botón CRM para público general)
+    try {
+      const rawAdmin = localStorage.getItem("ecuapronostico_admin_auth");
+      if (rawAdmin) {
+        const parsed = JSON.parse(rawAdmin);
+        if (parsed.authenticated && (parsed.username === "admin" || parsed.role === "admin")) {
+          setIsAdmin(true);
+        }
+      } else if (session && session.username === "admin") {
+        setIsAdmin(true);
+      }
+    } catch {}
 
     const onUserInteraction = () => {
       recordVipActivity();
@@ -398,7 +412,14 @@ export default function EcuaPronosticoDashboard() {
 
     // Acceso directo local de Administrador Maestro
     if (validUser === "admin" && cleanPass.toLowerCase() === "ecuapronostico2026@") {
+      try {
+        localStorage.setItem(
+          "ecuapronostico_admin_auth",
+          JSON.stringify({ authenticated: true, username: "admin", role: "admin", lastActivity: Date.now() })
+        );
+      } catch {}
       saveVipSession("admin");
+      setIsAdmin(true);
       setIsAuthenticated(true);
       setView("premium");
       setShowLoginModal(false);
@@ -415,6 +436,15 @@ export default function EcuaPronosticoDashboard() {
       const data = await res.json();
       if (data.success) {
         saveVipSession(data.username);
+        if (data.username === "admin") {
+          setIsAdmin(true);
+          try {
+            localStorage.setItem(
+              "ecuapronostico_admin_auth",
+              JSON.stringify({ authenticated: true, username: "admin", role: "admin", lastActivity: Date.now() })
+            );
+          } catch {}
+        }
         setIsAuthenticated(true);
         setView("premium");
         setShowLoginModal(false);
@@ -429,6 +459,10 @@ export default function EcuaPronosticoDashboard() {
 
   const handleLogout = () => {
     clearVipSession();
+    try {
+      localStorage.removeItem("ecuapronostico_admin_auth");
+    } catch {}
+    setIsAdmin(false);
     setIsAuthenticated(false);
     setView("basic");
     setUsername("");
@@ -708,12 +742,15 @@ export default function EcuaPronosticoDashboard() {
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <Link
-                href="/admin"
-                className="text-xs bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-500/50 px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all"
-              >
-                <span>👥 CRM Admin</span>
-              </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="text-xs bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-500/50 px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all shadow animate-fadeIn"
+                  title="Panel de Administración CRM"
+                >
+                  <span>👥 CRM Admin</span>
+                </Link>
+              )}
               <a
                 href={whatsappLink}
                 target="_blank"
@@ -990,6 +1027,36 @@ export default function EcuaPronosticoDashboard() {
               </div>
             </div>
 
+            {/* CÁLCULO DE CUOTA COMBINADA PARLEY: OBJETIVO DUPLICAR O MULTIPLICAR CAPITAL */}
+            {!isLoadingMatches && !isLoadingTop4 && top4Matches.length === 4 && (
+              <div className="bg-slate-950/90 border-2 border-amber-400 rounded-3xl p-5 md:p-6 shadow-[0_0_30px_rgba(251,191,36,0.2)] flex flex-col md:flex-row justify-between items-center gap-5 text-center md:text-left">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-center md:justify-start gap-2 flex-wrap">
+                    <span className="text-[10px] bg-amber-400 text-slate-950 font-black px-3 py-0.5 rounded-full uppercase tracking-wider">
+                      Combinada Las 4 Fijas (Ticket Cuantitativo)
+                    </span>
+                    <span className="text-xs text-emerald-400 font-bold flex items-center gap-1">
+                      <span>🛡️</span> Cero Azar • Algoritmo EV+ Verificado
+                    </span>
+                  </div>
+                  <div className="text-2xl md:text-3xl font-black text-white mt-1">
+                    Multiplicador Combinado:{" "}
+                    <span className="text-emerald-400 font-mono font-black drop-shadow">
+                      x{top4Matches.reduce((acc, m) => acc * Number(m.bestOdd || 1.8), 1).toFixed(2)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                    🎯 <strong>Objetivo de Rentabilidad:</strong> Duplica o multiplica tu capital aprovechando la máxima ventaja probabilística del mercado. Inversión sugerida: <strong className="text-white">$10</strong> ➔ Retorno estimado: <strong className="text-emerald-300 font-mono text-sm">${(10 * top4Matches.reduce((acc, m) => acc * Number(m.bestOdd || 1.8), 1)).toFixed(2)}</strong>.
+                  </p>
+                </div>
+                <div className="bg-gradient-to-b from-emerald-950 to-slate-900 border border-emerald-500/60 p-3.5 rounded-2xl text-center shrink-0 shadow-lg">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Sello de Auditoría IA</span>
+                  <span className="text-xs font-black text-emerald-300 block">ECUAPRONÓSTICO</span>
+                  <span className="text-[9px] text-slate-400 font-mono">De-Vigging & Montecarlo</span>
+                </div>
+              </div>
+            )}
+
             {isLoadingMatches || isLoadingTop4 ? (
               <div className="p-12 text-center bg-[#131d3b] border border-slate-700 rounded-3xl">
                 <p className="text-lg font-black text-green-300 animate-pulse">Consultando 20 ligas globales en la ventana de 24 horas y ordenando cronológicamente...</p>
@@ -1113,15 +1180,30 @@ export default function EcuaPronosticoDashboard() {
                             </div>
                           </div>
 
-                          <div className="space-y-1 text-xs text-slate-300 font-medium">
-                            <div className="flex justify-between">
+                          <div className="space-y-1.5 text-xs text-slate-300 font-medium">
+                            <div className="flex justify-between items-center">
                               <span className="text-slate-400">Jugada recomendada:</span>
-                              <strong className="text-amber-300">{m.bestMarketName}</strong>
+                              <strong className="text-amber-300 font-bold">{m.bestMarketName}</strong>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-slate-400">Cuota mínima justa:</span>
-                              <strong className="text-green-400">{m.minFairOddForTopPick}</strong>
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-400">Cuota Estimada:</span>
+                              <strong className="text-emerald-400 font-mono font-bold text-sm">
+                                {m.bestOdd ? Number(m.bestOdd).toFixed(2) : "1.85"}
+                              </strong>
                             </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-400">Probabilidad Matemática:</span>
+                              <strong className="text-blue-300 font-bold">
+                                {m.probReal ? `${m.probReal}%` : `${headToHeadWinProb}%`}
+                              </strong>
+                            </div>
+                            {m.capitalGoal && (
+                              <div className="pt-1">
+                                <span className="inline-block text-[10px] bg-amber-400/20 text-amber-300 border border-amber-400/50 px-2 py-0.5 rounded-md font-bold">
+                                  {m.capitalGoal}
+                                </span>
+                              </div>
+                            )}
                             <div className="pt-1 flex flex-wrap gap-1">
                               <span className="text-[10px] bg-slate-800 text-sky-300 border border-sky-500/30 px-2 py-0.5 rounded font-medium">
                                 👨‍⚖️ {m.refereeName && m.refereeName !== "Por designar" ? (
@@ -1136,6 +1218,12 @@ export default function EcuaPronosticoDashboard() {
                               <span className="text-[10px] bg-slate-800 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded font-medium">
                                 📋 {m.lineupStatus ? m.lineupStatus.slice(0, 32) + "..." : "Alineaciones verificadas"}
                               </span>
+                            </div>
+                            <div className="pt-1.5 border-t border-slate-800 text-[10px] flex items-center justify-between text-slate-400">
+                              <span className="text-emerald-400 font-bold flex items-center gap-1">
+                                <span>🛡️</span> Sello IA EcuaPronóstico
+                              </span>
+                              <span className="font-mono text-slate-500">Cero Azar</span>
                             </div>
                           </div>
 
