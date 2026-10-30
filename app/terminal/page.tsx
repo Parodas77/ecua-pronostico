@@ -607,7 +607,7 @@ export default function EcuaPronosticoDashboard() {
   }, [currentMatch?.id]);
 
   return (
-    <div className="min-h-screen bg-[#0b132b] text-slate-50 font-sans">
+    <div className="min-h-screen bg-[#0b132b] text-slate-50 font-sans pb-24 lg:pb-6">
       {/* ALERTA VISUAL ADMIN-ONLY PARA RENOVACIÓN DE APIS (<= 5 DÍAS) */}
       <AdminRenewalAlertBanner />
 
@@ -741,7 +741,8 @@ export default function EcuaPronosticoDashboard() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap">
+            {/* VISTA DESKTOP (>= 1024px): CONTROLES Y BOTONES ORIGINALES 100% INTACTOS */}
+            <div className="hidden lg:flex items-center gap-2 flex-wrap">
               {isAdmin && (
                 <Link
                   href="/admin"
@@ -813,6 +814,44 @@ export default function EcuaPronosticoDashboard() {
               </div>
               {isAuthenticated && <button onClick={handleLogout} className="text-xs text-red-400 border border-slate-700 px-2.5 py-1.5 rounded-lg">Salir</button>}
             </div>
+
+            {/* VISTA MÓVIL (< 1024px): CABECERA LIMPIA TIPO APP CON BOTÓN VIP Y ACCESO RÁPIDO */}
+            <div className="flex lg:hidden items-center gap-2 justify-between w-full pt-1">
+              <div className="flex items-center gap-1.5">
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    className="text-[11px] bg-amber-950 text-amber-300 border border-amber-500/50 px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow"
+                    title="Panel CRM"
+                  >
+                    <span>👥 CRM</span>
+                  </Link>
+                )}
+                <button
+                  onClick={() => {
+                    if (view !== "premium") {
+                      openVipPaywall("Sincronización en vivo con 3 APIs oficiales");
+                      return;
+                    }
+                    fetchMatchesFromServer(league, true);
+                  }}
+                  disabled={isSyncing}
+                  className="text-[11px] bg-slate-900 text-green-400 border border-green-500/40 px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1"
+                  title="Sincronizar"
+                >
+                  <span className={isSyncing ? "animate-spin" : ""}>🔄</span>
+                  <span>{isSyncing ? "..." : "Sincronizar"}</span>
+                </button>
+              </div>
+              <a
+                href={whatsappLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-black px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-md shadow-[#25D366]/30 active:scale-95"
+              >
+                <span>📲 Activar VIP ($14.99)</span>
+              </a>
+            </div>
           </div>
 
           {showGuide && (
@@ -834,7 +873,7 @@ export default function EcuaPronosticoDashboard() {
 
           <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-3">
             {/* SISTEMA DE PESTAÑAS DESPLEGABLES (DROPDOWN TABS) POR REGIÓN */}
-            <div className="flex flex-wrap items-center gap-2 relative z-30" data-league-dropdown>
+            <div className="flex items-center gap-2 relative z-30 overflow-x-auto whitespace-nowrap scrollbar-none max-lg:pb-1 lg:flex-wrap" data-league-dropdown>
               {REGION_TABS.map((reg, tabIdx) => {
                 const isRegionActive = activeLeagueInfo.region.id === reg.id;
                 const isOpen = openDropdown === reg.id;
@@ -843,7 +882,7 @@ export default function EcuaPronosticoDashboard() {
                   <div key={reg.id} className="relative">
                     <button
                       onClick={() => setOpenDropdown(isOpen ? null : reg.id)}
-                      className={`px-3.5 py-2.5 rounded-xl font-black text-xs md:text-sm flex items-center gap-2 transition-all border ${
+                      className={`px-3.5 py-2.5 rounded-xl font-black text-xs md:text-sm flex items-center gap-2 transition-all border shrink-0 ${
                         isRegionActive
                           ? "bg-slate-900 text-amber-300 border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.35)] ring-1 ring-amber-400/50"
                           : "bg-slate-900/90 text-slate-300 border-slate-700/80 hover:bg-slate-800 hover:text-white hover:border-slate-600"
@@ -2210,8 +2249,79 @@ export default function EcuaPronosticoDashboard() {
             </div>
           </>
         )}
+            {/* ========================================================================= */}
+      {/* BARRA DE NAVEGACIÓN MÓVIL TIPO APP NATIVA (< 1024px, INVISIBLE EN DESKTOP) */}
+      {/* ========================================================================= */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-[#091024]/95 backdrop-blur-xl border-t border-slate-800 shadow-[0_-5px_25px_rgba(0,0,0,0.85)] px-2 py-2">
+        <div className="grid grid-cols-4 items-center gap-1 max-w-md mx-auto">
+          {/* 1. Vista Completa */}
+          <button
+            onClick={() => {
+              setDisplayMode("full");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all ${
+              displayMode === "full"
+                ? "bg-blue-600/30 text-blue-300 border border-blue-500/50 shadow"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <span className="text-lg leading-none">📊</span>
+            <span className="text-[10px] font-bold mt-1 tracking-tight truncate">Completa</span>
+          </button>
+
+          {/* 2. Las 4 Fijas VIP */}
+          <button
+            onClick={() => {
+              const s = getStoredVipSession();
+              if (s) {
+                recordVipActivity();
+                if (!isAuthenticated) setIsAuthenticated(true);
+                if (view !== "premium") setView("premium");
+              } else if (view !== "premium") {
+                openVipPaywall("Las 4 Fijas del Día son exclusivas para miembros VIP.");
+                return;
+              }
+              setDisplayMode("top4");
+              fetchAllLeaguesForTop4();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all relative ${
+              displayMode === "top4"
+                ? "bg-amber-400 text-slate-950 font-black shadow-lg shadow-amber-400/30 scale-105"
+                : "text-amber-300 hover:text-white"
+            }`}
+          >
+            <span className="text-lg leading-none">🏆</span>
+            <span className="text-[10px] font-black mt-1 tracking-tight truncate">4 Fijas VIP</span>
+            {displayMode !== "top4" && (
+              <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+            )}
+          </button>
+
+          {/* 3. Historial de Aciertos */}
+          <Link
+            href="/aciertos"
+            className="flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-emerald-400 hover:text-white transition-all"
+          >
+            <span className="text-lg leading-none">📜</span>
+            <span className="text-[10px] font-bold mt-1 tracking-tight truncate">Historial</span>
+          </Link>
+
+          {/* 4. Activar VIP WhatsApp */}
+          <a
+            href={whatsappLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-green-400 hover:text-white transition-all"
+          >
+            <span className="text-lg leading-none">📲</span>
+            <span className="text-[10px] font-bold mt-1 tracking-tight truncate">Activar VIP</span>
+          </a>
+        </div>
+      </nav>
+        </div>
       </div>
     </div>
-  </div>
   );
 }

@@ -68,7 +68,6 @@ export default function HistorialAciertosPage() {
       return !isNaN(t) && now - t <= window3DaysMs;
     });
 
-    // Salvaguarda: si por ventana de calendario hay menos de 5, tomar los últimos 6 más recientes
     if (filtered.length >= 4) {
       return filtered.sort((a, b) => new Date(b.dateIso).getTime() - new Date(a.dateIso).getTime());
     }
@@ -92,15 +91,15 @@ export default function HistorialAciertosPage() {
   }, [allAciertos, historySearchQuery]);
 
   return (
-    <div className="min-h-screen bg-[#0b132b] text-slate-50 p-4 md:p-8 font-sans">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#0b132b] text-slate-50 p-3 sm:p-5 lg:p-8 font-sans pb-24 lg:pb-8">
+      <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
         {/* CABECERA CON NAVEGACIÓN Y TÍTULO */}
-        <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-slate-800 pb-6">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-3 flex-wrap">
+        <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-slate-800 pb-5">
+          <div className="space-y-2 w-full lg:w-auto">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
               <Link
                 href="/radar"
-                className="bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow"
+                className="bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow"
               >
                 ← Volver al Radar
               </Link>
@@ -115,17 +114,17 @@ export default function HistorialAciertosPage() {
                 Auditoría en Vivo {dataSource === "supabase" ? "☁️ Supabase PostgreSQL" : "⚡ En Memoria"}
               </span>
             </div>
-            <h1 className="text-2xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-amber-100 to-amber-300 tracking-tight">
+            <h1 className="text-xl sm:text-2xl lg:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-amber-100 to-amber-300 tracking-tight leading-tight">
               HISTORIAL DE ACIERTOS & TRANSPARENCIA
             </h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400 max-w-2xl leading-relaxed">
               Evaluación estricta y transparente de pronósticos finalizados. Todos los partidos de los últimos 3 días en orden cronológico, con aciertos y fallos 100% auditados.
             </p>
           </div>
 
           {/* CONTROLES: FILTRO DE LIGA Y TOGGLE MATRIZ/TARJETAS */}
-          <div className="flex flex-wrap items-center gap-2 self-stretch lg:self-auto justify-between lg:justify-end">
-            <div className="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-800">
+          <div className="flex flex-col sm:flex-row lg:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto justify-end">
+            <div className="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-800 self-start sm:self-auto">
               <button
                 onClick={() => setViewFormat("cards")}
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
@@ -148,10 +147,11 @@ export default function HistorialAciertosPage() {
               </button>
             </div>
 
-            <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 flex-wrap">
+            {/* CINTA DESLIZABLE HORIZONTAL EN MÓVIL, WRAP EN DESKTOP */}
+            <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 overflow-x-auto whitespace-nowrap scrollbar-none max-lg:w-full lg:flex-wrap">
               <button
                 onClick={() => setFilterLeague("todas")}
-                className={`px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                className={`px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all shrink-0 ${
                   filterLeague === "todas" ? "bg-slate-700 text-amber-300" : "text-slate-400 hover:text-white"
                 }`}
               >
@@ -159,7 +159,7 @@ export default function HistorialAciertosPage() {
               </button>
               <button
                 onClick={() => setFilterLeague("ligapro")}
-                className={`px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                className={`px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all shrink-0 ${
                   filterLeague === "ligapro" ? "bg-slate-700 text-amber-300" : "text-slate-400 hover:text-white"
                 }`}
               >
@@ -167,7 +167,7 @@ export default function HistorialAciertosPage() {
               </button>
               <button
                 onClick={() => setFilterLeague("espana")}
-                className={`px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                className={`px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all shrink-0 ${
                   filterLeague === "espana" ? "bg-slate-700 text-amber-300" : "text-slate-400 hover:text-white"
                 }`}
               >
@@ -175,7 +175,7 @@ export default function HistorialAciertosPage() {
               </button>
               <button
                 onClick={() => setFilterLeague("inglaterra")}
-                className={`px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                className={`px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all shrink-0 ${
                   filterLeague === "inglaterra" ? "bg-slate-700 text-amber-300" : "text-slate-400 hover:text-white"
                 }`}
               >
@@ -183,7 +183,7 @@ export default function HistorialAciertosPage() {
               </button>
               <button
                 onClick={() => setFilterLeague("champions")}
-                className={`px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                className={`px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all shrink-0 ${
                   filterLeague === "champions" ? "bg-slate-700 text-amber-300" : "text-slate-400 hover:text-white"
                 }`}
               >
@@ -191,7 +191,7 @@ export default function HistorialAciertosPage() {
               </button>
               <button
                 onClick={() => setFilterLeague("nba")}
-                className={`px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                className={`px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all shrink-0 ${
                   filterLeague === "nba" ? "bg-slate-700 text-amber-300" : "text-slate-400 hover:text-white"
                 }`}
               >
@@ -202,9 +202,9 @@ export default function HistorialAciertosPage() {
         </header>
 
         {/* MÉTRICAS DE EFECTIVIDAD DINÁMICAS (3 DÍAS Y GLOBAL HISTÓRICA) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
           {/* MÉTRICA 1: EFECTIVIDAD ÚLTIMOS 3 DÍAS */}
-          <div className="bg-gradient-to-b from-emerald-950/70 to-slate-900 border-2 border-emerald-500/80 rounded-2xl p-5 shadow-[0_0_25px_rgba(16,185,129,0.2)] text-center flex flex-col justify-between relative overflow-hidden">
+          <div className="bg-gradient-to-b from-emerald-950/70 to-slate-900 border-2 border-emerald-500/80 rounded-2xl p-4 sm:p-5 shadow-[0_0_25px_rgba(16,185,129,0.2)] text-center flex flex-col justify-between relative overflow-hidden">
             <div className="absolute top-2 right-2">
               <span className="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full font-bold uppercase">
                 Ventana Móvil 72h
@@ -214,19 +214,19 @@ export default function HistorialAciertosPage() {
               <span className="text-xs font-black uppercase tracking-wider text-emerald-400 block mb-1">
                 Efectividad Últimos 3 Días
               </span>
-              <div className="text-4xl md:text-5xl font-black text-white font-mono my-2">
+              <div className="text-3xl sm:text-4xl lg:text-5xl font-black text-white font-mono my-2">
                 {metrics.efectividad3Days}%
               </div>
             </div>
             <div className="text-xs text-slate-300 bg-slate-950/60 py-1.5 px-3 rounded-lg border border-slate-800">
               <strong className="text-emerald-400">{metrics.aciertos3Days} aciertos</strong> de{" "}
-              {metrics.total3Days} partidos disputados (
+              {metrics.total3Days} partidos (
               <span className="text-red-400 font-bold">{metrics.fallos3Days} fallos transparentes</span>)
             </div>
           </div>
 
           {/* MÉTRICA 2: EFECTIVIDAD GLOBAL HISTÓRICA */}
-          <div className="bg-gradient-to-b from-blue-950/70 to-slate-900 border-2 border-blue-500/80 rounded-2xl p-5 shadow-[0_0_25px_rgba(59,130,246,0.2)] text-center flex flex-col justify-between relative overflow-hidden">
+          <div className="bg-gradient-to-b from-blue-950/70 to-slate-900 border-2 border-blue-500/80 rounded-2xl p-4 sm:p-5 shadow-[0_0_25px_rgba(59,130,246,0.2)] text-center flex flex-col justify-between relative overflow-hidden">
             <div className="absolute top-2 right-2">
               <span className="text-[9px] bg-blue-500/20 text-blue-300 border border-blue-500/40 px-2 py-0.5 rounded-full font-bold uppercase">
                 Desde Lanzamiento
@@ -236,7 +236,7 @@ export default function HistorialAciertosPage() {
               <span className="text-xs font-black uppercase tracking-wider text-blue-400 block mb-1">
                 Efectividad Global Histórica
               </span>
-              <div className="text-4xl md:text-5xl font-black text-white font-mono my-2">
+              <div className="text-3xl sm:text-4xl lg:text-5xl font-black text-white font-mono my-2">
                 {metrics.efectividadGlobal}%
               </div>
             </div>
@@ -248,12 +248,12 @@ export default function HistorialAciertosPage() {
           </div>
 
           {/* MÉTRICA 3: LLAMADO A ACCIÓN FREEMIUM VIP */}
-          <div className="bg-gradient-to-b from-slate-900 to-amber-950/40 border-2 border-amber-400/80 rounded-2xl p-5 text-center flex flex-col justify-between shadow-xl">
+          <div className="bg-gradient-to-b from-slate-900 to-amber-950/40 border-2 border-amber-400/80 rounded-2xl p-4 sm:p-5 text-center flex flex-col justify-between shadow-xl">
             <div>
               <span className="text-xs font-black uppercase tracking-wider text-amber-300 block mb-1">
                 Membresía VIP EcuaPronóstico
               </span>
-              <div className="text-3xl font-black text-white my-1">
+              <div className="text-2xl sm:text-3xl font-black text-white my-1">
                 $14.99 <span className="text-xs text-slate-400 font-normal">/ mes</span>
               </div>
               <p className="text-[11px] text-slate-300 leading-snug">
@@ -282,7 +282,7 @@ export default function HistorialAciertosPage() {
           /* VISTA MATRIZ: TABLA DE FILAS Y COLUMNAS CON CHECKS Y EQUIS   */
           /* ============================================================ */
           <div className="bg-slate-900/90 border-2 border-blue-500/60 rounded-3xl overflow-hidden shadow-2xl">
-            <div className="p-4 md:px-6 bg-[#091024] border-b border-slate-800 flex justify-between items-center">
+            <div className="p-4 md:px-6 bg-[#091024] border-b border-slate-800 flex justify-between items-center gap-2">
               <div>
                 <h3 className="text-sm md:text-base font-black text-white uppercase tracking-wide flex items-center gap-2">
                   <span>📊</span> Matriz de Auditoría Histórica de Pronósticos
@@ -291,8 +291,8 @@ export default function HistorialAciertosPage() {
                   Verificación fila a fila del resultado oficial vs el pronóstico cuantitativo (Orden Cronológico)
                 </p>
               </div>
-              <span className="text-xs font-mono font-bold text-slate-300 bg-slate-800 px-3 py-1 rounded-lg border border-slate-700">
-                {allAciertos.length} Registros Totales
+              <span className="text-xs font-mono font-bold text-slate-300 bg-slate-800 px-3 py-1 rounded-lg border border-slate-700 shrink-0">
+                {allAciertos.length} Registros
               </span>
             </div>
 
@@ -374,11 +374,11 @@ export default function HistorialAciertosPage() {
           /* VISTA PRINCIPAL: TARJETAS DETALLADAS (ÚLTIMOS 3 DÍAS)        */
           /* ============================================================ */
           <section className="space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <h2 className="text-base md:text-lg font-black text-white uppercase tracking-wide flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-2 gap-1">
+              <h2 className="text-sm sm:text-base md:text-lg font-black text-white uppercase tracking-wide flex items-center gap-2">
                 <span>🗓️</span> Partidos Pronosticados de los Últimos 3 Días ({recent3DaysMatches.length} partidos)
               </h2>
-              <span className="text-xs text-slate-400 font-mono">
+              <span className="text-[11px] sm:text-xs text-slate-400 font-mono">
                 Orden rigurosamente cronológico (más recientes primero)
               </span>
             </div>
@@ -394,44 +394,44 @@ export default function HistorialAciertosPage() {
               >
                 {/* ENCABEZADO DE TARJETA */}
                 <div
-                  className={`px-5 py-2.5 border-b border-slate-800 flex flex-wrap justify-between items-center gap-2 ${
+                  className={`px-4 sm:px-5 py-2.5 border-b border-slate-800 flex flex-wrap justify-between items-center gap-2 ${
                     item.acerto ? "bg-[#091024]" : "bg-[#200b0e]"
                   }`}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     <span
-                      className={`w-2.5 h-2.5 rounded-full ${
+                      className={`w-2.5 h-2.5 rounded-full shrink-0 ${
                         item.acerto ? "bg-emerald-400 animate-ping" : "bg-red-500"
                       }`}
                     ></span>
-                    <span className="text-xs font-black uppercase tracking-wider text-amber-300">
+                    <span className="text-xs font-black uppercase tracking-wider text-amber-300 truncate">
                       🏆 {item.league}
                     </span>
                     {!item.acerto && (
-                      <span className="text-[10px] bg-red-600/30 text-red-300 border border-red-500/50 px-2 py-0.5 rounded-md font-black uppercase">
-                        Transparencia: Fallo Registrado
+                      <span className="text-[9px] sm:text-[10px] bg-red-600/30 text-red-300 border border-red-500/50 px-2 py-0.5 rounded-md font-black uppercase shrink-0">
+                        Fallo Registrado
                       </span>
                     )}
                   </div>
-                  <div className="text-xs font-bold text-slate-300 font-mono">
+                  <div className="text-[11px] sm:text-xs font-bold text-slate-300 font-mono">
                     📅 {item.date} • ⏰ <strong className="text-white">{item.time}</strong>
                   </div>
                 </div>
 
-                {/* CUERPO DE LA TARJETA */}
-                <div className="p-5 md:p-6 grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+                {/* CUERPO DE LA TARJETA (RESPONSIVE: VERTICAL EN MÓVIL, GRID EN DESKTOP LG) */}
+                <div className="p-4 sm:p-5 lg:p-6 flex flex-col lg:grid lg:grid-cols-12 gap-4 lg:gap-5 items-stretch lg:items-center">
                   {/* MATCH & PRONÓSTICO */}
-                  <div className="md:col-span-7 space-y-3">
-                    <div className="flex items-center gap-3">
+                  <div className="w-full lg:col-span-7 space-y-3">
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                       <span
-                        className={`w-10 h-10 rounded-full bg-slate-800 border-2 ${
+                        className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-800 border-2 ${
                           item.acerto ? "border-amber-400" : "border-red-400"
-                        } flex items-center justify-center font-black text-sm text-white shrink-0`}
+                        } flex items-center justify-center font-black text-xs sm:text-sm text-white shrink-0`}
                       >
                         {item.homeInitials}
                       </span>
-                      <h3 className="text-lg md:text-xl font-black text-white uppercase tracking-tight">
-                        {item.home} <span className="text-slate-500 text-sm font-normal">vs</span> {item.away}
+                      <h3 className="text-base sm:text-lg lg:text-xl font-black text-white uppercase tracking-tight truncate flex-1 min-w-0">
+                        <span>{item.home}</span> <span className="text-slate-500 text-xs sm:text-sm font-normal">vs</span> <span>{item.away}</span>
                       </h3>
                     </div>
 
@@ -442,16 +442,16 @@ export default function HistorialAciertosPage() {
                           : "bg-red-950/30 border-red-500/40"
                       }`}
                     >
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Lo que pronosticamos:</span>
-                        <strong className="text-amber-300 font-extrabold">{item.prediccion}</strong>
+                      <div className="flex justify-between items-center gap-2">
+                        <span className="text-slate-400 shrink-0">Lo que pronosticamos:</span>
+                        <strong className="text-amber-300 font-extrabold text-right truncate">{item.prediccion}</strong>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Probabilidad calculada en Montecarlo:</span>
-                        <strong className="text-emerald-400 font-extrabold">{item.probabilidadEstimada}</strong>
+                      <div className="flex justify-between items-center gap-2">
+                        <span className="text-slate-400 shrink-0">Probabilidad calculada:</span>
+                        <strong className="text-emerald-400 font-extrabold font-mono">{item.probabilidadEstimada}</strong>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Cuota Registrada:</span>
+                      <div className="flex justify-between items-center gap-2">
+                        <span className="text-slate-400 shrink-0">Cuota Registrada:</span>
                         <strong className="text-white font-mono font-bold">
                           {item.cuotaRegistrada ? Number(item.cuotaRegistrada).toFixed(2) : "1.80"}
                         </strong>
@@ -467,18 +467,18 @@ export default function HistorialAciertosPage() {
                     </p>
                   </div>
 
-                  {/* CAJA DE VEREDICTO / ACIERTO O FALLO */}
+                  {/* CAJA DE VEREDICTO / ACIERTO O FALLO (100% ANCHO EN MÓVIL, COL-5 EN DESKTOP) */}
                   <div
-                    className={`md:col-span-5 ${
+                    className={`w-full lg:col-span-5 ${
                       item.acerto
                         ? "bg-emerald-950/60 border-emerald-400"
                         : "bg-red-950/80 border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]"
-                    } border-2 rounded-2xl p-5 text-center shadow-lg`}
+                    } border-2 rounded-2xl p-4 sm:p-5 text-center shadow-lg`}
                   >
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-300 block mb-1">
                       RESULTADO OFICIAL FINAL
                     </span>
-                    <div className="text-xl md:text-2xl font-black text-white font-mono uppercase my-1">
+                    <div className="text-xl sm:text-2xl font-black text-white font-mono uppercase my-1">
                       {item.resultadoFinal}
                     </div>
                     <div
@@ -486,7 +486,7 @@ export default function HistorialAciertosPage() {
                         item.acerto
                           ? "bg-emerald-500 text-slate-950"
                           : "bg-red-600 text-white shadow-md shadow-red-600/40 animate-pulse"
-                      } font-black text-xs md:text-sm py-2 px-4 rounded-xl uppercase tracking-wider shadow-lg inline-block`}
+                      } font-black text-xs md:text-sm py-2 px-4 rounded-xl uppercase tracking-wider shadow-lg w-full sm:w-auto inline-block`}
                     >
                       {item.estado}
                     </div>
@@ -500,24 +500,24 @@ export default function HistorialAciertosPage() {
         {/* ========================================================================= */}
         {/* BOTÓN Y TABLA HISTÓRICA ANIDADA CON SCROLL HASTA EL INICIO DEL PROYECTO   */}
         {/* ========================================================================= */}
-        <section className="bg-slate-900/90 border-2 border-amber-400/60 rounded-3xl p-5 md:p-6 shadow-2xl space-y-4">
+        <section className="bg-slate-900/90 border-2 border-amber-400/60 rounded-3xl p-4 sm:p-5 md:p-6 shadow-2xl space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
               <span className="text-[10px] bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider">
                 Base de Datos Centralizada
               </span>
-              <h3 className="text-lg md:text-xl font-black text-white mt-1">
+              <h3 className="text-base sm:text-lg md:text-xl font-black text-white mt-1">
                 Auditoría Completa desde el Inicio del Proyecto
               </h3>
               <p className="text-xs text-slate-400">
-                Consulta cada partido pronosticado desde el lanzamiento oficial ({metrics.fechaLanzamiento}) con scroll vertical continuo.
+                Consulta cada partido pronosticado desde el lanzamiento oficial ({metrics.fechaLanzamiento}).
               </p>
             </div>
 
             {/* BOTÓN REQUERIDO: VER TODOS LOS RESULTADOS (HISTÓRICO) */}
             <button
               onClick={() => setShowFullHistory(!showFullHistory)}
-              className="bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black px-6 py-3 rounded-2xl text-xs md:text-sm uppercase tracking-wider shadow-lg transition-all flex items-center gap-2 transform active:scale-95 cursor-pointer"
+              className="bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black px-5 py-2.5 sm:px-6 sm:py-3 rounded-2xl text-xs sm:text-sm uppercase tracking-wider shadow-lg transition-all flex items-center gap-2 transform active:scale-95 cursor-pointer w-full sm:w-auto justify-center"
             >
               <span>{showFullHistory ? "🔼 Ocultar Histórico" : "📜 Ver Todos los Resultados (Histórico)"}</span>
               <span className="bg-slate-950 text-amber-300 text-[10px] px-2 py-0.5 rounded-full font-mono">
@@ -526,7 +526,7 @@ export default function HistorialAciertosPage() {
             </button>
           </div>
 
-          {/* TABLA ANIDADA DESPLEGABLE CON SCROLL Y SLIDERS */}
+          {/* DESPLIEGUE HISTÓRICO: DATA-CARDS EN MÓVIL (< 1024px) Y TABLA EN DESKTOP (>= 1024px) */}
           {showFullHistory && (
             <div className="pt-3 border-t border-slate-800 space-y-3 animate-fadeIn">
               {/* BUSCADOR DENTRO DEL HISTÓRICO */}
@@ -542,7 +542,7 @@ export default function HistorialAciertosPage() {
                   {historySearchQuery && (
                     <button
                       onClick={() => setHistorySearchQuery("")}
-                      className="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-white"
+                      className="absolute right-3 top-2 text-xs text-slate-400 hover:text-white"
                     >
                       ✕
                     </button>
@@ -553,8 +553,69 @@ export default function HistorialAciertosPage() {
                 </div>
               </div>
 
-              {/* CONTENEDOR CON SCROLL VERTICAL FLUIDO */}
-              <div className="border border-slate-800 rounded-2xl overflow-hidden bg-slate-950/80 shadow-inner">
+              {/* 1. VISTA MÓVIL (< 1024px): LISTA VERTICAL DE DATA-CARDS SIN DOBLE SCROLL (NATIVE SCROLL) */}
+              <div className="block lg:hidden space-y-3">
+                {historicalTableMatches.map((m) => (
+                  <div
+                    key={m.id}
+                    className={`p-3.5 rounded-2xl border-2 transition-all ${
+                      m.acerto
+                        ? "bg-slate-950/80 border-emerald-500/60 shadow-sm"
+                        : "bg-red-950/40 border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]"
+                    }`}
+                  >
+                    <div className="flex justify-between items-center gap-2 border-b border-slate-800/80 pb-2 text-[11px]">
+                      <span className="font-bold text-amber-300 truncate">{m.league}</span>
+                      <span className="text-slate-400 font-mono text-[10px] shrink-0">
+                        {m.date?.split(",")?.[1]?.trim() || m.date} • {m.time}
+                      </span>
+                    </div>
+
+                    <div className="py-2.5 flex justify-between items-center gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-black text-white truncate">
+                          {m.home} <span className="text-slate-500 text-xs font-normal">vs</span> {m.away}
+                        </div>
+                        <div className="text-xs text-amber-300 font-medium truncate mt-0.5">
+                          {m.prediccion}
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span
+                          className={`inline-block font-mono font-bold text-xs px-2 py-0.5 rounded border ${
+                            m.acerto
+                              ? "bg-slate-800 border-slate-700 text-white"
+                              : "bg-red-900/60 border-red-500 text-red-200"
+                          }`}
+                        >
+                          {m.resultadoFinal}
+                        </span>
+                        <div className="text-[10px] text-emerald-400 font-mono font-bold mt-1">
+                          Cuota: {m.cuotaRegistrada ? Number(m.cuotaRegistrada).toFixed(2) : "1.80"}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-800/60 flex justify-between items-center">
+                      <span className="text-[10px] text-slate-400 italic truncate max-w-[65%]">
+                        {m.acerto ? "Auditado: Pronóstico cumplido" : "Fallo transparente registrado"}
+                      </span>
+                      {m.acerto ? (
+                        <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 px-2 py-0.5 rounded-md text-[10px] font-black uppercase">
+                          ✅ ACERTADO
+                        </span>
+                      ) : (
+                        <span className="bg-red-600 text-white px-2 py-0.5 rounded-md text-[10px] font-black uppercase shadow-sm animate-pulse">
+                          ❌ FALLO
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 2. VISTA DESKTOP (>= 1024px): TABLA ANIDADA CON SCROLL VERTICAL FLUIDO (INALTERADA) */}
+              <div className="hidden lg:block border border-slate-800 rounded-2xl overflow-hidden bg-slate-950/80 shadow-inner">
                 <div className="max-h-[520px] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-thumb-amber-500/50 scrollbar-track-slate-900">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead className="sticky top-0 bg-slate-900 border-b border-slate-800 text-slate-300 uppercase text-[10px] font-black z-10 shadow-sm">
