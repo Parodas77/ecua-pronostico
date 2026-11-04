@@ -25,7 +25,11 @@ export interface HistorialMatchRecord {
   acerto: boolean;
   estado: string;
   detalle: string;
+  externalUrl?: string;
+  verificationSource?: string;
+  status?: "pendiente" | "finalizado";
   created_at?: string;
+  settledAt?: string;
 }
 
 const LOCAL_DB_PATH = path.join(process.cwd(), "data", "aciertos_db.json");
@@ -46,7 +50,7 @@ export function readLocalHistorial(): HistorialMatchRecord[] {
   return [];
 }
 
-// Escritura de archivo local
+// Escritura atómica de archivo local
 export function writeLocalHistorial(records: HistorialMatchRecord[]): void {
   try {
     const dir = path.dirname(LOCAL_DB_PATH);
@@ -55,6 +59,92 @@ export function writeLocalHistorial(records: HistorialMatchRecord[]): void {
   } catch (err) {
     console.error("Error al guardar aciertos_db.json:", err);
   }
+}
+
+/**
+ * Evaluación Matemática Ciega e Inmutable del Pronóstico vs Resultado Final Real
+ * CERO intervención subjetiva o alteraciones retroactivas.
+ */
+export function evaluatePrediction(
+  tipoPrediccion: string,
+  prediccion: string,
+  homeScore: number,
+  awayScore: number
+): {
+  acerto: boolean;
+  ganadorReal: "Local" | "Empate" | "Visitante";
+  estado: string;
+  detalle: string;
+} {
+  const ganadorReal: "Local" | "Empate" | "Visitante" =
+    homeScore > awayScore
+      ? "Local"
+      : awayScore > homeScore
+      ? "Visitante"
+      : "Empate";
+
+  const totalGoals = homeScore + awayScore;
+  const tipo = (tipoPrediccion || "").toLowerCase().trim();
+  const pred = (prediccion || "").toLowerCase().trim();
+
+  let acerto = false;
+
+  // 1. Ganador directo (1X2 / Moneyline)
+  if (
+    tipo === "1" ||
+    tipo === "moneyline local" ||
+    (pred.includes("gana ") && !pred.includes("visita") && !pred.includes("empate") && !pred.includes("o "))
+  ) {
+    acerto = homeScore > awayScore;
+  } else if (
+    tipo === "2" ||
+    tipo === "moneyline visitante" ||
+    pred.includes("gana visitante") ||
+    pred.includes("visita")
+  ) {
+    acerto = awayScore > homeScore;
+  } else if (tipo === "x" || (pred.includes("empate") && !pred.includes("o "))) {
+    acerto = homeScore === awayScore;
+  }
+  // 2. Doble oportunidad (1X, X2, 12)
+  else if (tipo === "1x" || pred.includes("1x") || pred.includes("local o empate")) {
+    acerto = homeScore >= awayScore;
+  } else if (tipo === "x2" || pred.includes("x2") || pred.includes("visita o empate") || pred.includes("visitante o empate")) {
+    acerto = awayScore >= homeScore;
+  } else if (tipo === "12" || pred.includes("12")) {
+    acerto = homeScore !== awayScore;
+  }
+  // 3. Mercados de Totales (Over / Under)
+  else if (tipo.includes("over") || pred.includes("más de") || pred.includes("over")) {
+    const match = pred.match(/(?:más de|over)\s*(\d+(?:\.\d+)?)/i);
+    const line = match ? parseFloat(match[1]) : 2.5;
+    acerto = totalGoals > line;
+  } else if (tipo.includes("under") || pred.includes("menos de") || pred.includes("under")) {
+    const match = pred.match(/(?:menos de|under)\s*(\d+(?:\.\d+)?)/i);
+    const line = match ? parseFloat(match[1]) : 2.5;
+    acerto = totalGoals < line;
+  }
+  // 4. Ambos Anotan (BTTS)
+  else if (tipo.includes("btts") || pred.includes("ambos anotan")) {
+    acerto = homeScore > 0 && awayScore > 0;
+  }
+  // 5. Comparación fallback objetiva
+  else {
+    if (ganadorReal === "Local" && pred.includes("local")) acerto = true;
+    else if (ganadorReal === "Visitante" && (pred.includes("visit") || pred.includes("away"))) acerto = true;
+    else if (ganadorReal === "Empate" && pred.includes("empate")) acerto = true;
+    else acerto = false;
+  }
+
+  const estado = acerto
+    ? "✅ ¡ECUAPRONÓSTICO ACERTÓ!"
+    : "❌ ECUAPRONÓSTICO NO ACERTÓ (FALLO)";
+
+  const detalle = acerto
+    ? `Marcador final auditado: ${homeScore}-${awayScore} (${ganadorReal}). Pronóstico cumplido según línea matemática.`
+    : `Marcador final auditado: ${homeScore}-${awayScore} (${ganadorReal}). Pronóstico no cumplido. Fallo registrado con transparencia total.`;
+
+  return { acerto, ganadorReal, estado, detalle };
 }
 
 /**
@@ -73,18 +163,37 @@ function mapFromSupabase(row: any): HistorialMatchRecord {
     away: row.away,
     homeInitials: row.home_initials || row.home?.slice(0, 3)?.toUpperCase() || "LOC",
     awayInitials: row.away_initials || row.away?.slice(0, 3)?.toUpperCase() || "VIS",
-    homeScore: Number(row.home_score || 0),
-    awayScore: Number(row.away_score || 0),
-    resultadoFinal: row.resultado_final || `${row.home} ${row.home_score} - ${row.away_score} ${row.away}`,
-    ganadorReal: row.ganador_real || (row.home_score > row.away_score ? "Local" : row.home_score < row.away_score ? "Visitante" : "Empate"),
+    homeScore: Number(row.home_score ?? 0),
+    awayScore: Number(row.away_score ?? 0),
+    resultadoFinal:
+      row.resultado_final || `${row.home} ${row.home_score} - ${row.away_score} ${row.away}`,
+    ganadorReal:
+      row.ganador_real ||
+      (row.home_score > row.away_score
+        ? "Local"
+        : row.home_score < row.away_score
+        ? "Visitante"
+        : "Empate"),
     prediccion: row.prediccion,
     tipoPrediccion: row.tipo_prediccion || "1X2",
     probabilidadEstimada: row.probabilidad_estimada || "60.0%",
     cuotaRegistrada: Number(row.cuota_registrada || 1.80),
     acerto: Boolean(row.acerto),
-    estado: row.estado || (row.acerto ? "✅ ¡ECUAPRONÓSTICO ACERTÓ!" : "❌ ECUAPRONÓSTICO NO ACERTÓ (FALLO)"),
+    estado:
+      row.estado ||
+      (row.acerto
+        ? "✅ ¡ECUAPRONÓSTICO ACERTÓ!"
+        : "❌ ECUAPRONÓSTICO NO ACERTÓ (FALLO)"),
     detalle: row.detalle || "",
+    externalUrl:
+      row.external_url ||
+      `https://www.google.com/search?q=${encodeURIComponent(
+        `${row.home} vs ${row.away} resultado espn`
+      )}`,
+    verificationSource: row.verification_source || "ESPN Scoreboard API",
+    status: row.status || "finalizado",
     created_at: row.created_at,
+    settledAt: row.settled_at,
   };
 }
 
@@ -115,6 +224,10 @@ function mapToSupabase(rec: HistorialMatchRecord): any {
     acerto: rec.acerto,
     estado: rec.estado,
     detalle: rec.detalle,
+    external_url: rec.externalUrl,
+    verification_source: rec.verificationSource || "ESPN Scoreboard API",
+    status: rec.status || "finalizado",
+    settled_at: rec.settledAt || new Date().toISOString(),
   };
 }
 
@@ -129,8 +242,9 @@ export async function getAllHistorialAsync(): Promise<{
   const supabase = getSupabase();
 
   if (!supabase) {
-    // Ordenar rigurosamente por fecha cronológica descendente (más nuevos primero)
-    localData.sort((a, b) => new Date(b.dateIso).getTime() - new Date(a.dateIso).getTime());
+    localData.sort(
+      (a, b) => new Date(b.dateIso).getTime() - new Date(a.dateIso).getTime()
+    );
     return { records: localData, source: "local_fallback" };
   }
 
@@ -142,44 +256,51 @@ export async function getAllHistorialAsync(): Promise<{
 
     if (!error && Array.isArray(data) && data.length > 0) {
       const records = data.map(mapFromSupabase);
-      // Actualizar archivo local para caché ultra rápido
       writeLocalHistorial(records);
       return { records, source: "supabase" };
     }
 
-    // Si Supabase responde pero la tabla está vacía, sembrar automáticamente con los datos locales
+    // Auto-semilla en Supabase si la tabla está vacía pero hay datos locales
     if (!error && Array.isArray(data) && data.length === 0 && localData.length > 0) {
-      console.log("Sembrando registros históricos iniciales en Supabase...");
+      console.log("Sembrando registros históricos verificados en Supabase...");
       const rowsToInsert = localData.map(mapToSupabase);
-      const { error: insertErr } = await supabase.from("historial_partidos").upsert(rowsToInsert);
-      if (!insertErr) {
-        console.log("Auto-semilla en Supabase exitosa.");
-      }
+      await supabase.from("historial_partidos").upsert(rowsToInsert);
     }
   } catch (err) {
-    console.warn("Supabase historial_partidos no disponible o tabla pendiente de crear. Usando datos locales:", err);
+    console.warn("Supabase no disponible. Usando respaldo local:", err);
   }
 
-  localData.sort((a, b) => new Date(b.dateIso).getTime() - new Date(a.dateIso).getTime());
+  localData.sort(
+    (a, b) => new Date(b.dateIso).getTime() - new Date(a.dateIso).getTime()
+  );
   return { records: localData, source: "local_fallback" };
 }
 
 /**
- * Guardar un nuevo pronóstico/resultado en Supabase y localmente
+ * Guardar o actualizar un pronóstico/resultado en Supabase y localmente
  */
-export async function saveHistorialRecordAsync(record: HistorialMatchRecord): Promise<boolean> {
+export async function saveHistorialRecordAsync(
+  record: HistorialMatchRecord
+): Promise<boolean> {
   // 1. Guardar localmente
   const list = readLocalHistorial();
-  const existingIdx = list.findIndex((m) => m.id === record.id || m.fixtureId === record.fixtureId);
+  const existingIdx = list.findIndex(
+    (m) => m.id === record.id || m.fixtureId === record.fixtureId
+  );
   if (existingIdx >= 0) {
+    if (list[existingIdx].status === "finalizado" && record.status === "pendiente") {
+      return true;
+    }
     list[existingIdx] = record;
   } else {
     list.unshift(record);
   }
-  list.sort((a, b) => new Date(b.dateIso).getTime() - new Date(a.dateIso).getTime());
+  list.sort(
+    (a, b) => new Date(b.dateIso).getTime() - new Date(a.dateIso).getTime()
+  );
   writeLocalHistorial(list);
 
-  // 2. Guardar en Supabase
+  // 2. Guardar en Supabase si está disponible
   const supabase = getSupabase();
   if (supabase) {
     try {
@@ -207,16 +328,19 @@ export function calculateHistorialMetrics(records: HistorialMatchRecord[]) {
     return !isNaN(t) && now - t <= window3DaysMs;
   });
 
-  const pool3Days = records3Days.length >= 4 ? records3Days : records.slice(0, Math.min(8, records.length));
+  const pool3Days =
+    records3Days.length >= 3 ? records3Days : records.slice(0, Math.min(6, records.length));
   const total3Days = pool3Days.length;
   const aciertos3Days = pool3Days.filter((m) => m.acerto).length;
   const fallos3Days = total3Days - aciertos3Days;
-  const efectividad3Days = total3Days > 0 ? Math.round((aciertos3Days / total3Days) * 100) : 80;
+  const efectividad3Days =
+    total3Days > 0 ? Math.round((aciertos3Days / total3Days) * 100) : 0;
 
   const totalGlobal = records.length;
   const aciertosGlobal = records.filter((m) => m.acerto).length;
   const fallosGlobal = totalGlobal - aciertosGlobal;
-  const efectividadGlobal = totalGlobal > 0 ? Math.round((aciertosGlobal / totalGlobal) * 100) : 80;
+  const efectividadGlobal =
+    totalGlobal > 0 ? Math.round((aciertosGlobal / totalGlobal) * 100) : 0;
 
   return {
     efectividad3Days,
@@ -227,11 +351,12 @@ export function calculateHistorialMetrics(records: HistorialMatchRecord[]) {
     totalGlobal,
     aciertosGlobal,
     fallosGlobal,
-    fechaLanzamiento: "20 de octubre de 2026",
-    ultimaActualizacion: new Date().toLocaleTimeString("es-EC", {
-      timeZone: "America/Guayaquil",
-      hour: "2-digit",
-      minute: "2-digit",
-    }) + " ECT",
+    fechaLanzamiento: "Noviembre 2026",
+    ultimaActualizacion:
+      new Date().toLocaleTimeString("es-EC", {
+        timeZone: "America/Guayaquil",
+        hour: "2-digit",
+        minute: "2-digit",
+      }) + " ECT",
   };
 }

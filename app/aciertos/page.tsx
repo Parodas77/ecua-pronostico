@@ -318,8 +318,20 @@ export default function HistorialAciertosPage() {
                       }`}
                     >
                       <td className="py-3 px-4 text-slate-300 whitespace-nowrap font-mono">
-                        <div>{item.date?.split(",")?.[1]?.trim() || item.date}</div>
-                        <div className="text-[10px] text-slate-500">{item.time}</div>
+                        <div className="font-bold text-white">{item.date}</div>
+                        <div className="text-[11px] text-amber-300 font-semibold">{item.time}</div>
+                        {item.externalUrl && (
+                          <a
+                            href={item.externalUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] bg-blue-950/80 hover:bg-blue-900 text-blue-300 border border-blue-500/40 px-2 py-0.5 rounded mt-1 inline-flex items-center gap-1 transition-all"
+                            title="Auditar marcador en ESPN Oficial"
+                          >
+                            <span>🔗</span>
+                            <span>ESPN #{item.fixtureId}</span>
+                          </a>
+                        )}
                       </td>
                       <td className="py-3 px-4 font-bold text-amber-300/90 whitespace-nowrap">
                         {item.league}
@@ -413,8 +425,22 @@ export default function HistorialAciertosPage() {
                       </span>
                     )}
                   </div>
-                  <div className="text-[11px] sm:text-xs font-bold text-slate-300 font-mono">
-                    📅 {item.date} • ⏰ <strong className="text-white">{item.time}</strong>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div className="text-[11px] sm:text-xs font-bold text-slate-300 font-mono">
+                      📅 {item.date} • ⏰ <strong className="text-white">{item.time}</strong>
+                    </div>
+                    {item.externalUrl && (
+                      <a
+                        href={item.externalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] bg-blue-900/80 hover:bg-blue-800 text-blue-200 border border-blue-400/50 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 transition-all shadow hover:scale-105"
+                        title="Verificar marcador y reporte oficial en ESPN"
+                      >
+                        <span>🔗</span>
+                        <span>Verificar en ESPN #{item.fixtureId}</span>
+                      </a>
+                    )}
                   </div>
                 </div>
 
@@ -565,9 +591,22 @@ export default function HistorialAciertosPage() {
                     }`}
                   >
                     <div className="flex justify-between items-center gap-2 border-b border-slate-800/80 pb-2 text-[11px]">
-                      <span className="font-bold text-amber-300 truncate">{m.league}</span>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="font-bold text-amber-300 truncate">{m.league}</span>
+                        {m.externalUrl && (
+                          <a
+                            href={m.externalUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] bg-blue-950 text-blue-300 border border-blue-500/40 px-1.5 py-0.2 rounded font-bold shrink-0"
+                            title="Ver en ESPN"
+                          >
+                            🔗 #{m.fixtureId}
+                          </a>
+                        )}
+                      </div>
                       <span className="text-slate-400 font-mono text-[10px] shrink-0">
-                        {m.date?.split(",")?.[1]?.trim() || m.date} • {m.time}
+                        {m.date} • {m.time}
                       </span>
                     </div>
 
@@ -639,9 +678,19 @@ export default function HistorialAciertosPage() {
                               : "bg-red-950/20 border-l-4 border-l-red-500 text-red-100"
                           }`}
                         >
-                          <td className="py-2.5 px-4 whitespace-nowrap text-slate-300">
-                            <div>{m.date?.split(",")?.[1]?.trim() || m.date}</div>
-                            <div className="text-[10px] text-slate-500">{m.time}</div>
+                          <td className="py-2.5 px-4 whitespace-nowrap text-slate-300 font-mono">
+                            <div className="font-bold text-white">{m.date}</div>
+                            <div className="text-[10px] text-amber-300 font-semibold">{m.time}</div>
+                            {m.externalUrl && (
+                              <a
+                                href={m.externalUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[9px] text-blue-400 hover:text-blue-300 underline mt-0.5 inline-block"
+                              >
+                                🔗 ESPN #{m.fixtureId}
+                              </a>
+                            )}
                           </td>
                           <td className="py-2.5 px-4 font-bold text-amber-300/90 whitespace-nowrap">
                             {m.league}

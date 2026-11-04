@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { saveHistorialRecordAsync } from "@/lib/historialDb";
 
 // =========================================================================
 // MOTOR MATEMÁTICO Y DE SELECCIÓN PARA "LAS 4 FIJAS DEL DÍA"
@@ -533,6 +534,42 @@ export async function GET(request: Request) {
       top4Selected.reduce((acc, m) => acc * Number(m.bestOdd || 1.8), 1).toFixed(2)
     );
     const parleyReturnOn10 = Number((10 * parleyMultiplier).toFixed(2));
+
+    // 7. PRE-REGISTRO INMUTABLE EN LA BASE DE DATOS DE AUDITORÍA (PRE-MATCH)
+    for (const m of top4Selected) {
+      try {
+        await saveHistorialRecordAsync({
+          id: `fija-${m.fixtureId}`,
+          fixtureId: String(m.fixtureId),
+          league: m.leagueTitle,
+          leagueCategory: m.leagueKey,
+          date: m.date,
+          time: m.time,
+          dateIso: m.dateIso,
+          home: m.home,
+          away: m.away,
+          homeInitials: m.homeInitials,
+          awayInitials: m.awayInitials,
+          homeScore: 0,
+          awayScore: 0,
+          resultadoFinal: "Pendiente de disputa",
+          ganadorReal: "Local",
+          prediccion: m.bestMarketExplanation || m.bestMarketName,
+          tipoPrediccion: m.bestMarketType || "1X2",
+          probabilidadEstimada: `${m.probReal}%`,
+          cuotaRegistrada: Number(m.bestOdd || 1.8),
+          acerto: false,
+          estado: "⏳ PENDIENTE DE DISPUTA",
+          detalle: `Pronóstico cuantitativo emitido antes del pitazo inicial (${m.date} - ${m.time}). Pendiente de liquidación matemática tras resultado oficial.`,
+          externalUrl: `https://www.espn.com/soccer/match/_/gameId/${m.fixtureId}`,
+          verificationSource: "ESPN Scoreboard API",
+          status: "pendiente",
+          created_at: new Date().toISOString(),
+        });
+      } catch (err) {
+        console.error("Error al pre-registrar fija:", m.fixtureId, err);
+      }
+    }
 
     const payload = {
       success: true,

@@ -1149,6 +1149,18 @@ export default function EcuaPronosticoDashboard() {
                           <span className="text-[10px] bg-green-950 text-green-400 border border-green-500/40 px-2.5 py-0.5 rounded-full font-black">
                             🔥 CONFIANZA {m.confidenceScore || 85}/100
                           </span>
+                          {m.fixtureId && (
+                            <a
+                              href={`https://www.espn.com/soccer/match/_/gameId/${m.fixtureId}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[10px] bg-blue-950/90 hover:bg-blue-900 text-blue-300 border border-blue-400/50 px-2 py-0.5 rounded font-mono font-bold flex items-center gap-1 transition-all"
+                              title="Verificar fixture oficial en ESPN"
+                            >
+                              <span>🔗</span>
+                              <span>ESPN #{m.fixtureId}</span>
+                            </a>
+                          )}
                         </div>
                       </div>
 
@@ -1428,9 +1440,23 @@ export default function EcuaPronosticoDashboard() {
                               </span>
                             </div>
                             <div className="flex items-center gap-3">
-                              <span className="text-xs md:text-sm font-bold text-slate-200">
-                                📅 {m.date} • ⏰ <strong className="text-white">{m.time}</strong>
-                              </span>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-xs md:text-sm font-bold text-slate-200">
+                                  📅 {m.date} • ⏰ <strong className="text-white">{m.time}</strong>
+                                </span>
+                                {m.fixtureId && (
+                                  <a
+                                    href={`https://www.espn.com/soccer/match/_/gameId/${m.fixtureId}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[10px] bg-slate-800 hover:bg-slate-700 text-blue-300 border border-blue-500/40 px-2 py-0.5 rounded font-mono font-bold flex items-center gap-1 transition-all"
+                                    title="Cotejar en ESPN Oficial"
+                                  >
+                                    <span>🔗</span>
+                                    <span>ESPN #{m.fixtureId}</span>
+                                  </a>
+                                )}
+                              </div>
                               <span
                                 className={`text-[10px] px-2.5 py-0.5 rounded-full font-black ${
                                   isUnlocked
