@@ -62,3 +62,30 @@ CREATE POLICY "Escritura administrativa de historial de partidos"
   FOR ALL
   TO service_role
   USING (true);
+
+
+-- ==============================================================================
+-- TABLA DE SNAPSHOTS DIARIOS INMUTABLES DE LAS 4 FIJAS DEL DÍA
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS fijas_diarias_snapshots (
+  day_key TEXT PRIMARY KEY,
+  snapshot_date TEXT NOT NULL,
+  locked_at TIMESTAMPTZ DEFAULT NOW(),
+  payload JSONB NOT NULL
+);
+
+ALTER TABLE fijas_diarias_snapshots ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Lectura pública de fijas diarias" ON fijas_diarias_snapshots;
+CREATE POLICY "Lectura pública de fijas diarias"
+  ON fijas_diarias_snapshots
+  FOR SELECT
+  TO anon, authenticated
+  USING (true);
+
+DROP POLICY IF EXISTS "Escritura administrativa de fijas diarias" ON fijas_diarias_snapshots;
+CREATE POLICY "Escritura administrativa de fijas diarias"
+  ON fijas_diarias_snapshots
+  FOR ALL
+  TO service_role
+  USING (true);

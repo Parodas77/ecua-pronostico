@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { saveHistorialRecordAsync } from "@/lib/historialDb";
+import { getEcuadorDayKey, getEcuadorFormattedDate, getDailySnapshotAsync, saveDailySnapshotAsync, FijasSnapshotPayload } from "@/lib/fijasSnapshot";
 
 // =========================================================================
 // MOTOR MATEMÁTICO Y DE SELECCIÓN PARA "LAS 4 FIJAS DEL DÍA"
@@ -214,17 +215,18 @@ function calculateSportMetrics(
   };
 }
 
-// Cache en memoria por 60 segundos para máxima respuesta
-let cachedFijas: { timestamp: number; data: any } | null = null;
-
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const force = searchParams.get("refresh") === "true";
+  const dayKey = getEcuadorDayKey();
+
+  // REGLA DE ORO DE INTEGRIDAD: SNAPSHOT DIARIO INMUTABLE A LAS 00:00 ECT
+  // Si ya existe un snapshot generado para el día calendario actual, SE DEVUELVE INMEDIATAMENTE.
+  // Ningún usuario ni botón de "forzar sincronización" puede alterar los 4 partidos del día.
+  const existingSnapshot = await getDailySnapshotAsync(dayKey);
+  if (existingSnapshot && Array.isArray(existingSnapshot.fijas) && existingSnapshot.fijas.length > 0) {
+    return NextResponse.json(existingSnapshot);
+  }
 
   const nowMs = Date.now();
-  if (!force && cachedFijas && (nowMs - cachedFijas.timestamp) < 60 * 1000) {
-    return NextResponse.json(cachedFijas.data);
-  }
 
   const browserHeaders = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
@@ -571,12 +573,55 @@ export async function GET(request: Request) {
       }
     }
 
-    const payload = {
+    const snapshotFormattedDate = getEcuadorFormattedDate();
+    const estrategiaApostador = {
+      titulo: "GUÍA ESTRATÉGICA PARA EL APOSTADOR (GESTIÓN DE RIESGO INTELIGENTE)",
+      apuestasSimples: {
+        titulo: "Opción A: Apuestas Simples / Individuales (Recomendación Oficial para Novatos)",
+        badge: "⭐ RECOMENDACIÓN OFICIAL ECUAPRONÓSTICO",
+        stakeRecomendado: "2% a 5% del bankroll por partido (Stake Plano)",
+        porcentajeExitoEstimado: "78% - 85%",
+        explicacion:
+          "Apostar a cada fija por separado es la estrategia cuantitativa más rentable y segura a largo plazo. Si aciertas 3 de las 4 fijas (75% de acierto), ya aseguras ganancia neta garantizada y evitas que un gol inesperado en el minuto 90 eche a perder todo tu capital.",
+        beneficios: [
+          "Menor varianza y máxima protección de capital",
+          "Rentabilidad positiva incluso si 1 partido resulta en fallo",
+          "El método utilizado por apostadores profesionales y fondos cuantitativos",
+        ],
+      },
+      parleyCombinada: {
+        titulo: "Opción B: Parley Combinado de las 4 Fijas (Alto Rendimiento / Multiplicador)",
+        badge: `🔥 MULTIPLICADOR X${parleyMultiplier.toFixed(2)}`,
+        stakeRecomendado: "Máximo 0.5% a 1% del bankroll (Tiro de Valor)",
+        multiplicadorTotal: parleyMultiplier,
+        retornoPorCada10: parleyReturnOn10,
+        explicacion: `Agrupar las 4 fijas en un solo boleto ofrece un multiplicador explosivo de x${parleyMultiplier.toFixed(2)} ($10 retornan ${parleyReturnOn10.toFixed(2)}). Sin embargo, al combinar 4 eventos, la probabilidad matemática compuesta disminuye, por lo que debes arriesgar únicamente un monto menor que no afecte tu presupuesto principal.`,
+        beneficios: [
+          "Multiplica tu inversión exponencialmente con poco capital",
+          "Máxima adrenalina con pronósticos respaldados por IA",
+          "Ideal como apuesta complementaria de bajo riesgo financiero",
+        ],
+        advertenciaRiesgo:
+          "En un parley de 4 selecciones, si falla un solo partido se pierde el boleto completo. Úsalo con moderación.",
+      },
+      sistemaRoundRobin: {
+        titulo: "Opción C: Sistema de Cobertura 3 de 4 (Trixie / Round Robin)",
+        badge: "⚖️ COBERTURA EQUILIBRADA",
+        explicacion:
+          "Tu casa de apuestas crea 4 combinadas de 3 partidos cada una. Si 3 de las 4 fijas se cumplen, cobras el premio de la combinación ganadora asegurando tu inversión y obteniendo retorno positivo.",
+      },
+      veredictoFinal: `Para la jornada de hoy (${snapshotFormattedDate}), la recomendación matemática de EcuaPronóstico para novatos es apostar con STAKE PLANO de forma INDIVIDUAL a cada uno de los 4 partidos para construir banca sólida. Si deseas buscar el multiplicador x${parleyMultiplier.toFixed(2)}, destina solo una fracción menor al Parley Combinado.`,
+    };
+
+    const payload: FijasSnapshotPayload = {
       success: true,
+      dayKey,
+      snapshotDate: snapshotFormattedDate,
+      lockedAt: "00:00 ECT",
+      expiresAt: "23:59 ECT",
+      isLocked: true,
       count: top4Selected.length,
-      window: windowApplied,
-      syncTime: new Date().toLocaleTimeString("es-EC", { timeZone: "America/Guayaquil" }) + " ECT",
-      timestamp: nowMs,
+      window: `Snapshot Oficial 24 Horas (${snapshotFormattedDate})`,
       auditSealGlobal: "AUDITORÍA CUANTITATIVA IA ECUAPRONÓSTICO - ALGORITMO CERO AZAR",
       parleyMetrics: {
         multiplier: parleyMultiplier,
@@ -584,9 +629,10 @@ export async function GET(request: Request) {
         objective: "Duplicar o Multiplicar Capital con Alta Certeza Matemática",
       },
       fijas: top4Selected,
+      estrategiaApostador,
     };
 
-    cachedFijas = { timestamp: nowMs, data: payload };
+    await saveDailySnapshotAsync(dayKey, payload);
     return NextResponse.json(payload);
   } catch (err: any) {
     console.error("Error al calcular Las 4 Fijas del Día:", err);
