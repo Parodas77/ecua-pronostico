@@ -93,7 +93,7 @@ export default function AdminRenewalAlertBanner({ isAdmin: propIsAdmin }: AdminR
   return (
     <div
       role="alert"
-      className="relative z-50 bg-gradient-to-r from-amber-950/95 via-amber-900/90 to-amber-950/95 border-b border-amber-500/50 text-amber-100 shadow-lg px-4 py-2.5 backdrop-blur-md transition-all duration-300"
+      className="relative z-50 bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 border-b border-amber-500/50 text-amber-100 shadow-lg px-4 py-2.5 backdrop-blur-md transition-all duration-300"
     >
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm">
         {/* Mensaje Dinámico de la Alerta */}
@@ -101,11 +101,11 @@ export default function AdminRenewalAlertBanner({ isAdmin: propIsAdmin }: AdminR
           <span className="inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-black tracking-wider bg-amber-500 text-slate-950 uppercase shadow-sm">
             ADMIN EXCLUSIVO
           </span>
-          <span className="font-semibold text-amber-200 tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+          <span className="font-semibold text-amber-900 tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
             {currentAlert.mensaje_alerta}
           </span>
           {alerts.length > 1 && (
-            <span className="text-[11px] text-amber-400/80 font-mono">
+            <span className="text-[11px] text-amber-700/80 font-mono">
               ({activeAlertIndex + 1}/{alerts.length} servicios urgentes)
             </span>
           )}
@@ -115,7 +115,7 @@ export default function AdminRenewalAlertBanner({ isAdmin: propIsAdmin }: AdminR
         <div className="flex items-center gap-3 shrink-0">
           <Link
             href="/admin#apis"
-            className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 hover:text-amber-100 border border-amber-500/40 hover:border-amber-400 rounded-md text-xs font-bold transition shadow-sm"
+            className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-800 hover:text-amber-100 border border-amber-500/40 hover:border-amber-400 rounded-md text-xs font-bold transition shadow-sm"
           >
             <span>Gestionar Servicios</span>
             <span>↗</span>
@@ -126,7 +126,7 @@ export default function AdminRenewalAlertBanner({ isAdmin: propIsAdmin }: AdminR
               href={currentAlert.url_portal}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 bg-slate-900/60 hover:bg-slate-900 text-amber-200/90 border border-amber-500/20 rounded-md text-xs transition"
+              className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 bg-white/90 hover:bg-white text-amber-900 border border-amber-500/20 rounded-md text-xs transition"
             >
               <span>Portal {currentAlert.nombre_servicio.split(" ")[0]}</span>
               <span className="text-[10px]">🌐</span>
@@ -136,7 +136,7 @@ export default function AdminRenewalAlertBanner({ isAdmin: propIsAdmin }: AdminR
           <button
             onClick={() => setIsDismissed(true)}
             title="Ocultar alerta durante esta sesión"
-            className="p-1 text-amber-400/70 hover:text-amber-200 hover:bg-amber-500/10 rounded transition text-xs"
+            className="p-1 text-amber-700/70 hover:text-amber-900 hover:bg-amber-500/10 rounded transition text-xs"
             aria-label="Cerrar alerta"
           >
             ✕

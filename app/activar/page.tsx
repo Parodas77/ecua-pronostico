@@ -239,11 +239,11 @@ function ActivacionVipForm() {
   )}`;
 
   return (
-    <div className="min-h-screen bg-[#070d1e] text-slate-100 font-sans selection:bg-amber-400 selection:text-slate-950 py-8 px-4 sm:px-6 relative overflow-hidden flex flex-col justify-center">
+    <div className="min-h-screen bg-transparent text-slate-900 font-sans selection:bg-amber-400 selection:text-slate-950 py-8 px-4 sm:px-6 relative overflow-hidden flex flex-col justify-center">
       {/* GLOW DECORATIVO DE FONDO */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-emerald-500/15 rounded-full blur-[140px]" />
-        <div className="absolute top-[50%] -right-32 w-[500px] h-[500px] bg-amber-400/10 rounded-full blur-[160px]" />
+        <div className="absolute top-[50%] -right-32 w-[500px] h-[500px] bg-amber-50 rounded-full blur-[160px]" />
       </div>
 
       <div className="max-w-xl mx-auto w-full relative z-10">
@@ -262,10 +262,10 @@ function ActivacionVipForm() {
         {/* CASO 1: CARGANDO Y VERIFICANDO TOKEN DE SEGURIDAD */}
         {/* ============================================================== */}
         {tokenStatus === "validating" && (
-          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-8 text-center space-y-4 shadow-2xl">
+          <div className="bg-white/95 border border-slate-300 rounded-3xl p-8 text-center space-y-4 shadow-2xl">
             <div className="w-12 h-12 border-3 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto" />
-            <h2 className="text-lg font-black text-white">Validando Token de Activación VIP...</h2>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">
+            <h2 className="text-lg font-black text-slate-900">Validando Token de Activación VIP...</h2>
+            <p className="text-xs text-slate-600 max-w-sm mx-auto">
               Verificando la autenticidad y vigencia de tu enlace privado de un solo uso.
             </p>
           </div>
@@ -275,46 +275,46 @@ function ActivacionVipForm() {
         {/* CASO 2: ACCESO DENEGADO / TOKEN INVÁLIDO O SIN TOKEN */}
         {/* ============================================================== */}
         {tokenStatus === "unauthorized" && (
-          <div className="bg-slate-900/95 border-2 border-red-500/60 rounded-3xl p-6 sm:p-8 text-center space-y-5 shadow-[0_0_50px_rgba(239,68,68,0.2)] animate-in fade-in zoom-in duration-300">
+          <div className="bg-white/95 border-2 border-red-500/60 rounded-3xl p-6 sm:p-8 text-center space-y-5 shadow-[0_0_50px_rgba(239,68,68,0.2)] animate-in fade-in zoom-in duration-300">
             <div className="w-16 h-16 rounded-full bg-red-950/80 border-2 border-red-500 text-3xl flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(239,68,68,0.3)]">
               🔒
             </div>
 
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-950 border border-red-500/60 text-red-300 text-xs font-black uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-950 border border-red-500/60 text-red-700 text-xs font-black uppercase tracking-wider">
               <span>Blindaje de Seguridad Activo</span>
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-black text-white">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900">
               Acceso Restringido • Registro Exclusivo VIP
             </h2>
 
-            <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-700 max-w-md mx-auto leading-relaxed">
               {tokenError}
             </p>
 
             {/* CAJA DE PASOS PARA OBTENER EL ENLACE */}
-            <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 text-left text-xs space-y-2.5">
-              <span className="font-bold text-amber-300 block uppercase tracking-wider text-[11px]">
+            <div className="bg-slate-100/95 border border-slate-300 rounded-2xl p-4 text-left text-xs space-y-2.5">
+              <span className="font-bold text-amber-800 block uppercase tracking-wider text-[11px]">
                 ¿Cómo obtener tu enlace único de activación?
               </span>
-              <div className="flex items-start gap-2.5 text-slate-300">
-                <span className="bg-slate-800 text-white font-bold w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 mt-0.5">
+              <div className="flex items-start gap-2.5 text-slate-700">
+                <span className="bg-slate-100 text-slate-900 font-bold w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 mt-0.5">
                   1
                 </span>
                 <span>
                   Realiza tu transferencia de <strong>$14.99 USD</strong> a Banco Pichincha o Banco del Guayaquil.
                 </span>
               </div>
-              <div className="flex items-start gap-2.5 text-slate-300">
-                <span className="bg-slate-800 text-white font-bold w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 mt-0.5">
+              <div className="flex items-start gap-2.5 text-slate-700">
+                <span className="bg-slate-100 text-slate-900 font-bold w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 mt-0.5">
                   2
                 </span>
                 <span>
                   Envía la foto de tu comprobante por WhatsApp a nuestro bot institucional.
                 </span>
               </div>
-              <div className="flex items-start gap-2.5 text-slate-300">
-                <span className="bg-slate-800 text-white font-bold w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 mt-0.5">
+              <div className="flex items-start gap-2.5 text-slate-700">
+                <span className="bg-slate-100 text-slate-900 font-bold w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 mt-0.5">
                   3
                 </span>
                 <span>
@@ -336,7 +336,7 @@ function ActivacionVipForm() {
 
               <Link
                 href="/radar"
-                className="w-full inline-block bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold py-2.5 px-4 rounded-xl text-xs transition"
+                className="w-full inline-block bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-slate-900 font-bold py-2.5 px-4 rounded-xl text-xs transition"
               >
                 ← Volver al Radar de Partidos
               </Link>
@@ -351,7 +351,7 @@ function ActivacionVipForm() {
           <>
             {/* VISTA DE CONFIRMACIÓN TRAS REGISTRO O REACTIVACIÓN EXITOSA */}
             {successData ? (
-              <div className="bg-slate-900/90 border-2 border-emerald-500 rounded-3xl p-6 sm:p-8 shadow-[0_0_50px_rgba(16,185,129,0.3)] text-center animate-in fade-in zoom-in duration-300">
+              <div className="bg-white/95 border-2 border-emerald-500 rounded-3xl p-6 sm:p-8 shadow-[0_0_50px_rgba(16,185,129,0.3)] text-center animate-in fade-in zoom-in duration-300">
                 <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-400 text-3xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
                   🎉
                 </div>
@@ -360,24 +360,24 @@ function ActivacionVipForm() {
                   {isReactivated ? "🔁 Membresía VIP Reactivada (+30 Días)" : "🟢 Nueva Membresía VIP Activada (30 Días)"}
                 </span>
 
-                <h2 className="text-2xl sm:text-3xl font-black text-white mt-3">
+                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-3">
                   {isReactivated
                     ? `¡Bienvenido de nuevo, ${successData.nombre}!`
                     : `¡Bienvenido a Ecuapronóstico VIP, ${successData.nombre}!`}
                 </h2>
 
-                <p className="text-sm text-slate-300 mt-2 max-w-md mx-auto leading-relaxed">
+                <p className="text-sm text-slate-700 mt-2 max-w-md mx-auto leading-relaxed">
                   {isReactivated ? (
                     <>
                       Tu pago ha sido acreditado a tu cuenta existente.{" "}
-                      <strong className="text-emerald-300 font-bold">
+                      <strong className="text-emerald-800 font-bold">
                         Hemos sumado +30 días a tu suscripción y tu historial se ha conservado intacto.
                       </strong>
                     </>
                   ) : (
                     <>
                       Tu usuario ha sido configurado con éxito y tu token ha sido consumido.{" "}
-                      <strong className="text-emerald-300 font-bold">
+                      <strong className="text-emerald-800 font-bold">
                         Tus 30 días de acceso total al Radar Cuantitativo ya están activos.
                       </strong>
                     </>
@@ -385,28 +385,28 @@ function ActivacionVipForm() {
                 </p>
 
                 {/* RESUMEN DE LA CUENTA */}
-                <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 my-6 text-left space-y-2 text-xs">
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/60">
-                    <span className="text-slate-400">Usuario VIP:</span>
-                    <span className="font-mono font-bold text-amber-300 text-sm">
+                <div className="bg-slate-100/95 border border-slate-300 rounded-2xl p-4 my-6 text-left space-y-2 text-xs">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-200">
+                    <span className="text-slate-600">Usuario VIP:</span>
+                    <span className="font-mono font-bold text-amber-800 text-sm">
                       {successData.username}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/60">
-                    <span className="text-slate-400">WhatsApp Vinculado:</span>
-                    <span className="font-mono font-bold text-white">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-200">
+                    <span className="text-slate-600">WhatsApp Vinculado:</span>
+                    <span className="font-mono font-bold text-slate-900">
                       {successData.telefono_whatsapp}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/60">
-                    <span className="text-slate-400">Estado de Suscripción:</span>
-                    <span className="text-emerald-400 font-bold uppercase text-[11px]">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-200">
+                    <span className="text-slate-600">Estado de Suscripción:</span>
+                    <span className="text-emerald-700 font-bold uppercase text-[11px]">
                       🟢 Activo • 30 Días Corriendo
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-400">Válido Hasta:</span>
-                    <span className="font-mono text-emerald-300 font-bold">
+                    <span className="text-slate-600">Válido Hasta:</span>
+                    <span className="font-mono text-emerald-800 font-bold">
                       {successData.fecha_expiracion_suscripcion
                         ? new Date(successData.fecha_expiracion_suscripcion).toLocaleDateString("es-EC", {
                             day: "numeric",
@@ -428,22 +428,22 @@ function ActivacionVipForm() {
               </div>
             ) : (
               /* FORMULARIO PRIVADO CON SELECTOR DE PESTAÑAS (TABS) */
-              <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 animate-in fade-in">
+              <div className="bg-white/95 border border-slate-300 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 animate-in fade-in">
                 {/* BANNER DE PAGO VERIFICADO POR TOKEN */}
-                <div className="p-4 bg-emerald-950/80 border-2 border-emerald-500/70 rounded-2xl flex items-center gap-3 shadow-[0_0_25px_rgba(16,185,129,0.2)]">
+                <div className="p-4 bg-emerald-50/95 border-2 border-emerald-500/70 rounded-2xl flex items-center gap-3 shadow-[0_0_25px_rgba(16,185,129,0.2)]">
                   <span className="text-2xl">🟢</span>
                   <div className="text-left">
-                    <h3 className="text-xs sm:text-sm font-black text-emerald-300 uppercase tracking-wide">
+                    <h3 className="text-xs sm:text-sm font-black text-emerald-800 uppercase tracking-wide">
                       Pago Verificado • Token de Activación Activo
                     </h3>
-                    <p className="text-[11px] text-emerald-200/90 mt-0.5">
+                    <p className="text-[11px] text-emerald-900 mt-0.5">
                       Comprobante validado por ${verifiedAmount.toFixed(2)} USD. Elige si eres un usuario nuevo o si deseas renovar una cuenta existente.
                     </p>
                   </div>
                 </div>
 
                 {/* SELECTOR DE PESTAÑAS (TABS) */}
-                <div className="grid grid-cols-2 gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
+                <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-300">
                   <button
                     type="button"
                     onClick={() => {
@@ -454,7 +454,7 @@ function ActivacionVipForm() {
                     className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center justify-center gap-2 ${
                       activeTab === "nuevo"
                         ? "bg-amber-400 text-slate-950 shadow-lg shadow-amber-400/20"
-                        : "text-slate-400 hover:text-white"
+                        : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
                     <span>✨</span>
@@ -471,7 +471,7 @@ function ActivacionVipForm() {
                     className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center justify-center gap-2 ${
                       activeTab === "reactivar"
                         ? "bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20"
-                        : "text-slate-400 hover:text-white"
+                        : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
                     <span>🔁</span>
@@ -485,16 +485,16 @@ function ActivacionVipForm() {
                 {activeTab === "nuevo" && (
                   <form onSubmit={handleRegisterSubmit} className="space-y-4 animate-in fade-in">
                     <div className="text-center pt-1 pb-1">
-                      <h2 className="text-lg sm:text-xl font-black text-white">
+                      <h2 className="text-lg sm:text-xl font-black text-slate-900">
                         Crea tu Nuevo Perfil VIP
                       </h2>
-                      <p className="text-xs text-slate-400 mt-0.5">
+                      <p className="text-xs text-slate-600 mt-0.5">
                         Registra tus credenciales personales para activar tus 30 días
                       </p>
                     </div>
 
                     {errorMessage && (
-                      <div className="p-3 bg-red-950/80 border border-red-500/50 rounded-xl text-xs text-red-300 font-bold flex items-center gap-2">
+                      <div className="p-3 bg-red-50/95 border border-red-500/50 rounded-xl text-xs text-red-700 font-bold flex items-center gap-2">
                         <span>⚠️</span>
                         <span>{errorMessage}</span>
                       </div>
@@ -503,26 +503,26 @@ function ActivacionVipForm() {
                     {/* DATOS PERSONALES */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs font-bold text-slate-300 block mb-1">Nombre *</label>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">Nombre *</label>
                         <input
                           type="text"
                           name="nombre"
                           value={formData.nombre}
                           onChange={handleRegisterChange}
                           placeholder="Ej: Wilson"
-                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-amber-400"
+                          className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-amber-400"
                           required
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-slate-300 block mb-1">Apellido *</label>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">Apellido *</label>
                         <input
                           type="text"
                           name="apellido"
                           value={formData.apellido}
                           onChange={handleRegisterChange}
                           placeholder="Ej: Salazar"
-                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-amber-400"
+                          className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-amber-400"
                           required
                         />
                       </div>
@@ -531,7 +531,7 @@ function ActivacionVipForm() {
                     {/* WHATSAPP Y CIUDAD */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs font-bold text-slate-300 block mb-1">
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
                           WhatsApp Vinculado al Pago *
                         </label>
                         <input
@@ -539,18 +539,18 @@ function ActivacionVipForm() {
                           name="telefono_whatsapp"
                           value={formData.telefono_whatsapp}
                           onChange={handleRegisterChange}
-                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-amber-400"
+                          className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-mono outline-none focus:border-amber-400"
                           required
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-bold text-slate-300 block mb-1">Ciudad *</label>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">Ciudad *</label>
                         <select
                           name="ciudad"
                           value={formData.ciudad}
                           onChange={handleRegisterChange}
-                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-amber-400"
+                          className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-amber-400"
                           required
                         >
                           {CIUDADES_ECUADOR.map((c) => (
@@ -564,7 +564,7 @@ function ActivacionVipForm() {
 
                     {formData.ciudad === "Otra Ciudad (Ecuador o Exterior)" && (
                       <div>
-                        <label className="text-xs font-bold text-slate-300 block mb-1">
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
                           Escribe el nombre de tu ciudad o país *
                         </label>
                         <input
@@ -573,7 +573,7 @@ function ActivacionVipForm() {
                           value={formData.ciudadOtra}
                           onChange={handleRegisterChange}
                           placeholder="Ej: Manta / New York"
-                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-amber-400"
+                          className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-amber-400"
                           required
                         />
                       </div>
@@ -581,7 +581,7 @@ function ActivacionVipForm() {
 
                     {/* CORREO */}
                     <div>
-                      <label className="text-xs font-bold text-slate-300 block mb-1">Correo Electrónico *</label>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">Correo Electrónico *</label>
                       <input
                         type="email"
                         name="correo"
@@ -589,19 +589,19 @@ function ActivacionVipForm() {
                         onChange={handleRegisterChange}
                         placeholder="tu.correo@ejemplo.com"
                         autoCapitalize="none"
-                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-amber-400"
+                        className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-amber-400"
                         required
                       />
                     </div>
 
                     {/* CREDENCIALES */}
-                    <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-2xl space-y-3">
-                      <span className="text-[11px] font-black text-amber-400 uppercase tracking-wider block">
+                    <div className="bg-slate-100/95 border border-slate-300 p-4 rounded-2xl space-y-3">
+                      <span className="text-[11px] font-black text-amber-700 uppercase tracking-wider block">
                         🔐 Elige tus Credenciales de Acceso
                       </span>
 
                       <div>
-                        <label className="text-xs font-bold text-slate-300 block mb-1">
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
                           Nombre de Usuario Deseado *
                         </label>
                         <input
@@ -611,7 +611,7 @@ function ActivacionVipForm() {
                           onChange={handleRegisterChange}
                           placeholder="Ej: wilsons2026"
                           autoCapitalize="none"
-                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-amber-400"
+                          className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-mono outline-none focus:border-amber-400"
                           required
                         />
                         <span className="text-[10px] text-slate-500 mt-0.5 block">
@@ -620,7 +620,7 @@ function ActivacionVipForm() {
                       </div>
 
                       <div>
-                        <label className="text-xs font-bold text-slate-300 block mb-1">Contraseña *</label>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">Contraseña *</label>
                         <div className="relative">
                           <input
                             type={showPassword ? "text" : "password"}
@@ -628,13 +628,13 @@ function ActivacionVipForm() {
                             value={formData.password}
                             onChange={handleRegisterChange}
                             placeholder="Mínimo 6 caracteres"
-                            className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-amber-400 pr-12"
+                            className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-amber-400 pr-12"
                             required
                           />
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs cursor-pointer"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900 text-xs cursor-pointer"
                           >
                             {showPassword ? "Ocultar" : "Ver"}
                           </button>
@@ -666,28 +666,28 @@ function ActivacionVipForm() {
                 {activeTab === "reactivar" && (
                   <form onSubmit={handleReactivateSubmit} className="space-y-4 animate-in fade-in">
                     <div className="text-center pt-1 pb-1">
-                      <h2 className="text-lg sm:text-xl font-black text-white">
+                      <h2 className="text-lg sm:text-xl font-black text-slate-900">
                         Reactivar o Extender Cuenta Existente
                       </h2>
-                      <p className="text-xs text-slate-400 mt-0.5">
+                      <p className="text-xs text-slate-600 mt-0.5">
                         Ingresa tus credenciales habituales para sumar +30 días sin duplicar tu perfil
                       </p>
                     </div>
 
-                    <div className="bg-emerald-950/40 border border-emerald-500/30 p-3 rounded-xl text-xs text-emerald-200/90 leading-relaxed">
+                    <div className="bg-emerald-100/40 border border-emerald-500/30 p-3 rounded-xl text-xs text-emerald-900 leading-relaxed">
                       💡 <strong>Clientes Recurrentes:</strong> Si ya contrataste el servicio anteriormente, no necesitas volver a llenar todos tus datos. Ingresa tu usuario o correo y contraseña para sumar <strong>+30 días adicionales</strong> a tu suscripción.
                     </div>
 
                     {reactivateError && (
-                      <div className="p-3 bg-red-950/80 border border-red-500/50 rounded-xl text-xs text-red-300 font-bold flex items-center gap-2">
+                      <div className="p-3 bg-red-50/95 border border-red-500/50 rounded-xl text-xs text-red-700 font-bold flex items-center gap-2">
                         <span>⚠️</span>
                         <span>{reactivateError}</span>
                       </div>
                     )}
 
-                    <div className="space-y-3 bg-slate-950/80 border border-slate-800 p-4 rounded-2xl">
+                    <div className="space-y-3 bg-slate-100/95 border border-slate-300 p-4 rounded-2xl">
                       <div>
-                        <label className="text-xs font-bold text-slate-300 block mb-1">
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
                           Usuario o Correo Electrónico *
                         </label>
                         <input
@@ -699,13 +699,13 @@ function ActivacionVipForm() {
                           }}
                           placeholder="Tu nombre de usuario o correo"
                           autoCapitalize="none"
-                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-emerald-400 font-mono"
+                          className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-emerald-400 font-mono"
                           required
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-bold text-slate-300 block mb-1">Contraseña Actual *</label>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">Contraseña Actual *</label>
                         <div className="relative">
                           <input
                             type={showReactivatePassword ? "text" : "password"}
@@ -715,13 +715,13 @@ function ActivacionVipForm() {
                               setReactivateError("");
                             }}
                             placeholder="Tu contraseña habitual"
-                            className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-emerald-400 pr-12"
+                            className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-emerald-400 pr-12"
                             required
                           />
                           <button
                             type="button"
                             onClick={() => setShowReactivatePassword(!showReactivatePassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs cursor-pointer"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900 text-xs cursor-pointer"
                           >
                             {showReactivatePassword ? "Ocultar" : "Ver"}
                           </button>
@@ -766,8 +766,8 @@ export default function ActivacionVipPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#070d1e] text-slate-100 flex items-center justify-center p-4">
-          <div className="flex items-center gap-2 text-amber-400 font-bold text-xs">
+        <div className="min-h-screen bg-transparent text-slate-900 flex items-center justify-center p-4">
+          <div className="flex items-center gap-2 text-amber-700 font-bold text-xs">
             <span className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
             <span>Verificando token de activación...</span>
           </div>

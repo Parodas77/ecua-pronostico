@@ -404,40 +404,40 @@ export default function AdminCrmPage() {
 
   if (!isAdminAuth) {
     return (
-      <div className="min-h-screen bg-[#070d1e] text-slate-100 flex items-center justify-center p-4">
-        <div className="bg-slate-900 border-2 border-amber-400/70 rounded-3xl p-8 max-w-md w-full shadow-2xl text-center">
+      <div className="min-h-screen bg-transparent text-slate-900 flex items-center justify-center p-4">
+        <div className="bg-white border-2 border-amber-400/70 rounded-3xl p-8 max-w-md w-full shadow-2xl text-center">
           <img src="/logo.png" alt="Logo" className="h-16 mx-auto mb-4" />
-          <h1 className="text-2xl font-black text-white">Panel de Administración CRM</h1>
-          <p className="text-xs text-slate-400 mt-1 mb-6">
+          <h1 className="text-2xl font-black text-slate-900">Panel de Administración CRM</h1>
+          <p className="text-xs text-slate-600 mt-1 mb-6">
             Acceso restringido para autorización de pagos y gestión de suscriptores
           </p>
 
           <form onSubmit={handleAdminLogin} className="space-y-4 text-left">
             <div>
-              <label className="text-xs font-bold text-slate-300 block mb-1">Usuario Administrador</label>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Usuario Administrador</label>
               <input
                 type="text"
                 value={adminUser}
                 onChange={(e) => setAdminUser(e.target.value)}
                 placeholder="admin"
                 autoCapitalize="none"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-amber-400"
+                className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-amber-400"
                 required
               />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-300 block mb-1">Contraseña</label>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Contraseña</label>
               <input
                 type="password"
                 value={adminPass}
                 onChange={(e) => setAdminPass(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-amber-400"
+                className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-amber-400"
                 required
               />
             </div>
 
-            {authError && <p className="text-xs text-red-400 bg-red-950/40 p-2 rounded-lg">{authError}</p>}
+            {authError && <p className="text-xs text-red-700 bg-red-50 p-2 rounded-lg">{authError}</p>}
 
             <button
               type="submit"
@@ -447,8 +447,8 @@ export default function AdminCrmPage() {
             </button>
           </form>
 
-          <div className="mt-4 pt-3 border-t border-slate-800">
-            <Link href="/radar" className="text-xs text-slate-400 hover:text-white">
+          <div className="mt-4 pt-3 border-t border-slate-300">
+            <Link href="/radar" className="text-xs text-slate-600 hover:text-slate-900">
               ← Volver a la Terminal
             </Link>
           </div>
@@ -458,24 +458,24 @@ export default function AdminCrmPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070d1e] text-slate-100 font-sans selection:bg-amber-400 selection:text-slate-950">
+    <div className="min-h-screen bg-transparent text-slate-900 font-sans selection:bg-amber-400 selection:text-slate-950">
       {/* BANNER DE ADVERTENCIA ADMIN-ONLY PARA RENOVACIÓN DE APIS (<= 5 DÍAS) */}
       <AdminRenewalAlertBanner isAdmin={isAdminAuth} />
 
       <div className="p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* ENCABEZADO DEL CRM */}
-          <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/95 border border-slate-300 rounded-2xl p-5 shadow-xl">
             <div className="flex items-center gap-3">
               <img src="/logo.png" alt="Logo" className="h-12 object-contain" />
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl sm:text-2xl font-black text-white">CRM & AUTORIZACIÓN DE PAGOS</h1>
+                  <h1 className="text-xl sm:text-2xl font-black text-slate-900">CRM & AUTORIZACIÓN DE PAGOS</h1>
                   <span className="text-[10px] bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded uppercase">
                     Admin
                   </span>
                 </div>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-600">
                   Verificación de comprobantes de pago ($14.99), inicio de 30 días VIP y remarketing por WhatsApp
                 </p>
               </div>
@@ -484,7 +484,7 @@ export default function AdminCrmPage() {
             <div className="flex items-center gap-2 flex-wrap self-stretch md:self-auto justify-end">
               <button
                 onClick={handleCopyActivationLink}
-                className="text-xs bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/50 px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 transition cursor-pointer"
+                className="text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-500/50 px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 transition cursor-pointer"
               >
                 <span>🔗</span>
                 <span>Copiar Link de Registro</span>
@@ -503,7 +503,7 @@ export default function AdminCrmPage() {
                   localStorage.removeItem("ecuapronostico_vip_session_v1");
                   setIsAdminAuth(false);
                 }}
-                className="text-xs text-red-400 hover:text-red-300 border border-red-500/30 px-3 py-2 rounded-xl font-bold transition cursor-pointer"
+                className="text-xs text-red-700 hover:text-red-700 border border-red-500/30 px-3 py-2 rounded-xl font-bold transition cursor-pointer"
               >
                 Salir
               </button>
@@ -512,14 +512,14 @@ export default function AdminCrmPage() {
 
           {/* NOTIFICACIÓN TOAST */}
           {actionSuccess && (
-            <div className="bg-emerald-950/90 border-2 border-emerald-500 text-emerald-200 px-4 py-3 rounded-2xl text-xs font-bold flex items-center justify-between shadow-2xl animate-in fade-in">
+            <div className="bg-emerald-100/95 border-2 border-emerald-500 text-emerald-900 px-4 py-3 rounded-2xl text-xs font-bold flex items-center justify-between shadow-2xl animate-in fade-in">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
                 <span>{actionSuccess}</span>
               </div>
               <button
                 onClick={() => setActionSuccess(null)}
-                className="text-emerald-400 hover:text-white font-black text-sm cursor-pointer"
+                className="text-emerald-700 hover:text-slate-900 font-black text-sm cursor-pointer"
               >
                 ✕
               </button>
@@ -527,13 +527,13 @@ export default function AdminCrmPage() {
           )}
 
           {/* SELECTOR DE PESTAÑAS PRINCIPAL DEL PANEL */}
-          <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-2">
+          <div className="flex flex-wrap items-center gap-2 border-b border-slate-300 pb-2">
             <button
               onClick={() => setActiveTab("crm")}
               className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2 ${
                 activeTab === "crm"
                   ? "bg-amber-400 text-slate-950 shadow-lg shadow-amber-400/20"
-                  : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+                  : "bg-white text-slate-600 hover:text-slate-900 border border-slate-300"
               }`}
             >
               <span>👥</span>
@@ -553,12 +553,12 @@ export default function AdminCrmPage() {
               className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2 ${
                 activeTab === "auditoria_ia"
                   ? "bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-950 shadow-lg shadow-emerald-400/20"
-                  : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+                  : "bg-white text-slate-600 hover:text-slate-900 border border-slate-300"
               }`}
             >
               <span>🤖</span>
               <span>Auditoría IA de Comprobantes (WhatsApp + Gemini)</span>
-              <span className="bg-emerald-950 text-emerald-300 border border-emerald-500/50 text-[10px] px-2 py-0.5 rounded font-mono">
+              <span className="bg-emerald-100 text-emerald-800 border border-emerald-500/50 text-[10px] px-2 py-0.5 rounded font-mono">
                 Meta Cloud
               </span>
             </button>
@@ -568,7 +568,7 @@ export default function AdminCrmPage() {
               className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2 ${
                 activeTab === "apis"
                   ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
-                  : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+                  : "bg-white text-slate-600 hover:text-slate-900 border border-slate-300"
               }`}
             >
               <span>⚡</span>
@@ -589,14 +589,14 @@ export default function AdminCrmPage() {
                         <span className="bg-amber-400 text-slate-950 font-black text-xs px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                           Acción Requerida
                         </span>
-                        <span className="text-xs text-amber-300 font-bold font-mono">
+                        <span className="text-xs text-amber-800 font-bold font-mono">
                           {metrics.pendientes} pago(s) registrado(s)
                         </span>
                       </div>
-                      <h3 className="text-base font-black text-white mt-1">
+                      <h3 className="text-base font-black text-slate-900 mt-1">
                         Tienes {metrics.pendientes} usuario(s) nuevo(s) esperando tu autorización.
                       </h3>
-                      <p className="text-xs text-amber-200/90">
+                      <p className="text-xs text-amber-900">
                         Revisa el comprobante y presiona &quot;Autorizar Pago&quot; para activar sus 30 días VIP.
                       </p>
                     </div>
@@ -613,52 +613,52 @@ export default function AdminCrmPage() {
 
               {/* KPIS DE SUSCRIPTORES */}
               <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
-                  <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Total Clientes</span>
-                  <div className="text-3xl font-black text-white mt-1 font-mono">{metrics.total}</div>
+                <div className="bg-white/92 border border-slate-300 rounded-2xl p-4">
+                  <span className="text-xs text-slate-600 font-bold uppercase tracking-wider block">Total Clientes</span>
+                  <div className="text-3xl font-black text-slate-900 mt-1 font-mono">{metrics.total}</div>
                   <span className="text-[11px] text-slate-500">Perfiles en CRM</span>
                 </div>
 
                 {/* KPI PENDIENTES */}
-                <div className="bg-slate-900/80 border-2 border-amber-400/80 rounded-2xl p-4 relative overflow-hidden shadow-[0_0_20px_rgba(251,191,36,0.15)]">
+                <div className="bg-white/92 border-2 border-amber-400/80 rounded-2xl p-4 relative overflow-hidden shadow-[0_0_20px_rgba(251,191,36,0.15)]">
                   {metrics.pendientes > 0 && (
                     <div className="absolute top-2 right-2 bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded uppercase animate-pulse">
                       Por Autorizar
                     </div>
                   )}
-                  <span className="text-xs text-amber-300 font-bold uppercase tracking-wider block">🟡 Por Autorizar</span>
-                  <div className="text-3xl font-black text-amber-300 mt-1 font-mono">{metrics.pendientes}</div>
-                  <span className="text-[11px] text-amber-300/80">Pagos listos para activar</span>
+                  <span className="text-xs text-amber-800 font-bold uppercase tracking-wider block">🟡 Por Autorizar</span>
+                  <div className="text-3xl font-black text-amber-800 mt-1 font-mono">{metrics.pendientes}</div>
+                  <span className="text-[11px] text-amber-800/80">Pagos listos para activar</span>
                 </div>
 
-                <div className="bg-slate-900/80 border border-emerald-500/30 rounded-2xl p-4">
-                  <span className="text-xs text-emerald-400 font-bold uppercase tracking-wider block">🟢 Activos VIP</span>
-                  <div className="text-3xl font-black text-emerald-300 mt-1 font-mono">{metrics.activos}</div>
-                  <span className="text-[11px] text-emerald-400/80">30 días corriendo</span>
+                <div className="bg-white/92 border border-emerald-500/30 rounded-2xl p-4">
+                  <span className="text-xs text-emerald-700 font-bold uppercase tracking-wider block">🟢 Activos VIP</span>
+                  <div className="text-3xl font-black text-emerald-800 mt-1 font-mono">{metrics.activos}</div>
+                  <span className="text-[11px] text-emerald-700/80">30 días corriendo</span>
                 </div>
 
-                <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
-                  <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">⚪ Inactivos</span>
-                  <div className="text-3xl font-black text-slate-300 mt-1 font-mono">{metrics.inactivos}</div>
+                <div className="bg-white/92 border border-slate-300 rounded-2xl p-4">
+                  <span className="text-xs text-slate-600 font-bold uppercase tracking-wider block">⚪ Inactivos</span>
+                  <div className="text-3xl font-black text-slate-700 mt-1 font-mono">{metrics.inactivos}</div>
                   <span className="text-[11px] text-slate-500">Pausados</span>
                 </div>
 
-                <div className="bg-slate-900/80 border border-red-500/30 rounded-2xl p-4 relative overflow-hidden">
-                  <span className="text-xs text-red-400 font-bold uppercase tracking-wider block">🔴 Expirados</span>
-                  <div className="text-3xl font-black text-red-300 mt-1 font-mono">{metrics.expirados}</div>
-                  <span className="text-[11px] text-red-400/80">Listos para remarketing</span>
+                <div className="bg-white/92 border border-red-500/30 rounded-2xl p-4 relative overflow-hidden">
+                  <span className="text-xs text-red-700 font-bold uppercase tracking-wider block">🔴 Expirados</span>
+                  <div className="text-3xl font-black text-red-700 mt-1 font-mono">{metrics.expirados}</div>
+                  <span className="text-[11px] text-red-700/80">Listos para remarketing</span>
                 </div>
               </div>
 
               {/* BARRA DE HERRAMIENTAS Y SEGMENTACIÓN */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-4">
+          <div className="bg-white/95 border border-slate-300 rounded-2xl p-4 space-y-4">
             <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-3">
               {/* FILTROS POR ESTADO CON PESTAÑA PENDIENTES */}
-              <div className="flex flex-wrap items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+              <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-300">
                 <button
                   onClick={() => setFilterStatus("todos")}
                   className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
-                    filterStatus === "todos" ? "bg-slate-700 text-white" : "text-slate-400 hover:text-white"
+                    filterStatus === "todos" ? "bg-amber-100 text-slate-900" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   Todos ({metrics.total})
@@ -669,7 +669,7 @@ export default function AdminCrmPage() {
                   className={`px-3 py-1.5 text-xs font-black rounded-lg transition flex items-center gap-1 cursor-pointer ${
                     filterStatus === "pendiente"
                       ? "bg-amber-400 text-slate-950 shadow-md"
-                      : "text-amber-400 hover:text-amber-300"
+                      : "text-amber-700 hover:text-amber-800"
                   }`}
                 >
                   <span>🟡</span>
@@ -679,7 +679,7 @@ export default function AdminCrmPage() {
                 <button
                   onClick={() => setFilterStatus("activo")}
                   className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
-                    filterStatus === "activo" ? "bg-emerald-600 text-white" : "text-emerald-400 hover:text-white"
+                    filterStatus === "activo" ? "bg-emerald-600 text-white" : "text-emerald-700 hover:text-slate-900"
                   }`}
                 >
                   Activos ({metrics.activos})
@@ -688,7 +688,7 @@ export default function AdminCrmPage() {
                 <button
                   onClick={() => setFilterStatus("inactivo")}
                   className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
-                    filterStatus === "inactivo" ? "bg-slate-700 text-white" : "text-slate-400 hover:text-white"
+                    filterStatus === "inactivo" ? "bg-amber-100 text-slate-900" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   Inactivos ({metrics.inactivos})
@@ -697,7 +697,7 @@ export default function AdminCrmPage() {
                 <button
                   onClick={() => setFilterStatus("expirado")}
                   className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
-                    filterStatus === "expirado" ? "bg-red-600 text-white" : "text-red-400 hover:text-white"
+                    filterStatus === "expirado" ? "bg-red-600 text-white" : "text-red-700 hover:text-slate-900"
                   }`}
                 >
                   Expirados ({metrics.expirados})
@@ -711,7 +711,7 @@ export default function AdminCrmPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Buscar por nombre, usuario, comprobante..."
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-amber-400"
+                  className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 outline-none focus:border-amber-400"
                 />
               </div>
 
@@ -719,7 +719,7 @@ export default function AdminCrmPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleCopyBroadcastList}
-                  className="text-xs bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-400/40 px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 transition cursor-pointer"
+                  className="text-xs bg-slate-100 hover:bg-amber-100 text-amber-800 border border-amber-400/40 px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 transition cursor-pointer"
                 >
                   <span>📋</span>
                   <span>Copiar Difusión</span>
@@ -738,10 +738,10 @@ export default function AdminCrmPage() {
           </div>
 
           {/* TABLA PRINCIPAL DE CLIENTES */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+          <div className="bg-white/95 border border-slate-300 rounded-2xl overflow-hidden shadow-2xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#0b132b] border-b border-slate-800 text-[11px] font-black uppercase tracking-wider text-slate-400">
+                <thead className="bg-transparent border-b border-slate-300 text-[11px] font-black uppercase tracking-wider text-slate-600">
                   <tr>
                     <th className="py-3 px-4">ID</th>
                     <th className="py-3 px-4">Cliente / Usuario</th>
@@ -752,16 +752,16 @@ export default function AdminCrmPage() {
                     <th className="py-3 px-4 text-right">Acción de Autorización</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 font-medium">
+                <tbody className="divide-y divide-slate-200 font-medium">
                   {isLoading ? (
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-amber-300 font-bold animate-pulse">
+                      <td colSpan={7} className="py-8 text-center text-amber-800 font-bold animate-pulse">
                         Cargando registros...
                       </td>
                     </tr>
                   ) : users.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-slate-400 font-bold">
+                      <td colSpan={7} className="py-8 text-center text-slate-600 font-bold">
                         No se encontraron usuarios bajo este filtro.
                       </td>
                     </tr>
@@ -780,20 +780,20 @@ export default function AdminCrmPage() {
                           key={u.id}
                           className={`transition ${
                             isPending
-                              ? "bg-amber-950/20 hover:bg-amber-950/30 border-l-4 border-amber-400"
-                              : "hover:bg-slate-800/40"
+                              ? "bg-amber-100/20 hover:bg-amber-100/30 border-l-4 border-amber-400"
+                              : "hover:bg-slate-100/40"
                           }`}
                         >
-                          <td className="py-3 px-4 font-mono text-slate-400">#{u.id}</td>
+                          <td className="py-3 px-4 font-mono text-slate-600">#{u.id}</td>
 
                           <td className="py-3 px-4">
-                            <strong className="text-white text-sm block">
+                            <strong className="text-slate-900 text-sm block">
                               {u.nombre} {u.apellido}
                             </strong>
-                            <span className="text-amber-300 font-mono font-bold text-[11px]">
+                            <span className="text-amber-800 font-mono font-bold text-[11px]">
                               @{u.username}
                             </span>
-                            <span className="text-slate-400 text-[10px] block">📍 {u.ciudad}</span>
+                            <span className="text-slate-600 text-[10px] block">📍 {u.ciudad}</span>
                           </td>
 
                           <td className="py-3 px-4">
@@ -801,28 +801,28 @@ export default function AdminCrmPage() {
                               href={`https://wa.me/${u.telefono_whatsapp.replace(/\D/g, "")}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-300 font-bold transition group"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50/95 hover:bg-emerald-200 border border-emerald-500/40 text-emerald-800 font-bold transition group"
                             >
                               <span className="text-xs">💬</span>
                               <span className="font-mono">{u.telefono_whatsapp}</span>
-                              <span className="text-[10px] text-emerald-400 opacity-60 group-hover:opacity-100">
+                              <span className="text-[10px] text-emerald-700 opacity-60 group-hover:opacity-100">
                                 ↗
                               </span>
                             </a>
-                            <span className="text-slate-400 text-[10px] block mt-0.5">{u.correo}</span>
+                            <span className="text-slate-600 text-[10px] block mt-0.5">{u.correo}</span>
                           </td>
 
                           {/* COMPROBANTE Y MÉTODO DE PAGO */}
                           <td className="py-3 px-4">
                             <div className="space-y-0.5 max-w-xs">
-                              <span className="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-semibold block truncate">
+                              <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-700 font-semibold block truncate">
                                 💳 {u.metodo_pago || "Transferencia Bancaria"}
                               </span>
-                              <span className="text-emerald-300 font-mono text-xs font-bold block truncate">
+                              <span className="text-emerald-800 font-mono text-xs font-bold block truncate">
                                 🧾 {u.referencia_pago || "Comprobante por chat"}
                               </span>
                               {u.notas_admin && (
-                                <span className="text-[10px] text-slate-400 block truncate">
+                                <span className="text-[10px] text-slate-600 block truncate">
                                   📝 {u.notas_admin}
                                 </span>
                               )}
@@ -836,10 +836,10 @@ export default function AdminCrmPage() {
                                 isPending
                                   ? "bg-amber-400 text-slate-950 shadow-md animate-pulse"
                                   : isActive
-                                  ? "bg-emerald-950 text-emerald-300 border border-emerald-500/50"
+                                  ? "bg-emerald-100 text-emerald-800 border border-emerald-500/50"
                                   : u.estado_suscripcion === "inactivo"
-                                  ? "bg-slate-800 text-slate-300 border border-slate-700"
-                                  : "bg-red-950 text-red-300 border border-red-500/50"
+                                  ? "bg-slate-100 text-slate-700 border border-slate-300"
+                                  : "bg-red-950 text-red-700 border border-red-500/50"
                               }`}
                             >
                               {isPending ? "⏳ Por Autorizar" : u.estado_suscripcion}
@@ -849,24 +849,24 @@ export default function AdminCrmPage() {
                           {/* VIGENCIA */}
                           <td className="py-3 px-4">
                             {isPending ? (
-                              <div className="text-amber-300/90 text-xs font-bold">
+                              <div className="text-amber-800 text-xs font-bold">
                                 <span>No iniciada</span>
-                                <span className="block text-[10px] text-slate-400 font-normal">
+                                <span className="block text-[10px] text-slate-600 font-normal">
                                   (Comienza al autorizar)
                                 </span>
                               </div>
                             ) : (
                               <div>
-                                <span className="block text-slate-300 font-mono text-xs">
+                                <span className="block text-slate-700 font-mono text-xs">
                                   {u.fecha_expiracion_suscripcion.slice(0, 10)}
                                 </span>
                                 <span
                                   className={`text-[10px] font-bold ${
                                     daysRemaining > 5
-                                      ? "text-emerald-400"
+                                      ? "text-emerald-700"
                                       : daysRemaining >= 0
-                                      ? "text-amber-400"
-                                      : "text-red-400"
+                                      ? "text-amber-700"
+                                      : "text-red-700"
                                   }`}
                                 >
                                   {daysRemaining > 0
@@ -917,7 +917,7 @@ export default function AdminCrmPage() {
                                   href={getApprovalWhatsappLink(u)}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="p-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 rounded-lg text-xs transition"
+                                  className="p-1.5 bg-slate-100 hover:bg-amber-100 text-emerald-700 rounded-lg text-xs transition"
                                   title="Enviar mensaje de estado por WhatsApp"
                                 >
                                   📲
@@ -926,7 +926,7 @@ export default function AdminCrmPage() {
                                 <select
                                   value={u.estado_suscripcion}
                                   onChange={(e) => handleStatusChange(u.id, e.target.value)}
-                                  className="bg-slate-950 border border-slate-700 text-[10px] text-slate-300 rounded-lg px-2 py-1 outline-none cursor-pointer"
+                                  className="bg-slate-100 border border-slate-300 text-[10px] text-slate-700 rounded-lg px-2 py-1 outline-none cursor-pointer"
                                 >
                                   <option value="activo">Activo</option>
                                   <option value="pendiente">Pendiente</option>
@@ -954,19 +954,19 @@ export default function AdminCrmPage() {
           <div className="bg-gradient-to-r from-emerald-950/70 via-slate-900 to-slate-900 border-2 border-emerald-500/50 rounded-2xl p-6 shadow-2xl space-y-4">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-emerald-500/20 pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400 flex items-center justify-center text-2xl">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-100 border border-emerald-400 flex items-center justify-center text-2xl">
                   🤖
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg sm:text-xl font-black text-white">
+                    <h2 className="text-lg sm:text-xl font-black text-slate-900">
                       MICROSERVICIO DE AUDITORÍA IA DE COMPROBANTES
                     </h2>
                     <span className="text-[10px] bg-emerald-400 text-slate-950 font-black px-2 py-0.5 rounded uppercase">
                       Activo
                     </span>
                   </div>
-                  <p className="text-xs text-emerald-200/80">
+                  <p className="text-xs text-emerald-900/80">
                     WhatsApp Meta Cloud API + Google Gemini 1.5 Flash Vision Multimodal
                   </p>
                 </div>
@@ -974,7 +974,7 @@ export default function AdminCrmPage() {
 
               <button
                 onClick={fetchReceipts}
-                className="text-xs bg-emerald-900 hover:bg-emerald-800 text-emerald-200 border border-emerald-500/40 px-3.5 py-2 rounded-xl font-bold flex items-center gap-1.5 transition cursor-pointer"
+                className="text-xs bg-emerald-900 hover:bg-emerald-800 text-emerald-900 border border-emerald-500/40 px-3.5 py-2 rounded-xl font-bold flex items-center gap-1.5 transition cursor-pointer"
               >
                 <span>🔄</span>
                 <span>Actualizar Comprobantes</span>
@@ -983,11 +983,11 @@ export default function AdminCrmPage() {
 
             {/* DETALLES DE CONEXIÓN WEBHOOK META */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs">
-              <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 space-y-1.5">
-                <span className="text-slate-400 font-bold block text-[11px] uppercase">
+              <div className="bg-slate-100/95 border border-slate-300 rounded-xl p-3.5 space-y-1.5">
+                <span className="text-slate-600 font-bold block text-[11px] uppercase">
                   🔗 Webhook Callback URL (Meta Developers):
                 </span>
-                <div className="flex items-center justify-between gap-2 bg-slate-900 p-2 rounded-lg font-mono text-[11px] text-emerald-300 border border-slate-800">
+                <div className="flex items-center justify-between gap-2 bg-white p-2 rounded-lg font-mono text-[11px] text-emerald-800 border border-slate-300">
                   <span className="truncate">
                     https://ecua-pronostico-git-main-parodas77-8597s-projects.vercel.app/api/whatsapp/webhook
                   </span>
@@ -999,7 +999,7 @@ export default function AdminCrmPage() {
                       setActionSuccess("📋 Callback URL copiada al portapapeles.");
                       setTimeout(() => setActionSuccess(null), 3000);
                     }}
-                    className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-2 py-1 rounded cursor-pointer shrink-0"
+                    className="text-[10px] bg-slate-100 hover:bg-amber-100 text-slate-900 px-2 py-1 rounded cursor-pointer shrink-0"
                   >
                     Copiar
                   </button>
@@ -1009,11 +1009,11 @@ export default function AdminCrmPage() {
                 </span>
               </div>
 
-              <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 space-y-1.5">
-                <span className="text-slate-400 font-bold block text-[11px] uppercase">
+              <div className="bg-slate-100/95 border border-slate-300 rounded-xl p-3.5 space-y-1.5">
+                <span className="text-slate-600 font-bold block text-[11px] uppercase">
                   🔑 Token de Verificación (Verify Token):
                 </span>
-                <div className="flex items-center justify-between gap-2 bg-slate-900 p-2 rounded-lg font-mono text-[11px] text-amber-300 border border-slate-800">
+                <div className="flex items-center justify-between gap-2 bg-white p-2 rounded-lg font-mono text-[11px] text-amber-800 border border-slate-300">
                   <span>ecuapronostico_verify_token_2026</span>
                   <button
                     onClick={() => {
@@ -1021,7 +1021,7 @@ export default function AdminCrmPage() {
                       setActionSuccess("📋 Token de verificación copiado.");
                       setTimeout(() => setActionSuccess(null), 3000);
                     }}
-                    className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-2 py-1 rounded cursor-pointer shrink-0"
+                    className="text-[10px] bg-slate-100 hover:bg-amber-100 text-slate-900 px-2 py-1 rounded cursor-pointer shrink-0"
                   >
                     Copiar
                   </button>
@@ -1033,68 +1033,68 @@ export default function AdminCrmPage() {
             </div>
 
             {/* CUENTAS BANCARIAS OFICIALES Y REGLA DE AUDITORÍA */}
-            <div className="bg-slate-950/60 border border-emerald-500/20 rounded-xl p-3 text-xs text-slate-300 space-y-2">
+            <div className="bg-slate-100/90 border border-emerald-500/20 rounded-xl p-3 text-xs text-slate-700 space-y-2">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <span className="font-black text-white flex items-center gap-1.5">
+                <span className="font-black text-slate-900 flex items-center gap-1.5">
                   <span>🏦</span>
                   <span>Cuentas de Transferencia Directa Configuradas en el Bot:</span>
                 </span>
-                <span className="text-[10px] text-emerald-400 font-mono">
+                <span className="text-[10px] text-emerald-700 font-mono">
                   Titular: Pedro Alfonso Rodas Talbott • C.I. 1710893965
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
-                <div className="bg-slate-900/90 border border-slate-800 p-2 rounded-lg flex items-center justify-between">
+                <div className="bg-white/95 border border-slate-300 p-2 rounded-lg flex items-center justify-between">
                   <span>Banco Pichincha (Ahorros):</span>
-                  <span className="text-amber-300 font-bold">2216250432</span>
+                  <span className="text-amber-800 font-bold">2216250432</span>
                 </div>
-                <div className="bg-slate-900/90 border border-slate-800 p-2 rounded-lg flex items-center justify-between">
+                <div className="bg-white/95 border border-slate-300 p-2 rounded-lg flex items-center justify-between">
                   <span>Banco del Guayaquil (Ahorros):</span>
-                  <span className="text-amber-300 font-bold">0038631905</span>
+                  <span className="text-amber-800 font-bold">0038631905</span>
                 </div>
               </div>
-              <p className="text-[11px] text-slate-400 leading-relaxed border-t border-slate-800/80 pt-1.5">
-                💡 <span className="font-bold text-slate-300">Regla Estricta Gemini Vision:</span> Valida que el monto sea ≥ $14.99 USD, fecha del día/reciente, y que el beneficiario coincida con Pedro Alfonso Rodas Talbott (o C.I. 1710893965 / Cuentas oficiales).
+              <p className="text-[11px] text-slate-600 leading-relaxed border-t border-slate-300 pt-1.5">
+                💡 <span className="font-bold text-slate-700">Regla Estricta Gemini Vision:</span> Valida que el monto sea ≥ $14.99 USD, fecha del día/reciente, y que el beneficiario coincida con Pedro Alfonso Rodas Talbott (o C.I. 1710893965 / Cuentas oficiales).
               </p>
             </div>
           </div>
 
           {/* KPIS DE AUDITORÍA */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
-              <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Total Comprobantes</span>
-              <div className="text-3xl font-black text-white mt-1 font-mono">{receiptStats.total}</div>
+            <div className="bg-white/92 border border-slate-300 rounded-2xl p-4">
+              <span className="text-xs text-slate-600 font-bold uppercase tracking-wider block">Total Comprobantes</span>
+              <div className="text-3xl font-black text-slate-900 mt-1 font-mono">{receiptStats.total}</div>
               <span className="text-[11px] text-slate-500">Recibidos o auditados</span>
             </div>
 
-            <div className="bg-slate-900/80 border border-emerald-500/30 rounded-2xl p-4">
-              <span className="text-xs text-emerald-400 font-bold uppercase tracking-wider block">🟢 Aprobados IA</span>
-              <div className="text-3xl font-black text-emerald-300 mt-1 font-mono">{receiptStats.aprobadosAutomaticos}</div>
-              <span className="text-[11px] text-emerald-400/80">≥ $14.99 verificados</span>
+            <div className="bg-white/92 border border-emerald-500/30 rounded-2xl p-4">
+              <span className="text-xs text-emerald-700 font-bold uppercase tracking-wider block">🟢 Aprobados IA</span>
+              <div className="text-3xl font-black text-emerald-800 mt-1 font-mono">{receiptStats.aprobadosAutomaticos}</div>
+              <span className="text-[11px] text-emerald-700/80">≥ $14.99 verificados</span>
             </div>
 
-            <div className="bg-slate-900/80 border border-amber-500/30 rounded-2xl p-4">
-              <span className="text-xs text-amber-300 font-bold uppercase tracking-wider block">🟡 Requieren Revisión</span>
-              <div className="text-3xl font-black text-amber-300 mt-1 font-mono">{receiptStats.requiereRevision}</div>
-              <span className="text-[11px] text-amber-300/80">Monto menor o ilegible</span>
+            <div className="bg-white/92 border border-amber-500/30 rounded-2xl p-4">
+              <span className="text-xs text-amber-800 font-bold uppercase tracking-wider block">🟡 Requieren Revisión</span>
+              <div className="text-3xl font-black text-amber-800 mt-1 font-mono">{receiptStats.requiereRevision}</div>
+              <span className="text-[11px] text-amber-800/80">Monto menor o ilegible</span>
             </div>
 
-            <div className="bg-slate-900/80 border border-blue-500/30 rounded-2xl p-4">
-              <span className="text-xs text-blue-400 font-bold uppercase tracking-wider block">🔵 Autorizados Manual</span>
-              <div className="text-3xl font-black text-blue-300 mt-1 font-mono">{receiptStats.autorizadosManual}</div>
-              <span className="text-[11px] text-blue-400/80">Aprobados por el Admin</span>
+            <div className="bg-white/92 border border-blue-500/30 rounded-2xl p-4">
+              <span className="text-xs text-blue-700 font-bold uppercase tracking-wider block">🔵 Autorizados Manual</span>
+              <div className="text-3xl font-black text-blue-800 mt-1 font-mono">{receiptStats.autorizadosManual}</div>
+              <span className="text-[11px] text-blue-700/80">Aprobados por el Admin</span>
             </div>
           </div>
 
           {/* SIMULADOR EN VIVO DRAG & DROP DE GEMINI VISION */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-            <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+          <div className="bg-white/95 border border-slate-300 rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="flex items-center gap-2 border-b border-slate-300 pb-3">
               <span className="text-2xl">⚡</span>
               <div>
-                <h3 className="text-base font-black text-white">
+                <h3 className="text-base font-black text-slate-900">
                   SIMULADOR Y AUDITOR EN VIVO CON GEMINI VISION
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-600">
                   Sube o arrastra cualquier captura de transferencia (Banco Pichincha, Guayaquil, Deuna, Produbanco) para auditarla en tiempo real
                 </p>
               </div>
@@ -1103,7 +1103,7 @@ export default function AdminCrmPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* ZONA DE ARRASTRE Y FORMULARIO */}
               <div className="lg:col-span-5 space-y-4">
-                <label className="text-xs font-bold text-slate-300 block">
+                <label className="text-xs font-bold text-slate-700 block">
                   Teléfono de WhatsApp del Cliente (Simulación):
                 </label>
                 <input
@@ -1111,7 +1111,7 @@ export default function AdminCrmPage() {
                   value={testPhone}
                   onChange={(e) => setTestPhone(e.target.value)}
                   placeholder="+593981122334"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-emerald-400"
+                  className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-mono outline-none focus:border-emerald-400"
                 />
 
                 {/* DROPZONE */}
@@ -1123,7 +1123,7 @@ export default function AdminCrmPage() {
                       handleFileForAudit(e.dataTransfer.files[0]);
                     }
                   }}
-                  className="border-2 border-dashed border-slate-700 hover:border-emerald-400/70 rounded-2xl p-6 text-center bg-slate-950/60 transition cursor-pointer flex flex-col items-center justify-center min-h-[180px]"
+                  className="border-2 border-dashed border-slate-300 hover:border-emerald-400/70 rounded-2xl p-6 text-center bg-slate-100/90 transition cursor-pointer flex flex-col items-center justify-center min-h-[180px]"
                   onClick={() => {
                     const fileInput = document.getElementById("receipt-file-input");
                     fileInput?.click();
@@ -1147,20 +1147,20 @@ export default function AdminCrmPage() {
                         alt="Comprobante a auditar"
                         className="max-h-36 mx-auto rounded-lg object-contain border border-emerald-500/40"
                       />
-                      <span className="text-[11px] text-emerald-400 font-bold block">
+                      <span className="text-[11px] text-emerald-700 font-bold block">
                         ✓ Imagen cargada lista para auditar
                       </span>
-                      <span className="text-[10px] text-slate-400 block">
+                      <span className="text-[10px] text-slate-600 block">
                         Haz clic para cambiar imagen
                       </span>
                     </div>
                   ) : (
                     <div className="space-y-2">
                       <span className="text-3xl block">📥</span>
-                      <span className="text-xs font-bold text-slate-200 block">
+                      <span className="text-xs font-bold text-slate-800 block">
                         Arrastra aquí el comprobante o haz clic para subir
                       </span>
-                      <span className="text-[10px] text-slate-400 block">
+                      <span className="text-[10px] text-slate-600 block">
                         Formatos soportados: JPG, PNG, WEBP
                       </span>
                     </div>
@@ -1168,7 +1168,7 @@ export default function AdminCrmPage() {
                 </div>
 
                 {auditError && (
-                  <p className="text-xs text-red-400 bg-red-950/40 border border-red-500/30 p-2.5 rounded-xl">
+                  <p className="text-xs text-red-700 bg-red-50 border border-red-500/30 p-2.5 rounded-xl">
                     {auditError}
                   </p>
                 )}
@@ -1193,14 +1193,14 @@ export default function AdminCrmPage() {
               </div>
 
               {/* TARJETA DE RESULTADOS DE LA IA */}
-              <div className="lg:col-span-7 bg-slate-950/90 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+              <div className="lg:col-span-7 bg-white/95 border border-slate-300 rounded-2xl p-5 flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-3">
-                    <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <div className="flex items-center justify-between border-b border-slate-300 pb-2.5 mb-3">
+                    <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                       <span>📊</span>
                       <span>Resultado del Análisis OCR & Financiero</span>
                     </span>
-                    <span className="text-[10px] font-mono bg-slate-800 text-slate-400 px-2 py-0.5 rounded">
+                    <span className="text-[10px] font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
                       Gemini 1.5 Flash
                     </span>
                   </div>
@@ -1211,8 +1211,8 @@ export default function AdminCrmPage() {
                       <div
                         className={`p-3 rounded-xl border flex items-center justify-between ${
                           auditResult.audit.valido
-                            ? "bg-emerald-950/80 border-emerald-500 text-emerald-200"
-                            : "bg-amber-950/80 border-amber-500 text-amber-200"
+                            ? "bg-emerald-50/95 border-emerald-500 text-emerald-900"
+                            : "bg-amber-100 border-amber-500 text-amber-900"
                         }`}
                       >
                         <div className="flex items-center gap-2">
@@ -1238,27 +1238,27 @@ export default function AdminCrmPage() {
 
                       {/* DETALLES EXTRAÍDOS */}
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                        <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                          <span className="text-[10px] text-slate-400 uppercase font-bold block">Banco</span>
-                          <span className="font-semibold text-slate-200 truncate block mt-0.5">
+                        <div className="bg-white p-2.5 rounded-xl border border-slate-300">
+                          <span className="text-[10px] text-slate-600 uppercase font-bold block">Banco</span>
+                          <span className="font-semibold text-slate-800 truncate block mt-0.5">
                             {auditResult.audit.banco || "Detectado"}
                           </span>
                         </div>
-                        <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                          <span className="text-[10px] text-slate-400 uppercase font-bold block">Referencia</span>
-                          <span className="font-mono font-bold text-amber-300 truncate block mt-0.5">
+                        <div className="bg-white p-2.5 rounded-xl border border-slate-300">
+                          <span className="text-[10px] text-slate-600 uppercase font-bold block">Referencia</span>
+                          <span className="font-mono font-bold text-amber-800 truncate block mt-0.5">
                             {auditResult.audit.referencia || "N/A"}
                           </span>
                         </div>
-                        <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                          <span className="text-[10px] text-slate-400 uppercase font-bold block">Fecha</span>
-                          <span className="font-mono text-slate-200 truncate block mt-0.5">
+                        <div className="bg-white p-2.5 rounded-xl border border-slate-300">
+                          <span className="text-[10px] text-slate-600 uppercase font-bold block">Fecha</span>
+                          <span className="font-mono text-slate-800 truncate block mt-0.5">
                             {auditResult.audit.fecha || "Reciente"}
                           </span>
                         </div>
-                        <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                          <span className="text-[10px] text-slate-400 uppercase font-bold block">Titular</span>
-                          <span className="font-semibold text-slate-200 truncate block mt-0.5">
+                        <div className="bg-white p-2.5 rounded-xl border border-slate-300">
+                          <span className="text-[10px] text-slate-600 uppercase font-bold block">Titular</span>
+                          <span className="font-semibold text-slate-800 truncate block mt-0.5">
                             {auditResult.audit.titular || "Ecuapronóstico"}
                           </span>
                         </div>
@@ -1266,8 +1266,8 @@ export default function AdminCrmPage() {
 
                       {/* ENLACE DE ACTIVACIÓN GENERADO */}
                       {auditResult.record?.enlace_activacion && (
-                        <div className="bg-slate-900 border border-emerald-500/30 p-3 rounded-xl space-y-1.5">
-                          <span className="text-[11px] font-bold text-emerald-400 block uppercase">
+                        <div className="bg-white border border-emerald-500/30 p-3 rounded-xl space-y-1.5">
+                          <span className="text-[11px] font-bold text-emerald-700 block uppercase">
                             🔗 Enlace Único de Activación Prellenado Generado:
                           </span>
                           <div className="flex items-center gap-2">
@@ -1275,7 +1275,7 @@ export default function AdminCrmPage() {
                               type="text"
                               readOnly
                               value={auditResult.record.enlace_activacion}
-                              className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono truncate"
+                              className="w-full bg-slate-100 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-mono truncate"
                             />
                             <button
                               onClick={() => {
@@ -1291,7 +1291,7 @@ export default function AdminCrmPage() {
                               href={auditResult.record.enlace_activacion}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg text-xs shrink-0"
+                              className="px-3 py-1.5 bg-slate-100 hover:bg-amber-100 text-slate-900 font-bold rounded-lg text-xs shrink-0"
                             >
                               Abrir ↗
                             </a>
@@ -1300,11 +1300,11 @@ export default function AdminCrmPage() {
                       )}
 
                       {/* MENSAJE DE RESPUESTA AUTOMÁTICA DE WHATSAPP */}
-                      <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl space-y-1">
-                        <span className="text-[10px] font-bold text-slate-400 block uppercase">
+                      <div className="bg-white border border-slate-300 p-3 rounded-xl space-y-1">
+                        <span className="text-[10px] font-bold text-slate-600 block uppercase">
                           💬 Mensaje que el Bot de WhatsApp envía al cliente:
                         </span>
-                        <p className="text-xs text-slate-200 bg-slate-950 p-2.5 rounded-lg border border-slate-800 leading-relaxed font-sans">
+                        <p className="text-xs text-slate-800 bg-slate-100 p-2.5 rounded-lg border border-slate-300 leading-relaxed font-sans">
                           {auditResult.record?.mensaje_cliente}
                         </p>
                       </div>
@@ -1312,7 +1312,7 @@ export default function AdminCrmPage() {
                   ) : (
                     <div className="h-64 flex flex-col items-center justify-center text-center p-6 text-slate-500">
                       <span className="text-4xl mb-2">🤖</span>
-                      <p className="text-xs text-slate-400 max-w-sm">
+                      <p className="text-xs text-slate-600 max-w-sm">
                         Arrastra un comprobante en el cuadro de la izquierda y presiona &quot;Auditar Comprobante&quot; para ver la extracción de datos y la decisión automática.
                       </p>
                     </div>
@@ -1323,24 +1323,24 @@ export default function AdminCrmPage() {
           </div>
 
           {/* TABLA DE AUDITORÍAS DE COMPROBANTES */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-3">
+          <div className="bg-white/95 border border-slate-300 rounded-2xl p-5 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-300 pb-3">
               <div>
-                <h3 className="text-base font-black text-white flex items-center gap-2">
+                <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
                   <span>📋</span>
                   <span>HISTORIAL DE COMPROBANTES AUDITADOS</span>
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-600">
                   Registro cronológico de transferencias recibidas por WhatsApp y analizadas con Gemini Vision
                 </p>
               </div>
 
               {/* FILTROS */}
-              <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-300">
                 <button
                   onClick={() => setReceiptFilter("todos")}
                   className={`px-3 py-1 text-xs font-bold rounded-lg transition cursor-pointer ${
-                    receiptFilter === "todos" ? "bg-slate-700 text-white" : "text-slate-400 hover:text-white"
+                    receiptFilter === "todos" ? "bg-amber-100 text-slate-900" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   Todos ({receiptStats.total})
@@ -1348,7 +1348,7 @@ export default function AdminCrmPage() {
                 <button
                   onClick={() => setReceiptFilter("aprobados")}
                   className={`px-3 py-1 text-xs font-bold rounded-lg transition cursor-pointer ${
-                    receiptFilter === "aprobados" ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-white"
+                    receiptFilter === "aprobados" ? "bg-emerald-600 text-white" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   Aprobados ({receiptStats.aprobadosAutomaticos})
@@ -1356,7 +1356,7 @@ export default function AdminCrmPage() {
                 <button
                   onClick={() => setReceiptFilter("revision")}
                   className={`px-3 py-1 text-xs font-bold rounded-lg transition cursor-pointer ${
-                    receiptFilter === "revision" ? "bg-amber-500 text-slate-950" : "text-slate-400 hover:text-white"
+                    receiptFilter === "revision" ? "bg-amber-500 text-slate-950" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   Revisión ({receiptStats.requiereRevision})
@@ -1368,7 +1368,7 @@ export default function AdminCrmPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-slate-800 text-[11px] uppercase tracking-wider text-slate-400 bg-slate-950/50">
+                  <tr className="border-b border-slate-300 text-[11px] uppercase tracking-wider text-slate-600 bg-slate-100/50">
                     <th className="py-3 px-3">Fecha / ID</th>
                     <th className="py-3 px-3">Cliente (WhatsApp)</th>
                     <th className="py-3 px-3">Banco & Referencia</th>
@@ -1377,10 +1377,10 @@ export default function AdminCrmPage() {
                     <th className="py-3 px-3 text-right">Acciones</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 font-sans">
+                <tbody className="divide-y divide-slate-200 font-sans">
                   {receiptsLoading ? (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-400">
+                      <td colSpan={6} className="py-8 text-center text-slate-600">
                         <span className="inline-block w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mr-2" />
                         Cargando auditorías...
                       </td>
@@ -1398,45 +1398,45 @@ export default function AdminCrmPage() {
                       const needsRevision = rec.estado === "requiere_revision_manual";
 
                       return (
-                        <tr key={rec.id} className="hover:bg-slate-800/40 transition">
+                        <tr key={rec.id} className="hover:bg-slate-100/40 transition">
                           <td className="py-3 px-3">
-                            <span className="font-mono text-white font-bold block">{rec.id}</span>
+                            <span className="font-mono text-slate-900 font-bold block">{rec.id}</span>
                             <span className="text-[10px] text-slate-500 block">
                               {rec.timestamp ? new Date(rec.timestamp).toLocaleString("es-EC") : "N/A"}
                             </span>
                           </td>
 
                           <td className="py-3 px-3">
-                            <span className="font-mono text-slate-200 block font-semibold">
+                            <span className="font-mono text-slate-800 block font-semibold">
                               {rec.telefono}
                             </span>
                             {rec.titular && (
-                              <span className="text-[10px] text-slate-400 block">{rec.titular}</span>
+                              <span className="text-[10px] text-slate-600 block">{rec.titular}</span>
                             )}
                           </td>
 
                           <td className="py-3 px-3">
-                            <span className="text-slate-300 font-bold block">{rec.banco || "Transferencia"}</span>
-                            <span className="text-[10px] text-amber-300/90 font-mono block">
+                            <span className="text-slate-700 font-bold block">{rec.banco || "Transferencia"}</span>
+                            <span className="text-[10px] text-amber-800 font-mono block">
                               Ref: {rec.referencia || "N/A"}
                             </span>
                           </td>
 
                           <td className="py-3 px-3 text-right">
-                            <span className="font-mono text-sm font-black text-white">
+                            <span className="font-mono text-sm font-black text-slate-900">
                               ${rec.monto ? rec.monto.toFixed(2) : "0.00"}
                             </span>
-                            <span className="text-[10px] text-slate-400 block">USD</span>
+                            <span className="text-[10px] text-slate-600 block">USD</span>
                           </td>
 
                           <td className="py-3 px-3 text-center">
                             <span
                               className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
                                 isAutoApproved
-                                  ? "bg-emerald-950 text-emerald-300 border border-emerald-500/50"
+                                  ? "bg-emerald-100 text-emerald-800 border border-emerald-500/50"
                                   : isManualApproved
-                                  ? "bg-blue-950 text-blue-300 border border-blue-500/50"
-                                  : "bg-amber-950 text-amber-300 border border-amber-500/50"
+                                  ? "bg-blue-100 text-blue-800 border border-blue-500/50"
+                                  : "bg-amber-100 text-amber-800 border border-amber-500/50"
                               }`}
                             >
                               {isAutoApproved
@@ -1446,7 +1446,7 @@ export default function AdminCrmPage() {
                                 : "🟡 Requiere Revisión"}
                             </span>
                             <span
-                              className="text-[10px] text-slate-400 block mt-0.5 max-w-[200px] mx-auto truncate"
+                              className="text-[10px] text-slate-600 block mt-0.5 max-w-[200px] mx-auto truncate"
                               title={rec.motivo}
                             >
                               {rec.motivo}
@@ -1472,7 +1472,7 @@ export default function AdminCrmPage() {
                                     setActionSuccess("📋 Enlace de activación copiado.");
                                     setTimeout(() => setActionSuccess(null), 3000);
                                   }}
-                                  className="p-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 rounded-lg text-xs transition cursor-pointer"
+                                  className="p-1.5 bg-slate-100 hover:bg-amber-100 text-emerald-700 rounded-lg text-xs transition cursor-pointer"
                                   title="Copiar enlace de activación"
                                 >
                                   🔗
@@ -1507,25 +1507,25 @@ export default function AdminCrmPage() {
       {/* ================= PESTAÑA 3: CONTROL DE APIS EXTERNAS ================= */}
       {activeTab === "apis" && (
         <div className="space-y-6 animate-in fade-in">
-          <div id="apis" className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-3">
+          <div id="apis" className="bg-white/95 border border-slate-300 rounded-2xl p-5 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-300 pb-3">
               <div className="flex items-center gap-2.5">
                 <span className="text-2xl">⚡</span>
                 <div>
-                  <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                  <h2 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
                     CONTROL DE SUSCRIPCIONES DE APIS EXTERNAS
-                    <span className="text-[10px] bg-slate-800 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
+                    <span className="text-[10px] bg-slate-100 text-amber-800 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
                       API-Football & The Odds API
                     </span>
                   </h2>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-600">
                     Monitoreo de vencimientos, costos operativos y alertas de renovación anticipada (5 días o menos)
                   </p>
                 </div>
               </div>
               <button
                 onClick={fetchSubscriptions}
-                className="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition flex items-center gap-1 cursor-pointer"
+                className="text-xs text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-amber-100 px-3 py-1.5 rounded-lg transition flex items-center gap-1 cursor-pointer"
               >
                 <span>🔄</span>
                 <span>Refrescar APIs</span>
@@ -1543,7 +1543,7 @@ export default function AdminCrmPage() {
                     className={`rounded-2xl p-4 border transition-all ${
                       isUrgent
                         ? "bg-gradient-to-br from-amber-950/40 via-slate-900 to-slate-900 border-amber-500/60 shadow-[0_0_25px_rgba(245,158,11,0.18)]"
-                        : "bg-slate-950/70 border-slate-800 hover:border-slate-700"
+                        : "bg-slate-100/90 border-slate-300 hover:border-slate-300"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -1551,14 +1551,14 @@ export default function AdminCrmPage() {
                         <div
                           className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xl ${
                             sub.nombre_servicio.includes("Football")
-                              ? "bg-blue-900/60 text-blue-300 border border-blue-500/40"
-                              : "bg-emerald-900/60 text-emerald-300 border border-emerald-500/40"
+                              ? "bg-blue-900/60 text-blue-800 border border-blue-500/40"
+                              : "bg-emerald-900/60 text-emerald-800 border border-emerald-500/40"
                           }`}
                         >
                           {sub.nombre_servicio.includes("Football") ? "⚽" : "🎲"}
                         </div>
                         <div>
-                          <h3 className="font-black text-white text-sm sm:text-base flex items-center gap-2">
+                          <h3 className="font-black text-slate-900 text-sm sm:text-base flex items-center gap-2">
                             {sub.nombre_servicio}
                             {isUrgent && (
                               <span className="text-[10px] bg-amber-500 text-slate-950 font-black px-1.5 py-0.5 rounded uppercase animate-pulse">
@@ -1566,32 +1566,32 @@ export default function AdminCrmPage() {
                               </span>
                             )}
                           </h3>
-                          <p className="text-[11px] text-slate-400 leading-tight">
+                          <p className="text-[11px] text-slate-600 leading-tight">
                             {sub.notas || "Servicio externo de datos"}
                           </p>
                         </div>
                       </div>
 
                       <div className="text-right shrink-0">
-                        <span className="text-[10px] uppercase text-slate-400 block font-bold">Costo</span>
-                        <span className="text-sm sm:text-base font-black text-white font-mono">
-                          ${sub.costo.toFixed(2)} <span className="text-[10px] text-slate-400">{sub.moneda}</span>
+                        <span className="text-[10px] uppercase text-slate-600 block font-bold">Costo</span>
+                        <span className="text-sm sm:text-base font-black text-slate-900 font-mono">
+                          ${sub.costo.toFixed(2)} <span className="text-[10px] text-slate-600">{sub.moneda}</span>
                         </span>
                       </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
+                    <div className="mt-4 pt-3 border-t border-slate-300 flex flex-wrap items-center justify-between gap-2">
                       <div>
-                        <span className="text-[10px] uppercase font-bold text-slate-400 block">Próxima Renovación</span>
+                        <span className="text-[10px] uppercase font-bold text-slate-600 block">Próxima Renovación</span>
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-sm font-bold text-slate-200">{sub.fecha_renovacion}</span>
+                          <span className="font-mono text-sm font-bold text-slate-800">{sub.fecha_renovacion}</span>
                           <span
                             className={`text-xs font-black px-2 py-0.5 rounded-full ${
                               sub.dias_restantes < 0
-                                ? "bg-red-950 text-red-300 border border-red-500/50"
+                                ? "bg-red-950 text-red-700 border border-red-500/50"
                                 : sub.dias_restantes <= 5
-                                ? "bg-amber-950 text-amber-300 border border-amber-500/60"
-                                : "bg-emerald-950 text-emerald-300 border border-emerald-500/40"
+                                ? "bg-amber-100 text-amber-800 border border-amber-500/60"
+                                : "bg-emerald-100 text-emerald-800 border border-emerald-500/40"
                             }`}
                           >
                             {sub.dias_restantes > 0
@@ -1609,7 +1609,7 @@ export default function AdminCrmPage() {
                             href={sub.url_portal}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition flex items-center gap-1"
+                            className="px-2.5 py-1.5 bg-slate-100 hover:bg-amber-100 text-slate-800 rounded-lg text-xs font-bold transition flex items-center gap-1"
                             title="Abrir consola de pagos"
                           >
                             <span>Portal</span>
@@ -1623,7 +1623,7 @@ export default function AdminCrmPage() {
                             setEditDate(sub.fecha_renovacion);
                             setEditCost(sub.costo);
                           }}
-                          className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-lg text-xs font-bold transition cursor-pointer"
+                          className="px-2.5 py-1.5 bg-slate-100 hover:bg-amber-100 text-amber-800 rounded-lg text-xs font-bold transition cursor-pointer"
                         >
                           Editar
                         </button>
@@ -1640,35 +1640,35 @@ export default function AdminCrmPage() {
 
                     {/* FORMULARIO DE EDICIÓN EN LÍNEA */}
                     {isEditing && (
-                      <div className="mt-3 p-3 bg-slate-900 border border-amber-400/40 rounded-xl space-y-2 animate-in fade-in">
-                        <span className="text-xs font-bold text-amber-300 block">
+                      <div className="mt-3 p-3 bg-white border border-amber-400/40 rounded-xl space-y-2 animate-in fade-in">
+                        <span className="text-xs font-bold text-amber-800 block">
                           Modificar fecha o costo de {sub.nombre_servicio}:
                         </span>
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="text-[10px] text-slate-400 block mb-0.5">Fecha de Renovación</label>
+                            <label className="text-[10px] text-slate-600 block mb-0.5">Fecha de Renovación</label>
                             <input
                               type="date"
                               value={editDate}
                               onChange={(e) => setEditDate(e.target.value)}
-                              className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white outline-none focus:border-amber-400"
+                              className="w-full bg-slate-100 border border-slate-300 rounded-lg px-2 py-1 text-xs text-slate-900 outline-none focus:border-amber-400"
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] text-slate-400 block mb-0.5">Costo Mensual ($ USD)</label>
+                            <label className="text-[10px] text-slate-600 block mb-0.5">Costo Mensual ($ USD)</label>
                             <input
                               type="number"
                               step="0.01"
                               value={editCost}
                               onChange={(e) => setEditCost(Number(e.target.value))}
-                              className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white outline-none focus:border-amber-400"
+                              className="w-full bg-slate-100 border border-slate-300 rounded-lg px-2 py-1 text-xs text-slate-900 outline-none focus:border-amber-400"
                             />
                           </div>
                         </div>
                         <div className="flex justify-end gap-2 pt-1">
                           <button
                             onClick={() => setEditingSubId(null)}
-                            className="px-2.5 py-1 text-xs text-slate-400 hover:text-white cursor-pointer"
+                            className="px-2.5 py-1 text-xs text-slate-600 hover:text-slate-900 cursor-pointer"
                           >
                             Cancelar
                           </button>

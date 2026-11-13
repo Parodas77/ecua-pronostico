@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import AdminRenewalAlertBanner from "@/components/AdminRenewalAlertBanner";
+import SportCourtBackground, { getSportSurfaceFromLeague } from "@/components/SportCourtBackground";
 
 interface LeagueOption {
   id: string;
@@ -611,19 +612,22 @@ export default function EcuaPronosticoDashboard() {
   }, [currentMatch?.id]);
 
   return (
-    <div className="min-h-screen bg-[#0b132b] text-slate-50 font-sans pb-24 lg:pb-6">
+    <div className="min-h-screen bg-transparent text-slate-900 font-sans pb-24 lg:pb-6 relative">
+      {/* FONDO INMERSIVO CLARO DINÁMICO SEGÚN DEPORTE ACTIVO */}
+      <SportCourtBackground sport={getSportSurfaceFromLeague(league, currentMatch?.sportCategory)} />
+
       {/* ALERTA VISUAL ADMIN-ONLY PARA RENOVACIÓN DE APIS (<= 5 DÍAS) */}
       <AdminRenewalAlertBanner />
 
-      <div className="p-3 md:p-6">
+      <div className="p-3 md:p-6 relative z-10">
         <div className="max-w-[1440px] w-full mx-auto">
         
         {showLoginModal && (
-          <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex justify-center items-center z-50 p-4">
-            <div className="bg-slate-800 border-2 border-amber-400/60 rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-[0_0_50px_rgba(251,191,36,0.3)] relative overflow-hidden">
+          <div className="fixed inset-0 bg-white/50 backdrop-blur-md flex justify-center items-center z-50 p-4">
+            <div className="bg-slate-100 border-2 border-amber-400/60 rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-[0_0_50px_rgba(251,191,36,0.3)] relative overflow-hidden">
               <button
                 onClick={() => { setShowLoginModal(false); setLoginError(""); }}
-                className="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold bg-slate-900 w-8 h-8 rounded-full flex items-center justify-center border border-slate-700 transition-all hover:border-slate-500"
+                className="absolute top-4 right-4 text-slate-600 hover:text-slate-900 text-xl font-bold bg-white w-8 h-8 rounded-full flex items-center justify-center border border-slate-300 transition-all hover:border-slate-500"
               >
                 ✕
               </button>
@@ -632,40 +636,40 @@ export default function EcuaPronosticoDashboard() {
                 <span className="inline-block bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 font-black text-[11px] px-3.5 py-1 rounded-full uppercase tracking-wider shadow mb-2">
                   ⭐ MEMBRESÍA VIP ECUAPRONÓSTICO
                 </span>
-                <h3 className="text-2xl md:text-3xl font-black text-white">
+                <h3 className="text-2xl md:text-3xl font-black text-slate-900">
                   Desbloquea el Radar Completo
                 </h3>
-                <div className="text-amber-400 font-extrabold text-lg mt-1 font-mono">
+                <div className="text-amber-700 font-extrabold text-lg mt-1 font-mono">
                   $14.99 USD / mes
                 </div>
               </div>
 
               {paywallReason && (
-                <div className="mb-4 bg-amber-950/60 border border-amber-400/50 rounded-xl p-3 text-xs text-amber-200 flex items-start gap-2">
+                <div className="mb-4 bg-amber-50 border border-amber-400/50 rounded-xl p-3 text-xs text-amber-900 flex items-start gap-2">
                   <span className="text-base shrink-0">💡</span>
                   <p className="leading-snug">{paywallReason}</p>
                 </div>
               )}
 
-              <div className="space-y-2 mb-6 bg-slate-900/80 p-4 rounded-2xl border border-slate-700 text-xs">
-                <div className="flex items-center gap-2 text-slate-200">
-                  <span className="text-emerald-400 font-black">✓</span>
+              <div className="space-y-2 mb-6 bg-white/92 p-4 rounded-2xl border border-slate-300 text-xs">
+                <div className="flex items-center gap-2 text-slate-800">
+                  <span className="text-emerald-700 font-black">✓</span>
                   <span><strong>100% Partidos Desbloqueados:</strong> LigaPro, Champions, Europa League, Premier, La Liga, etc.</span>
                 </div>
-                <div className="flex items-center gap-2 text-slate-200">
-                  <span className="text-emerald-400 font-black">✓</span>
+                <div className="flex items-center gap-2 text-slate-800">
+                  <span className="text-emerald-700 font-black">✓</span>
                   <span><strong>Las 4 Fijas del Día:</strong> Selecciones con máxima certeza listas para tus apuestas.</span>
                 </div>
-                <div className="flex items-center gap-2 text-slate-200">
-                  <span className="text-emerald-400 font-black">✓</span>
+                <div className="flex items-center gap-2 text-slate-800">
+                  <span className="text-emerald-700 font-black">✓</span>
                   <span><strong>Cartelera Simplificada:</strong> Porcentaje de victoria directo (%) sin cuotas confusas.</span>
                 </div>
-                <div className="flex items-center gap-2 text-slate-200">
-                  <span className="text-emerald-400 font-black">✓</span>
+                <div className="flex items-center gap-2 text-slate-800">
+                  <span className="text-emerald-700 font-black">✓</span>
                   <span><strong>xG y De-vigging Real:</strong> Poisson, 10,000 simulaciones Montecarlo y cuota mínima rentable.</span>
                 </div>
-                <div className="flex items-center gap-2 text-slate-200">
-                  <span className="text-emerald-400 font-black">✓</span>
+                <div className="flex items-center gap-2 text-slate-800">
+                  <span className="text-emerald-700 font-black">✓</span>
                   <span><strong>Auditor IA en Vivo:</strong> Consultas ilimitadas sobre árbitros, planteles y factor altitud.</span>
                 </div>
               </div>
@@ -681,8 +685,8 @@ export default function EcuaPronosticoDashboard() {
                   <span>Activar Suscripción por WhatsApp ($14.99/mes)</span>
                 </a>
 
-                <div className="pt-4 border-t border-slate-700/80">
-                  <div className="text-xs font-bold text-slate-400 mb-2 uppercase text-center">
+                <div className="pt-4 border-t border-slate-300">
+                  <div className="text-xs font-bold text-slate-600 mb-2 uppercase text-center">
                     ¿Ya eres miembro VIP? Inicia sesión
                   </div>
                   <div className="space-y-2">
@@ -694,7 +698,7 @@ export default function EcuaPronosticoDashboard() {
                       autoCapitalize="none"
                       autoCorrect="off"
                       spellCheck={false}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3.5 py-2 text-white outline-none text-xs focus:border-amber-400"
+                      className="w-full bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-slate-900 outline-none text-xs focus:border-amber-400"
                     />
                     <input
                       type="password"
@@ -705,12 +709,12 @@ export default function EcuaPronosticoDashboard() {
                       autoCapitalize="none"
                       autoCorrect="off"
                       spellCheck={false}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3.5 py-2 text-white outline-none text-xs focus:border-amber-400"
+                      className="w-full bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-slate-900 outline-none text-xs focus:border-amber-400"
                     />
-                    {loginError && <p className="text-xs text-red-400 bg-red-950/40 p-2 rounded-lg">{loginError}</p>}
+                    {loginError && <p className="text-xs text-red-700 bg-red-50 p-2 rounded-lg">{loginError}</p>}
                     <button
                       onClick={handleLogin}
-                      className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded-lg text-xs transition-all"
+                      className="w-full bg-amber-100 hover:bg-amber-200 text-slate-900 font-bold py-2 rounded-lg text-xs transition-all"
                     >
                       Ingresar con mi cuenta VIP
                     </button>
@@ -721,14 +725,14 @@ export default function EcuaPronosticoDashboard() {
           </div>
         )}
 
-        <header className="mb-6 border-b border-slate-800 pb-4">
+        <header className="mb-6 border-2 border-slate-300 pb-4 relative z-[500] overflow-visible bg-white/95 backdrop-blur-md rounded-3xl px-4 md:px-6 pt-4 shadow-xl">
           {syncToast && (
-            <div className="mb-4 bg-emerald-950/90 border-2 border-emerald-500 text-emerald-200 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between shadow-xl">
+            <div className="mb-4 bg-emerald-100/95 border-2 border-emerald-500 text-emerald-900 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between shadow-xl">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
                 <span>{syncToast}</span>
               </div>
-              <button onClick={() => setSyncToast(null)} className="text-emerald-400 hover:text-white font-black text-sm ml-4">✕</button>
+              <button onClick={() => setSyncToast(null)} className="text-emerald-700 hover:text-slate-900 font-black text-sm ml-4">✕</button>
             </div>
           )}
 
@@ -738,10 +742,10 @@ export default function EcuaPronosticoDashboard() {
                 <img src="/logo.png" alt="Logo" className="h-14 md:h-16 object-contain drop-shadow-[0_0_15px_rgba(56,189,248,0.4)]" />
               </Link>
               <div>
-                <span className="text-[10px] bg-green-500/20 text-green-300 border border-green-500/40 px-2.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider">
+                <span className="text-[10px] bg-green-100 text-green-800 border border-green-500/40 px-2.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider">
                   Sincronización Automática Semanal ({liveWindow})
                 </span>
-                <h1 className="text-base md:text-xl font-black text-white mt-0.5">RADAR MULTIMERCADO INTELIGENTE</h1>
+                <h1 className="text-base md:text-xl font-black text-slate-900 mt-0.5">RADAR MULTIMERCADO INTELIGENTE</h1>
               </div>
             </div>
 
@@ -750,7 +754,7 @@ export default function EcuaPronosticoDashboard() {
               {isAdmin && (
                 <Link
                   href="/admin"
-                  className="text-xs bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-500/50 px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all shadow animate-fadeIn"
+                  className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-500/50 px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all shadow animate-fadeIn"
                   title="Panel de Administración CRM"
                 >
                   <span>👥 CRM Admin</span>
@@ -767,13 +771,13 @@ export default function EcuaPronosticoDashboard() {
               </a>
               <Link
                 href="/"
-                className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all"
+                className="text-xs bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-slate-900 border border-slate-300 px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all"
               >
                 <span>🏠 Portada</span>
               </Link>
               <Link
                 href="/aciertos"
-                className="text-xs bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/60 px-3 py-2 rounded-lg font-black flex items-center gap-1.5 shadow-lg transition-all hover:scale-105"
+                className="text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-500/60 px-3 py-2 rounded-lg font-black flex items-center gap-1.5 shadow-lg transition-all hover:scale-105"
               >
                 <span>✅ Historial de Aciertos</span>
                 <span className="text-[9px] bg-emerald-400 text-slate-950 px-1.5 py-0.2 rounded font-extrabold uppercase">
@@ -791,13 +795,13 @@ export default function EcuaPronosticoDashboard() {
                 disabled={isSyncing}
                 className={`text-xs px-3 py-2 rounded-lg font-bold transition-all flex items-center gap-1.5 ${
                   isSyncing
-                    ? "bg-emerald-950 text-emerald-300 border border-emerald-500 animate-pulse cursor-wait"
-                    : "bg-slate-800 hover:bg-slate-700 text-green-400 border border-green-500/40"
+                    ? "bg-emerald-100 text-emerald-800 border border-emerald-500 animate-pulse cursor-wait"
+                    : "bg-slate-100 hover:bg-amber-100 text-green-700 border border-green-500/40"
                 }`}
               >
                 <span className={isSyncing ? "animate-spin" : ""}>🔄</span>
                 <span>{isSyncing ? "Sincronizando 3 APIs..." : "Forzar Sincronización"}</span>
-                {view !== "premium" && <span className="text-[9px] text-amber-400 font-mono">🔒</span>}
+                {view !== "premium" && <span className="text-[9px] text-amber-700 font-mono">🔒</span>}
               </button>
               <button
                 onClick={() => {
@@ -807,16 +811,16 @@ export default function EcuaPronosticoDashboard() {
                   }
                   setShowGuide(!showGuide);
                 }}
-                className="text-xs bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 px-3 py-2 rounded-lg font-bold flex items-center gap-1"
+                className="text-xs bg-slate-100 hover:bg-amber-100 text-blue-700 border border-slate-300 px-3 py-2 rounded-lg font-bold flex items-center gap-1"
               >
                 <span>{showGuide ? "Ocultar Guía" : "📖 Guía Fácil"}</span>
-                {view !== "premium" && <span className="text-[9px] text-amber-400 font-mono">🔒</span>}
+                {view !== "premium" && <span className="text-[9px] text-amber-700 font-mono">🔒</span>}
               </button>
-              <div className="flex gap-1 bg-slate-800 p-1 rounded-lg border border-slate-700">
-                <button onClick={() => setView("basic")} className={`px-3 py-1.5 text-xs font-bold rounded-md ${view === "basic" ? "bg-slate-600 text-white" : "text-slate-400"}`}>Gratis</button>
-                <button onClick={handlePremiumSwitch} className={`px-3 py-1.5 text-xs font-bold rounded-md ${view === "premium" ? "bg-blue-600 text-white" : "text-slate-400"}`}>VIP ($14.99)</button>
+              <div className="flex gap-1 bg-slate-100 p-1 rounded-lg border border-slate-300">
+                <button onClick={() => setView("basic")} className={`px-3 py-1.5 text-xs font-bold rounded-md ${view === "basic" ? "bg-amber-200 text-slate-900" : "text-slate-600"}`}>Gratis</button>
+                <button onClick={handlePremiumSwitch} className={`px-3 py-1.5 text-xs font-bold rounded-md ${view === "premium" ? "bg-blue-600 text-white" : "text-slate-600"}`}>VIP ($14.99)</button>
               </div>
-              {isAuthenticated && <button onClick={handleLogout} className="text-xs text-red-400 border border-slate-700 px-2.5 py-1.5 rounded-lg">Salir</button>}
+              {isAuthenticated && <button onClick={handleLogout} className="text-xs text-red-700 border border-slate-300 px-2.5 py-1.5 rounded-lg">Salir</button>}
             </div>
 
             {/* VISTA MÓVIL (< 1024px): CABECERA LIMPIA TIPO APP CON BOTÓN VIP Y ACCESO RÁPIDO */}
@@ -825,7 +829,7 @@ export default function EcuaPronosticoDashboard() {
                 {isAdmin && (
                   <Link
                     href="/admin"
-                    className="text-[11px] bg-amber-950 text-amber-300 border border-amber-500/50 px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow"
+                    className="text-[11px] bg-amber-100 text-amber-800 border border-amber-500/50 px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow"
                     title="Panel CRM"
                   >
                     <span>👥 CRM</span>
@@ -840,7 +844,7 @@ export default function EcuaPronosticoDashboard() {
                     fetchMatchesFromServer(league, true);
                   }}
                   disabled={isSyncing}
-                  className="text-[11px] bg-slate-900 text-green-400 border border-green-500/40 px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1"
+                  className="text-[11px] bg-white text-green-700 border border-green-500/40 px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1"
                   title="Sincronizar"
                 >
                   <span className={isSyncing ? "animate-spin" : ""}>🔄</span>
@@ -859,49 +863,49 @@ export default function EcuaPronosticoDashboard() {
           </div>
 
           {showGuide && (
-            <div className="mb-4 bg-slate-900/90 border border-blue-500/40 rounded-xl p-4 text-xs text-slate-300 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="mb-4 bg-white/95 border border-blue-500/40 rounded-xl p-4 text-xs text-slate-700 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <strong className="text-amber-400 block mb-1">1. Las 4 Fijas del Día</strong>
+                <strong className="text-amber-700 block mb-1">1. Las 4 Fijas del Día</strong>
                 El botón dorado superior extrae automáticamente las 4 apuestas más seguras y rentables de todas las ligas para que las compartas en tus grupos de WhatsApp y Telegram.
               </div>
               <div>
-                <strong className="text-blue-400 block mb-1">2. Vista Simplificada (Solo Ganadores %)</strong>
+                <strong className="text-blue-700 block mb-1">2. Vista Simplificada (Solo Ganadores %)</strong>
                 Visualiza el equipo probable ganador y su porcentaje exacto de victoria frente al rival sin enredos de cuotas.
               </div>
               <div>
-                <strong className="text-green-400 block mb-1">3. Respaldo Matemático Real</strong>
+                <strong className="text-green-700 block mb-1">3. Respaldo Matemático Real</strong>
                 10,000 simulaciones de Montecarlo y Distribución de Poisson respaldan cada pronóstico diario.
               </div>
             </div>
           )}
 
-          <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-3">
+          <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-3 relative z-[500] overflow-visible">
             {/* SISTEMA DE PESTAÑAS DESPLEGABLES (DROPDOWN TABS) POR REGIÓN */}
-            <div className="flex items-center gap-2 relative z-30 overflow-x-auto whitespace-nowrap scrollbar-none max-lg:pb-1 lg:flex-wrap" data-league-dropdown>
+            <div className="flex items-center gap-2 relative z-[500] flex-wrap overflow-visible" data-league-dropdown>
               {REGION_TABS.map((reg, tabIdx) => {
                 const isRegionActive = activeLeagueInfo.region.id === reg.id;
                 const isOpen = openDropdown === reg.id;
 
                 return (
-                  <div key={reg.id} className="relative">
+                  <div key={reg.id} className={`relative ${isOpen ? "z-[9999]" : "z-30"}`}>
                     <button
                       onClick={() => setOpenDropdown(isOpen ? null : reg.id)}
                       className={`px-3.5 py-2.5 rounded-xl font-black text-xs md:text-sm flex items-center gap-2 transition-all border shrink-0 ${
                         isRegionActive
-                          ? "bg-slate-900 text-amber-300 border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.35)] ring-1 ring-amber-400/50"
-                          : "bg-slate-900/90 text-slate-300 border-slate-700/80 hover:bg-slate-800 hover:text-white hover:border-slate-600"
+                          ? "bg-white text-amber-800 border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.35)] ring-1 ring-amber-400/50"
+                          : "bg-white/95 text-slate-700 border-slate-300 hover:bg-slate-100 hover:text-slate-900 hover:border-slate-300"
                       }`}
                     >
                       <span className="text-base">{reg.icon}</span>
                       <span className="tracking-wide uppercase font-extrabold">{reg.label}</span>
                       {isRegionActive && (
-                        <span className="text-[10px] bg-amber-400/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-400/40 font-bold ml-1 hidden sm:inline-block truncate max-w-[130px]">
+                        <span className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded border border-amber-400/40 font-bold ml-1 hidden sm:inline-block truncate max-w-[130px]">
                           {activeLeagueInfo.option.name.split(":")[0]}
                         </span>
                       )}
                       <svg
-                        className={`w-3.5 h-3.5 ml-1 transition-transform duration-200 text-slate-400 ${
-                          isOpen ? "rotate-180 text-amber-400" : ""
+                        className={`w-3.5 h-3.5 ml-1 transition-transform duration-200 text-slate-600 ${
+                          isOpen ? "rotate-180 text-amber-700" : ""
                         }`}
                         fill="none"
                         viewBox="0 0 24 24"
@@ -915,18 +919,18 @@ export default function EcuaPronosticoDashboard() {
                     {/* MENÚ DESPLEGABLE CON SECCIONES */}
                     {isOpen && (
                       <div
-                        className={`absolute mt-2 w-72 sm:w-80 md:w-96 bg-slate-900/98 backdrop-blur-2xl border border-slate-700/90 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] p-2 z-50 max-h-[72vh] overflow-y-auto divide-y divide-slate-800/80 animate-in fade-in zoom-in-95 duration-150 ${
+                        className={`absolute top-full mt-2 w-72 sm:w-80 md:w-96 bg-white border-2 border-blue-600 rounded-2xl shadow-[0_25px_70px_rgba(15,23,42,0.45)] p-2.5 z-[9999] max-h-[72vh] overflow-y-auto divide-y divide-slate-200 animate-in fade-in zoom-in-95 duration-150 ${
                           tabIdx === 2 ? "left-0 xl:left-auto xl:right-0" : "left-0"
                         }`}
                       >
-                        <div className="px-3 py-2 mb-1 flex items-center justify-between border-b border-slate-800">
+                        <div className="px-3 py-2 mb-1 flex items-center justify-between border-b border-slate-300">
                           <div>
-                            <div className="text-xs font-black text-amber-300 flex items-center gap-1.5">
+                            <div className="text-xs font-black text-amber-800 flex items-center gap-1.5">
                               <span>{reg.icon}</span> {reg.label}
                             </div>
-                            <div className="text-[10px] text-slate-400 font-medium">{reg.subtitle}</div>
+                            <div className="text-[10px] text-slate-600 font-medium">{reg.subtitle}</div>
                           </div>
-                          <span className="text-[9px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700 font-mono">
+                          <span className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-300 font-mono">
                             {reg.sections.reduce((acc, s) => acc + s.options.length, 0)} Opciones
                           </span>
                         </div>
@@ -934,7 +938,7 @@ export default function EcuaPronosticoDashboard() {
                         {reg.sections.map((section, sIdx) => (
                           <div key={sIdx} className="pt-2 pb-1.5">
                             {section.title && (
-                              <div className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400 bg-slate-950/60 rounded-md mb-1.5 flex items-center justify-between">
+                              <div className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-600 bg-slate-100/90 rounded-md mb-1.5 flex items-center justify-between">
                                 <span>{section.title}</span>
                               </div>
                             )}
@@ -946,25 +950,26 @@ export default function EcuaPronosticoDashboard() {
                                     key={opt.id}
                                     onClick={() => {
                                       setLeague(opt.id);
+                                      setDisplayMode("full");
                                       setOpenDropdown(null);
                                     }}
                                     className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left text-xs transition-all ${
                                       isSelected
-                                        ? "bg-gradient-to-r from-amber-400/25 to-amber-500/10 text-amber-300 border border-amber-400/50 shadow-sm font-bold"
-                                        : "text-slate-200 hover:bg-slate-800/90 hover:text-white"
+                                        ? "bg-gradient-to-r from-amber-100 to-amber-50 text-amber-800 border border-amber-400/50 shadow-sm font-bold"
+                                        : "text-slate-800 hover:bg-slate-50/95 hover:text-slate-900"
                                     }`}
                                   >
                                     <div className="flex items-center gap-2.5 truncate">
                                       <span className="text-base shrink-0">{opt.icon}</span>
                                       <div className="truncate">
-                                        <div className="font-bold truncate text-slate-100">{opt.name}</div>
+                                        <div className="font-bold truncate text-slate-900">{opt.name}</div>
                                         {opt.sportLabel && (
-                                          <div className="text-[10px] text-slate-400 font-normal">{opt.sportLabel}</div>
+                                          <div className="text-[10px] text-slate-600 font-normal">{opt.sportLabel}</div>
                                         )}
                                       </div>
                                     </div>
                                     {isSelected && (
-                                      <span className="text-amber-400 text-xs font-black shrink-0 ml-2 bg-amber-400/20 px-2 py-0.5 rounded-full border border-amber-400/40">
+                                      <span className="text-amber-700 text-xs font-black shrink-0 ml-2 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-400/40">
                                         ✓ Activa
                                       </span>
                                     )}
@@ -981,7 +986,7 @@ export default function EcuaPronosticoDashboard() {
               })}
             </div>
 
-            <div className="flex flex-wrap gap-2 bg-slate-900 p-1.5 rounded-2xl border-2 border-amber-400/60 shadow-[0_0_25px_rgba(251,191,36,0.2)]">
+            <div className="flex flex-wrap gap-2 bg-white p-1.5 rounded-2xl border-2 border-amber-400/60 shadow-[0_0_25px_rgba(251,191,36,0.2)]">
               <button
                 onClick={() => {
                   const s = getStoredVipSession();
@@ -999,7 +1004,7 @@ export default function EcuaPronosticoDashboard() {
                 className={`px-4 py-2.5 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   displayMode === "top4"
                     ? "bg-gradient-to-r from-emerald-400 via-green-300 to-emerald-500 text-slate-950 shadow-[0_0_20px_rgba(34,197,94,0.6)] scale-[1.02]"
-                    : "text-green-300 hover:bg-slate-800"
+                    : "text-green-800 hover:bg-slate-100"
                 }`}
               >
                 <span>🏆 LAS 4 FIJAS DEL DÍA</span>
@@ -1008,7 +1013,7 @@ export default function EcuaPronosticoDashboard() {
 
               <Link
                 href="/aciertos"
-                className="px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-1.5 text-emerald-300 hover:text-white hover:bg-slate-800 border border-emerald-500/30 hover:border-emerald-500/60"
+                className="px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-1.5 text-emerald-800 hover:text-slate-900 hover:bg-slate-100 border border-emerald-500/30 hover:border-emerald-500/60"
               >
                 <span>✅ Historial de Aciertos</span>
                 <span className="text-[9px] bg-emerald-400 text-slate-950 px-1.5 py-0.5 rounded font-extrabold uppercase">
@@ -1029,11 +1034,11 @@ export default function EcuaPronosticoDashboard() {
                 className={`px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   displayMode === "full"
                     ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30 scale-[1.02]"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                 }`}
               >
                 <span>📊 Vista Completa</span>
-                <span className="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-1.5 py-0.5 rounded font-bold">
+                <span className="text-[9px] bg-emerald-100 text-emerald-800 border border-emerald-500/40 px-1.5 py-0.5 rounded font-bold">
                   {isEffectiveVip ? "🔓 VIP Activo" : "🔓 Gratuita"}
                 </span>
               </button>
@@ -1042,23 +1047,23 @@ export default function EcuaPronosticoDashboard() {
         </header>
 
         {displayMode === "top4" ? (
-          <section className="space-y-6">
-            <div className="bg-gradient-to-r from-[#064e3b] via-[#0f2557] to-[#064e3b] border-2 border-green-400/80 rounded-3xl p-6 text-center shadow-[0_0_35px_rgba(34,197,94,0.3)] relative overflow-hidden">
+          <section className="space-y-6 relative z-10">
+            <div className="bg-gradient-to-r from-emerald-100/95 via-white/98 to-blue-100/95 border-2 border-green-400/80 rounded-3xl p-6 text-center shadow-[0_0_35px_rgba(34,197,94,0.3)] relative overflow-hidden">
               <span className="inline-block bg-green-400 text-slate-950 font-black text-xs px-4 py-1 rounded-full uppercase tracking-widest mb-2 shadow">
                 Ventana Dinámica: Próximas 24 Horas (NOW a NOW + 24H) • Orden Estrictamente Cronológico
               </span>
-              <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-green-200 to-green-400 drop-shadow">
+              <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-950 via-emerald-800 to-blue-900 drop-shadow">
                 🏆 LAS 4 FIJAS DEL DÍA (MÁXIMA CERTEZA Y VALOR)
               </h2>
-              <p className="text-xs md:text-sm text-slate-200 mt-1 max-w-2xl mx-auto">
-                Filtro automático de <strong className="text-amber-300">todas las ligas y deportes activos</strong> para las próximas 24 horas. El motor matemático evalúa el <strong className="text-green-300">EV% y probabilidad más alta</strong> (ganador, doble oportunidad o totales con adaptación semántica de métricas xG, xPts y xRuns según deporte), ordenadas de forma <strong className="text-white font-bold">estrictamente cronológica por hora de inicio</strong>.
+              <p className="text-xs md:text-sm text-slate-800 mt-1 max-w-2xl mx-auto">
+                Filtro automático de <strong className="text-amber-800">todas las ligas y deportes activos</strong> para las próximas 24 horas. El motor matemático evalúa el <strong className="text-green-800">EV% y probabilidad más alta</strong> (ganador, doble oportunidad o totales con adaptación semántica de métricas xG, xPts y xRuns según deporte), ordenadas de forma <strong className="text-slate-900 font-bold">estrictamente cronológica por hora de inicio</strong>.
               </p>
               <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-                <div className="text-[11px] text-emerald-300 font-mono font-bold bg-slate-950/80 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-emerald-500/50 shadow-md">
+                <div className="text-[11px] text-emerald-800 font-mono font-bold bg-slate-100/95 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-emerald-500/50 shadow-md">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                   <span>{fijasSyncInfo}</span>
                 </div>
-                <div className="text-[11px] text-amber-300 font-bold bg-slate-950/80 border border-amber-400/60 px-3.5 py-1.5 rounded-full inline-flex items-center gap-1.5 shadow-md">
+                <div className="text-[11px] text-amber-800 font-bold bg-slate-100/95 border border-amber-400/60 px-3.5 py-1.5 rounded-full inline-flex items-center gap-1.5 shadow-md">
                   <span>🔒 Snapshot Inquebrantable a las 00:00 ECT</span>
                 </div>
               </div>
@@ -1066,41 +1071,41 @@ export default function EcuaPronosticoDashboard() {
 
             {/* CÁLCULO DE CUOTA COMBINADA PARLEY: OBJETIVO DUPLICAR O MULTIPLICAR CAPITAL */}
             {!isLoadingMatches && !isLoadingTop4 && top4Matches.length === 4 && (
-              <div className="bg-slate-950/90 border-2 border-amber-400 rounded-3xl p-5 md:p-6 shadow-[0_0_30px_rgba(251,191,36,0.2)] flex flex-col md:flex-row justify-between items-center gap-5 text-center md:text-left">
+              <div className="bg-white/95 border-2 border-amber-400 rounded-3xl p-5 md:p-6 shadow-[0_0_30px_rgba(251,191,36,0.2)] flex flex-col md:flex-row justify-between items-center gap-5 text-center md:text-left">
                 <div className="space-y-1">
                   <div className="flex items-center justify-center md:justify-start gap-2 flex-wrap">
                     <span className="text-[10px] bg-amber-400 text-slate-950 font-black px-3 py-0.5 rounded-full uppercase tracking-wider">
                       Combinada Las 4 Fijas (Ticket Cuantitativo)
                     </span>
-                    <span className="text-xs text-emerald-400 font-bold flex items-center gap-1">
+                    <span className="text-xs text-emerald-700 font-bold flex items-center gap-1">
                       <span>🛡️</span> Cero Azar • Algoritmo EV+ Verificado
                     </span>
                   </div>
-                  <div className="text-2xl md:text-3xl font-black text-white mt-1">
+                  <div className="text-2xl md:text-3xl font-black text-slate-900 mt-1">
                     Multiplicador Combinado:{" "}
-                    <span className="text-emerald-400 font-mono font-black drop-shadow">
+                    <span className="text-emerald-700 font-mono font-black drop-shadow">
                       x{top4Matches.reduce((acc, m) => acc * Number(m.bestOdd || 1.8), 1).toFixed(2)}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
-                    🎯 <strong>Objetivo de Rentabilidad:</strong> Duplica o multiplica tu capital aprovechando la máxima ventaja probabilística del mercado. Inversión sugerida: <strong className="text-white">$10</strong> ➔ Retorno estimado: <strong className="text-emerald-300 font-mono text-sm">${(10 * top4Matches.reduce((acc, m) => acc * Number(m.bestOdd || 1.8), 1)).toFixed(2)}</strong>.
+                  <p className="text-xs text-slate-700 max-w-2xl leading-relaxed">
+                    🎯 <strong>Objetivo de Rentabilidad:</strong> Duplica o multiplica tu capital aprovechando la máxima ventaja probabilística del mercado. Inversión sugerida: <strong className="text-slate-900">$10</strong> ➔ Retorno estimado: <strong className="text-emerald-800 font-mono text-sm">${(10 * top4Matches.reduce((acc, m) => acc * Number(m.bestOdd || 1.8), 1)).toFixed(2)}</strong>.
                   </p>
                 </div>
-                <div className="bg-gradient-to-b from-emerald-950 to-slate-900 border border-emerald-500/60 p-3.5 rounded-2xl text-center shrink-0 shadow-lg">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Sello de Auditoría IA</span>
-                  <span className="text-xs font-black text-emerald-300 block">ECUAPRONÓSTICO</span>
-                  <span className="text-[9px] text-slate-400 font-mono">De-Vigging & Montecarlo</span>
+                <div className="bg-gradient-to-b from-emerald-100 to-white border border-emerald-500/60 p-3.5 rounded-2xl text-center shrink-0 shadow-lg">
+                  <span className="text-[10px] uppercase font-bold text-slate-600 block mb-0.5">Sello de Auditoría IA</span>
+                  <span className="text-xs font-black text-emerald-800 block">ECUAPRONÓSTICO</span>
+                  <span className="text-[9px] text-slate-600 font-mono">De-Vigging & Montecarlo</span>
                 </div>
               </div>
             )}
 
             {isLoadingMatches || isLoadingTop4 ? (
-              <div className="p-12 text-center bg-[#131d3b] border border-slate-700 rounded-3xl">
-                <p className="text-lg font-black text-green-300 animate-pulse">Consultando 20 ligas globales en la ventana de 24 horas y ordenando cronológicamente...</p>
+              <div className="p-12 text-center bg-white/95 border border-slate-300 rounded-3xl">
+                <p className="text-lg font-black text-green-800 animate-pulse">Consultando 20 ligas globales en la ventana de 24 horas y ordenando cronológicamente...</p>
               </div>
             ) : top4Matches.length === 0 ? (
-              <div className="p-8 text-center bg-[#131d3b] border border-slate-700 rounded-3xl">
-                <p className="text-base font-bold text-amber-300">No hay suficientes partidos futuros para armar las 4 fijas en este momento.</p>
+              <div className="p-8 text-center bg-white/95 border border-slate-300 rounded-3xl">
+                <p className="text-base font-bold text-amber-800">No hay suficientes partidos futuros para armar las 4 fijas en este momento.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-5">
@@ -1124,27 +1129,27 @@ export default function EcuaPronosticoDashboard() {
                   return (
                     <div
                       key={m.id || m.fixtureId || idx}
-                      className="relative rounded-3xl overflow-hidden border-2 border-green-500/70 bg-gradient-to-r from-[#064e3b]/40 via-[#16264c] to-[#064e3b]/40 shadow-2xl transition-all hover:scale-[1.01]"
+                      className="relative rounded-3xl overflow-hidden border-2 border-green-500/70 bg-gradient-to-r from-emerald-50/95 via-white/98 to-emerald-50/95 shadow-2xl transition-all hover:scale-[1.01]"
                     >
-                      <div className="bg-[#091024] px-5 py-2.5 border-b border-slate-800 flex flex-wrap justify-between items-center gap-2">
+                      <div className="bg-slate-100/95 px-5 py-2.5 border-b border-slate-300 flex flex-wrap justify-between items-center gap-2">
                         <div className="flex items-center gap-2">
                           <span className="w-3 h-3 rounded-full bg-green-400 animate-ping"></span>
-                          <span className="text-xs font-black uppercase tracking-wider text-green-300">
+                          <span className="text-xs font-black uppercase tracking-wider text-green-800">
                             FIJA #{idx + 1} • {m.icon || lexicon.icon || "⚽"} {m.leagueTitle}
                           </span>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="text-xs md:text-sm font-bold text-white flex items-center gap-1.5">
+                          <span className="text-xs md:text-sm font-bold text-slate-900 flex items-center gap-1.5">
                             <span>📅 {m.date}</span>
                             <span>•</span>
-                            <span>⏰ <strong className="text-amber-300">{m.time}</strong></span>
+                            <span>⏰ <strong className="text-amber-800">{m.time}</strong></span>
                             {m.timeDisplay && (
-                              <span className="text-[10px] bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2 py-0.5 rounded font-black ml-1">
+                              <span className="text-[10px] bg-amber-100 text-amber-800 border border-amber-400/40 px-2 py-0.5 rounded font-black ml-1">
                                 ⏳ {m.timeDisplay}
                               </span>
                             )}
                           </span>
-                          <span className="text-[10px] bg-green-950 text-green-400 border border-green-500/40 px-2.5 py-0.5 rounded-full font-black">
+                          <span className="text-[10px] bg-green-100 text-green-700 border border-green-500/40 px-2.5 py-0.5 rounded-full font-black">
                             🔥 CONFIANZA {m.confidenceScore || 85}/100
                           </span>
                           {m.fixtureId && (
@@ -1152,7 +1157,7 @@ export default function EcuaPronosticoDashboard() {
                               href={`https://www.espn.com/soccer/match/_/gameId/${m.fixtureId}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-[10px] bg-blue-950/90 hover:bg-blue-900 text-blue-300 border border-blue-400/50 px-2 py-0.5 rounded font-mono font-bold flex items-center gap-1 transition-all"
+                              className="text-[10px] bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-400/50 px-2 py-0.5 rounded font-mono font-bold flex items-center gap-1 transition-all"
                               title="Verificar fixture oficial en ESPN"
                             >
                               <span>🔗</span>
@@ -1163,30 +1168,29 @@ export default function EcuaPronosticoDashboard() {
                       </div>
 
                       <div className="p-5 md:p-7 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-                        <div className="lg:col-span-4 flex items-center gap-4 bg-gradient-to-r from-green-950/80 to-slate-900/90 p-5 rounded-2xl border-2 border-green-500/80 shadow-[0_0_25px_rgba(34,197,94,0.2)]">
-                          <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-slate-900 border-4 border-amber-400 flex items-center justify-center font-black text-xl md:text-2xl text-white shrink-0 shadow-[0_0_15px_rgba(251,191,36,0.5)]">
+                        <div className="lg:col-span-4 flex items-center gap-4 bg-gradient-to-r from-emerald-100/90 to-white/95 p-5 rounded-2xl border-2 border-green-500/80 shadow-[0_0_25px_rgba(34,197,94,0.2)]">
+                          <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-900 border-4 border-amber-400 flex items-center justify-center font-black text-xl md:text-2xl text-white shrink-0 shadow-[0_0_15px_rgba(251,191,36,0.5)]">
                             {winnerInitials}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-xl md:text-2xl font-black text-white uppercase leading-tight truncate">
+                            <h3 className="text-xl md:text-2xl font-black text-slate-900 uppercase leading-tight truncate">
                               {winnerName}
                             </h3>
                             <div
                               className="inline-flex items-center gap-2 mt-2 px-3.5 py-1.5 rounded-xl border-2 font-black text-xs md:text-sm uppercase tracking-wider"
                               style={{
-                                backgroundColor: "#020617",
-                                borderColor: "#FFD700",
-                                color: "#FFD700",
-                                boxShadow: "0 0 18px rgba(255, 215, 0, 0.45)",
+                                backgroundColor: "#fef3c7",
+                                borderColor: "#d97706",
+                                color: "#92400e",
+                                boxShadow: "0 4px 14px rgba(217, 119, 6, 0.25)",
                               }}
                             >
                               <span className="text-base leading-none">{lexicon.icon || "⚽"}</span>
-                              <span style={{ color: "#FFFFFF", fontWeight: 900 }}>FIJA</span>
+                              <span style={{ color: "#0f172a", fontWeight: 900 }}>FIJA</span>
                               <span
                                 style={{
-                                  color: "#FFD700",
+                                  color: "#b45309",
                                   fontWeight: 900,
-                                  textShadow: "0 0 12px rgba(255, 215, 0, 0.9), 0 2px 4px rgba(0, 0, 0, 0.9)",
                                 }}
                               >
                                 A GANAR
@@ -1195,81 +1199,81 @@ export default function EcuaPronosticoDashboard() {
                           </div>
                         </div>
 
-                        <div className="lg:col-span-4 flex flex-col justify-center bg-slate-900/95 border-2 border-emerald-400/60 rounded-2xl p-5 shadow-xl text-center">
-                          <span className="text-xs font-black uppercase tracking-widest text-emerald-300 border-b border-slate-800 pb-2 mb-2">
+                        <div className="lg:col-span-4 flex flex-col justify-center bg-white/95 border-2 border-emerald-400/60 rounded-2xl p-5 shadow-xl text-center">
+                          <span className="text-xs font-black uppercase tracking-widest text-emerald-800 border-b border-slate-300 pb-2 mb-2">
                             VALOR ESPERADO (+EV REAL)
                           </span>
-                          <div className="text-4xl md:text-5xl font-black text-emerald-400 my-1 drop-shadow-[0_0_12px_rgba(52,211,153,0.4)]">
+                          <div className="text-4xl md:text-5xl font-black text-emerald-700 my-1 drop-shadow-[0_0_12px_rgba(52,211,153,0.4)]">
                             {m.ev > 0 ? `+${m.ev}%` : `${m.ev}%`} EV
                           </div>
-                          <div className="text-xs text-slate-300 mt-2 space-y-1">
-                            <div className="flex justify-between px-2 bg-slate-800/80 rounded-lg py-1 border border-slate-700/60 font-mono">
-                              <span className="text-slate-400">{m.metricLabel || lexicon.metricLabel}:</span>
-                              <strong className="text-blue-400">
+                          <div className="text-xs text-slate-700 mt-2 space-y-1">
+                            <div className="flex justify-between px-2 bg-slate-100/90 rounded-lg py-1 border border-slate-300 font-mono">
+                              <span className="text-slate-600">{m.metricLabel || lexicon.metricLabel}:</span>
+                              <strong className="text-blue-700">
                                 {m.metricShort || lexicon.metricShort} {m.metricDiff || (m.xgDiff > 0 ? `+${m.xgDiff}` : m.xgDiff)}
                               </strong>
                             </div>
-                            <div className="flex justify-between px-2 bg-slate-800/80 rounded-lg py-1 border border-slate-700/60">
-                              <span className="text-slate-400">Certeza De-vig:</span>
-                              <strong className="text-amber-300">{headToHeadWinProb}%</strong>
+                            <div className="flex justify-between px-2 bg-slate-100/90 rounded-lg py-1 border border-slate-300">
+                              <span className="text-slate-600">Certeza De-vig:</span>
+                              <strong className="text-amber-800">{headToHeadWinProb}%</strong>
                             </div>
                           </div>
                         </div>
 
-                        <div className="lg:col-span-4 flex flex-col justify-between bg-slate-900/80 border-2 border-slate-700 rounded-2xl p-5 space-y-3">
-                          <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-2.5">
+                        <div className="lg:col-span-4 flex flex-col justify-between bg-white/92 border-2 border-slate-300 rounded-2xl p-5 space-y-3">
+                          <div className="flex items-center justify-between gap-3 border-b border-slate-300 pb-2.5">
                             <div className="min-w-0">
-                              <span className="text-[10px] font-black uppercase text-slate-400 block">Rival a enfrentar</span>
-                              <h4 className="text-base md:text-lg font-black text-slate-200 uppercase truncate">
+                              <span className="text-[10px] font-black uppercase text-slate-600 block">Rival a enfrentar</span>
+                              <h4 className="text-base md:text-lg font-black text-slate-800 uppercase truncate">
                                 {loserName}
                               </h4>
                             </div>
-                            <div className="w-11 h-11 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-slate-300 shrink-0">
+                            <div className="w-11 h-11 rounded-full bg-blue-900 border border-blue-700 flex items-center justify-center font-bold text-xs text-white shrink-0">
                               {loserInitials}
                             </div>
                           </div>
 
-                          <div className="space-y-1.5 text-xs text-slate-300 font-medium">
+                          <div className="space-y-1.5 text-xs text-slate-700 font-medium">
                             <div className="flex justify-between items-center">
-                              <span className="text-slate-400">Jugada recomendada:</span>
-                              <strong className="text-amber-300 font-bold">{m.bestMarketName}</strong>
+                              <span className="text-slate-600">Jugada recomendada:</span>
+                              <strong className="text-amber-800 font-bold">{m.bestMarketName}</strong>
                             </div>
                             <div className="flex justify-between items-center">
-                              <span className="text-slate-400">Cuota Estimada:</span>
-                              <strong className="text-emerald-400 font-mono font-bold text-sm">
+                              <span className="text-slate-600">Cuota Estimada:</span>
+                              <strong className="text-emerald-700 font-mono font-bold text-sm">
                                 {m.bestOdd ? Number(m.bestOdd).toFixed(2) : "1.85"}
                               </strong>
                             </div>
                             <div className="flex justify-between items-center">
-                              <span className="text-slate-400">Probabilidad Matemática:</span>
-                              <strong className="text-blue-300 font-bold">
+                              <span className="text-slate-600">Probabilidad Matemática:</span>
+                              <strong className="text-blue-800 font-bold">
                                 {m.probReal ? `${m.probReal}%` : `${headToHeadWinProb}%`}
                               </strong>
                             </div>
                             {m.capitalGoal && (
                               <div className="pt-1">
-                                <span className="inline-block text-[10px] bg-amber-400/20 text-amber-300 border border-amber-400/50 px-2 py-0.5 rounded-md font-bold">
+                                <span className="inline-block text-[10px] bg-amber-100 text-amber-800 border border-amber-400/50 px-2 py-0.5 rounded-md font-bold">
                                   {m.capitalGoal}
                                 </span>
                               </div>
                             )}
                             <div className="pt-1 flex flex-wrap gap-1">
-                              <span className="text-[10px] bg-slate-800 text-sky-300 border border-sky-500/30 px-2 py-0.5 rounded font-medium">
+                              <span className="text-[10px] bg-slate-100 text-sky-800 border border-sky-500/30 px-2 py-0.5 rounded font-medium">
                                 👨‍⚖️ {m.refereeName && m.refereeName !== "Por designar" ? (
                                   <>
                                     <strong>{m.refereeName}</strong>
-                                    {m.refereeCardsAvg && m.refereeCardsAvg !== "N/D" && <span className="text-sky-400 font-bold ml-1">({m.refereeCardsAvg} tarj/p)</span>}
+                                    {m.refereeCardsAvg && m.refereeCardsAvg !== "N/D" && <span className="text-sky-700 font-bold ml-1">({m.refereeCardsAvg} tarj/p)</span>}
                                   </>
                                 ) : (
-                                  <span className="text-slate-400">Árbitro: Por designar</span>
+                                  <span className="text-slate-600">Árbitro: Por designar</span>
                                 )}
                               </span>
-                              <span className="text-[10px] bg-slate-800 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded font-medium">
+                              <span className="text-[10px] bg-slate-100 text-amber-800 border border-amber-500/30 px-1.5 py-0.5 rounded font-medium">
                                 📋 {m.lineupStatus ? m.lineupStatus.slice(0, 32) + "..." : "Alineaciones verificadas"}
                               </span>
                             </div>
-                            <div className="pt-1.5 border-t border-slate-800 text-[10px] flex items-center justify-between text-slate-400">
-                              <span className="text-emerald-400 font-bold flex items-center gap-1">
+                            <div className="pt-1.5 border-t border-slate-300 text-[10px] flex items-center justify-between text-slate-600">
+                              <span className="text-emerald-700 font-bold flex items-center gap-1">
                                 <span>🛡️</span> Sello IA EcuaPronóstico
                               </span>
                               <span className="font-mono text-slate-500">Cero Azar</span>
@@ -1296,7 +1300,7 @@ export default function EcuaPronosticoDashboard() {
                                 if (el) el.scrollIntoView({ behavior: "smooth" });
                               }, 150);
                             }}
-                            className="w-full text-center text-xs bg-slate-800 hover:bg-green-600 text-green-300 hover:text-white py-2 px-3 rounded-xl font-bold transition-all border border-slate-700 cursor-pointer"
+                            className="w-full text-center text-xs bg-slate-100 hover:bg-green-600 text-green-800 hover:text-white py-2 px-3 rounded-xl font-bold transition-all border border-slate-300 cursor-pointer"
                           >
                             Ver análisis de esta fija →
                           </button>
@@ -1312,30 +1316,30 @@ export default function EcuaPronosticoDashboard() {
             {/* GUÍA ESTRATÉGICA PARA EL APOSTADOR: APUESTAS INDIVIDUALES VS PARLEY COMBINADO */}
             {/* ========================================================================= */}
             {!isLoadingMatches && !isLoadingTop4 && top4Matches.length === 4 && (
-              <div className="bg-gradient-to-b from-[#09152b] via-[#0d1e3d] to-[#070e1c] border-2 border-emerald-400/80 rounded-3xl p-5 sm:p-7 md:p-8 shadow-[0_0_35px_rgba(16,185,129,0.2)] space-y-6 mt-8">
+              <div className="bg-gradient-to-b from-white/96 via-emerald-50/95 to-blue-50/95 border-2 border-emerald-400/80 rounded-3xl p-5 sm:p-7 md:p-8 shadow-[0_0_35px_rgba(16,185,129,0.2)] space-y-6 mt-8">
                 {/* CABECERA DE LA GUÍA */}
-                <div className="border-b border-slate-700/80 pb-5 text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="border-b border-slate-300 pb-5 text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-4">
                   <div className="space-y-1">
                     <span className="bg-gradient-to-r from-emerald-400 to-green-300 text-slate-950 font-black text-[10px] md:text-xs px-3.5 py-1 rounded-full uppercase tracking-widest shadow">
                       🎓 MANUAL CUANTITATIVO PARA EL APOSTADOR
                     </span>
-                    <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white uppercase tracking-tight mt-1">
+                    <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 uppercase tracking-tight mt-1">
                       ¿Cómo apostar a las 4 Fijas de hoy? ¿Individuales o Parley?
                     </h3>
-                    <p className="text-xs sm:text-sm text-slate-300 max-w-3xl leading-relaxed">
+                    <p className="text-xs sm:text-sm text-slate-700 max-w-3xl leading-relaxed">
                       Recomendación matemática rigurosa diseñada para proteger tu capital y maximizar tus probabilidades reales de éxito.
                     </p>
                   </div>
-                  <div className="bg-slate-950/80 border border-emerald-500/50 px-4 py-2 rounded-2xl text-center shrink-0">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase block">Veredicto Oficial</span>
-                    <span className="text-xs font-black text-emerald-300 uppercase">Gestión de Riesgo EV+</span>
+                  <div className="bg-slate-100/95 border border-emerald-500/50 px-4 py-2 rounded-2xl text-center shrink-0">
+                    <span className="text-[10px] text-slate-600 font-bold uppercase block">Veredicto Oficial</span>
+                    <span className="text-xs font-black text-emerald-800 uppercase">Gestión de Riesgo EV+</span>
                   </div>
                 </div>
 
                 {/* COMPARATIVA EN 2 COLUMNAS: SIMPLES VS PARLEY */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-stretch">
                   {/* OPCIÓN 1: APUESTAS SIMPLES / INDIVIDUALES (RECOMENDADA) */}
-                  <div className="bg-gradient-to-b from-emerald-950/50 to-slate-900/90 border-2 border-emerald-400 rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-xl relative overflow-hidden">
+                  <div className="bg-gradient-to-b from-emerald-50/95 to-white/95 border-2 border-emerald-400 rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-xl relative overflow-hidden">
                     <div className="absolute top-3 right-3">
                       <span className="bg-emerald-400 text-slate-950 font-black text-[9px] sm:text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow">
                         ⭐ RECOMENDACIÓN PARA NOVATOS
@@ -1346,39 +1350,39 @@ export default function EcuaPronosticoDashboard() {
                       <div className="flex items-center gap-2">
                         <span className="text-2xl">🛡️</span>
                         <div>
-                          <h4 className="text-base sm:text-lg font-black text-white">
+                          <h4 className="text-base sm:text-lg font-black text-slate-900">
                             Opción 1: Apuestas Individuales (Stake Plano)
                           </h4>
-                          <span className="text-xs text-emerald-300 font-bold">
+                          <span className="text-xs text-emerald-800 font-bold">
                             Probabilidad de Rentabilidad: 78% - 85%
                           </span>
                         </div>
                       </div>
 
-                      <p className="text-xs text-slate-200 leading-relaxed">
+                      <p className="text-xs text-slate-800 leading-relaxed">
                         Apostar a cada fija por separado con un importe idéntico (ej. <strong>2% a 5% de tu capital</strong> por partido) es la estrategia que utilizan los fondos de inversión cuantitativa.
                       </p>
 
-                      <div className="bg-slate-950/80 border border-emerald-500/40 rounded-xl p-3 space-y-2 text-xs">
-                        <div className="font-bold text-white flex items-center gap-1.5">
-                          <span className="text-emerald-400">✓</span> Si aciertas 3 de 4: <strong className="text-emerald-300 font-mono">¡Ganancia Neta Asegurada!</strong>
+                      <div className="bg-slate-100/95 border border-emerald-500/40 rounded-xl p-3 space-y-2 text-xs">
+                        <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                          <span className="text-emerald-700">✓</span> Si aciertas 3 de 4: <strong className="text-emerald-800 font-mono">¡Ganancia Neta Asegurada!</strong>
                         </div>
-                        <div className="font-bold text-white flex items-center gap-1.5">
-                          <span className="text-emerald-400">✓</span> Si aciertas 4 de 4: <strong className="text-emerald-300 font-mono">Retorno Masivo (~80% de ROI)</strong>
+                        <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                          <span className="text-emerald-700">✓</span> Si aciertas 4 de 4: <strong className="text-emerald-800 font-mono">Retorno Masivo (~80% de ROI)</strong>
                         </div>
-                        <div className="text-[11px] text-slate-400 italic">
+                        <div className="text-[11px] text-slate-600 italic">
                           Un gol imprevisto o error arbitral en el minuto 90 en un partido NO destruye tu inversión en los otros 3.
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-slate-800 text-[11px] text-emerald-200/90 font-medium">
+                    <div className="mt-4 pt-3 border-t border-slate-300 text-[11px] text-emerald-900 font-medium">
                       💡 <strong>Consejo Práctico:</strong> Si tienes $40 de presupuesto, coloca $10 en cada una de las 4 fijas de hoy.
                     </div>
                   </div>
 
                   {/* OPCIÓN 2: PARLEY COMBINADO (ALTO RETORNO / RIESGO CONCENTRADO) */}
-                  <div className="bg-gradient-to-b from-amber-950/30 to-slate-900/90 border-2 border-amber-400/80 rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-xl relative overflow-hidden">
+                  <div className="bg-gradient-to-b from-amber-50/95 to-white/95 border-2 border-amber-400/80 rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-xl relative overflow-hidden">
                     <div className="absolute top-3 right-3">
                       <span className="bg-amber-400 text-slate-950 font-black text-[9px] sm:text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow">
                         🚀 MULTIPLICADOR ALTO
@@ -1389,48 +1393,48 @@ export default function EcuaPronosticoDashboard() {
                       <div className="flex items-center gap-2">
                         <span className="text-2xl">🔥</span>
                         <div>
-                          <h4 className="text-base sm:text-lg font-black text-white">
+                          <h4 className="text-base sm:text-lg font-black text-slate-900">
                             Opción 2: Parley Combinado de 4
                           </h4>
-                          <span className="text-xs text-amber-300 font-bold font-mono">
+                          <span className="text-xs text-amber-800 font-bold font-mono">
                             Multiplicador Combinado: x{top4Matches.reduce((acc, m) => acc * Number(m.bestOdd || 1.8), 1).toFixed(2)}
                           </span>
                         </div>
                       </div>
 
-                      <p className="text-xs text-slate-200 leading-relaxed">
-                        Agrupar las 4 fijas en un solo boleto ofrece un retorno explosivo (<strong className="text-white">$10</strong> retornan <strong className="text-amber-300 font-mono text-sm">${(10 * top4Matches.reduce((acc, m) => acc * Number(m.bestOdd || 1.8), 1)).toFixed(2)}</strong>).
+                      <p className="text-xs text-slate-800 leading-relaxed">
+                        Agrupar las 4 fijas en un solo boleto ofrece un retorno explosivo (<strong className="text-slate-900">$10</strong> retornan <strong className="text-amber-800 font-mono text-sm">${(10 * top4Matches.reduce((acc, m) => acc * Number(m.bestOdd || 1.8), 1)).toFixed(2)}</strong>).
                       </p>
 
-                      <div className="bg-slate-950/80 border border-amber-400/40 rounded-xl p-3 space-y-1.5 text-xs">
-                        <div className="font-bold text-amber-200 flex items-center gap-1.5">
+                      <div className="bg-slate-100/95 border border-amber-400/40 rounded-xl p-3 space-y-1.5 text-xs">
+                        <div className="font-bold text-amber-900 flex items-center gap-1.5">
                           <span>⚠️</span> <strong>Advertencia Matemática de Probabilidad Compuesta:</strong>
                         </div>
-                        <p className="text-[11px] text-slate-300 leading-relaxed">
+                        <p className="text-[11px] text-slate-700 leading-relaxed">
                           En una combinada de 4 eventos, si 3 aciertan y 1 falla, <strong>el boleto se pierde por completo</strong>. Por esta razón, el parley debe jugarse exclusivamente con una fracción menor de capital.
                         </p>
                       </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-slate-800 text-[11px] text-amber-200/90 font-medium">
+                    <div className="mt-4 pt-3 border-t border-slate-300 text-[11px] text-amber-900 font-medium">
                       💡 <strong>Regla de Oro:</strong> Arriesga máximo el <strong>1% de tu capital</strong> (ej. $2 a $5) en el Parley como "tiro de valor".
                     </div>
                   </div>
                 </div>
 
                 {/* OPCIÓN 3: SISTEMA ROUND ROBIN 3 DE 4 Y VEREDICTO FINAL */}
-                <div className="bg-slate-950/90 border border-slate-700 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="bg-white/95 border border-slate-300 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-center justify-between gap-4">
                   <div className="space-y-1 text-center md:text-left">
-                    <span className="text-[10px] font-black text-amber-300 uppercase tracking-wider block">
+                    <span className="text-[10px] font-black text-amber-800 uppercase tracking-wider block">
                       ⚖️ Estrategia Intermedia: Sistema Round Robin (3 de 4)
                     </span>
-                    <p className="text-xs text-slate-300 max-w-2xl">
+                    <p className="text-xs text-slate-700 max-w-2xl">
                       Crea 4 boletos de 3 selecciones en tu casa de apuestas. Si se cumplen 3 de las 4 fijas, cobras el premio del boleto ganador y salvas tu inversión.
                     </p>
                   </div>
-                  <div className="bg-emerald-950/80 border border-emerald-500/60 p-3 rounded-xl text-center shrink-0">
-                    <span className="text-[10px] text-emerald-300 font-bold uppercase block">Veredicto del Día</span>
-                    <strong className="text-xs font-black text-white block">Apuestas Simples para Novatos</strong>
+                  <div className="bg-emerald-50/95 border border-emerald-500/60 p-3 rounded-xl text-center shrink-0">
+                    <span className="text-[10px] text-emerald-800 font-bold uppercase block">Veredicto del Día</span>
+                    <strong className="text-xs font-black text-slate-900 block">Apuestas Simples para Novatos</strong>
                   </div>
                 </div>
               </div>
@@ -1439,17 +1443,17 @@ export default function EcuaPronosticoDashboard() {
         ) : (
           <>
             {/* VISTA COMPLETA: CARTELERA DE PARTIDOS EN FORMATO LIMPIO */}
-            <section id="lista-partidos-limpia" className="mb-10 space-y-6">
+            <section id="lista-partidos-limpia" className="mb-10 space-y-6 relative z-10">
               {/* ENCABEZADO DE LA CARTELERA */}
-              <div className="bg-[#131d3b] border-2 border-slate-700/80 rounded-3xl p-5 md:p-6 shadow-2xl relative overflow-hidden">
+              <div className="bg-white/95 border-2 border-slate-300 rounded-3xl p-5 md:p-6 shadow-2xl relative overflow-hidden">
                 <div className="flex flex-wrap justify-between items-center gap-3">
                   <div className="flex items-center gap-3">
                     <span className="w-3 h-3 rounded-full bg-green-400 animate-ping"></span>
                     <div>
-                      <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 block">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
                         Cartelera Oficial en Vivo
                       </span>
-                      <h2 className="text-lg md:text-2xl font-black uppercase tracking-tight text-white">
+                      <h2 className="text-lg md:text-2xl font-black uppercase tracking-tight text-slate-900">
                         {isLoadingMatches
                           ? "Sincronizando partidos oficiales..."
                           : `${currentMatch.leagueTitle} — ${matches.length} Partidos (Próximos 8 Días)`}
@@ -1457,10 +1461,10 @@ export default function EcuaPronosticoDashboard() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-300 font-bold bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
+                    <span className="text-xs text-slate-700 font-bold bg-slate-100/90 px-3 py-1.5 rounded-xl border border-slate-300">
                       📡 ESPN, API-Football & The Odds API
                     </span>
-                    <span className="text-xs text-amber-300 font-bold bg-amber-400/10 px-3 py-1.5 rounded-xl border border-amber-400/30">
+                    <span className="text-xs text-amber-800 font-bold bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-400/30">
                       ⚡ 10,000 Simulaciones
                     </span>
                   </div>
@@ -1468,14 +1472,14 @@ export default function EcuaPronosticoDashboard() {
               </div>
 
               {isLoadingMatches ? (
-                <div className="p-12 text-center bg-[#131d3b] border border-slate-700 rounded-3xl shadow-xl">
-                  <p className="text-lg font-black text-amber-300 animate-pulse">
+                <div className="p-12 text-center bg-white/95 border border-slate-300 rounded-3xl shadow-xl">
+                  <p className="text-lg font-black text-amber-800 animate-pulse">
                     Calculando probabilidades desmargenizadas y ganadores proyectados...
                   </p>
                 </div>
               ) : matches.length === 0 ? (
-                <div className="p-8 text-center bg-[#131d3b] border border-slate-700 rounded-3xl shadow-xl">
-                  <p className="text-base font-bold text-amber-300">
+                <div className="p-8 text-center bg-white/95 border border-slate-300 rounded-3xl shadow-xl">
+                  <p className="text-base font-bold text-amber-800">
                     No hay partidos programados en los próximos 8 días para esta competición.
                   </p>
                 </div>
@@ -1509,8 +1513,8 @@ export default function EcuaPronosticoDashboard() {
                         }}
                         className={`relative rounded-3xl overflow-hidden border-2 transition-all cursor-pointer ${
                           isSelected && isUnlocked
-                            ? "border-amber-400 bg-gradient-to-r from-[#111c38] via-[#1a2d59] to-[#111c38] shadow-[0_0_30px_rgba(251,191,36,0.25)]"
-                            : "border-slate-700/80 hover:border-slate-600 bg-gradient-to-r from-[#0d162e] via-[#142347] to-[#0d162e] shadow-xl"
+                            ? "border-amber-400 bg-gradient-to-r from-amber-50/95 via-white/98 to-blue-50/95 shadow-[0_0_30px_rgba(251,191,36,0.25)]"
+                            : "border-slate-300 hover:border-slate-300 bg-gradient-to-r from-white/95 via-slate-50/95 to-white/95 shadow-xl"
                         }`}
                       >
                         {/* OVERLAY DE BLOQUEO VIP (FILTRO DE OPACIDAD Y CANDADO) PARA PARTIDOS 2 EN ADELANTE */}
@@ -1522,18 +1526,18 @@ export default function EcuaPronosticoDashboard() {
                                 `Desbloquea el análisis completo de ${m.home} vs ${m.away} y todos los partidos con tu membresía VIP ($14.99/mes).`
                               );
                             }}
-                            className="absolute inset-0 z-20 backdrop-blur-[4px] bg-slate-950/80 flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all hover:bg-slate-950/85 group"
+                            className="absolute inset-0 z-20 backdrop-blur-[4px] bg-slate-100/95 flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all hover:bg-white/50 group"
                           >
-                            <div className="w-14 h-14 rounded-2xl bg-amber-400/20 border-2 border-amber-400 flex items-center justify-center text-2xl mb-3 shadow-[0_0_25px_rgba(251,191,36,0.4)] group-hover:scale-110 transition-transform">
+                            <div className="w-14 h-14 rounded-2xl bg-amber-100 border-2 border-amber-400 flex items-center justify-center text-2xl mb-3 shadow-[0_0_25px_rgba(251,191,36,0.4)] group-hover:scale-110 transition-transform">
                               🔒
                             </div>
                             <span className="bg-amber-400 text-slate-950 font-black text-xs px-3.5 py-1 rounded-full uppercase tracking-wider mb-2 shadow">
                               Partido Bloqueado • Solo VIP
                             </span>
-                            <h4 className="text-base md:text-lg font-black text-white mb-1">
+                            <h4 className="text-base md:text-lg font-black text-slate-900 mb-1">
                               {m.home} vs {m.away}
                             </h4>
-                            <p className="text-xs text-slate-300 max-w-md mb-4">
+                            <p className="text-xs text-slate-700 max-w-md mb-4">
                               Accede al pronóstico ganador simplificado y a todas las variables PRO de este encuentro.
                             </p>
                             <button
@@ -1558,24 +1562,24 @@ export default function EcuaPronosticoDashboard() {
                           }`}
                         >
                           {/* ENCABEZADO DE TARJETA: TORNEO, FECHA/HORA, BADGE DE ACCESO */}
-                          <div className="flex flex-wrap justify-between items-center gap-2 pb-4 mb-4 border-b border-slate-700/60">
+                          <div className="flex flex-wrap justify-between items-center gap-2 pb-4 mb-4 border-b border-slate-300">
                             <div className="flex items-center gap-2">
                               <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-                              <span className="text-xs font-black uppercase tracking-wider text-amber-300">
+                              <span className="text-xs font-black uppercase tracking-wider text-amber-800">
                                 {m.leagueTitle}
                               </span>
                             </div>
                             <div className="flex items-center gap-3">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-xs md:text-sm font-bold text-slate-200">
-                                  📅 {m.date} • ⏰ <strong className="text-white">{m.time}</strong>
+                                <span className="text-xs md:text-sm font-bold text-slate-800">
+                                  📅 {m.date} • ⏰ <strong className="text-slate-900">{m.time}</strong>
                                 </span>
                                 {m.fixtureId && (
                                   <a
                                     href={`https://www.espn.com/soccer/match/_/gameId/${m.fixtureId}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-[10px] bg-slate-800 hover:bg-slate-700 text-blue-300 border border-blue-500/40 px-2 py-0.5 rounded font-mono font-bold flex items-center gap-1 transition-all"
+                                    className="text-[10px] bg-slate-100 hover:bg-amber-100 text-blue-800 border border-blue-500/40 px-2 py-0.5 rounded font-mono font-bold flex items-center gap-1 transition-all"
                                     title="Cotejar en ESPN Oficial"
                                   >
                                     <span>🔗</span>
@@ -1586,8 +1590,8 @@ export default function EcuaPronosticoDashboard() {
                               <span
                                 className={`text-[10px] px-2.5 py-0.5 rounded-full font-black ${
                                   isUnlocked
-                                    ? "bg-green-950/80 text-green-400 border border-green-500/40"
-                                    : "bg-amber-950/80 text-amber-300 border border-amber-500/40"
+                                    ? "bg-green-100 text-green-700 border border-green-500/40"
+                                    : "bg-amber-100 text-amber-800 border border-amber-500/40"
                                 }`}
                               >
                                 {isSample ? "🔓 MUESTRA GRATIS" : isUnlocked ? "🔓 VIP ACTIVO" : "🔒 SOLO VIP"}
@@ -1599,32 +1603,31 @@ export default function EcuaPronosticoDashboard() {
                           <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
                             {/* IZQUIERDA: EQUIPO LOCAL */}
                             <div className="md:col-span-4 flex items-center gap-4">
-                              <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-slate-900 border-2 border-slate-600 flex items-center justify-center font-black text-lg md:text-xl text-white shrink-0 shadow-lg">
+                              <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-blue-900 border-2 border-blue-700 flex items-center justify-center font-black text-lg md:text-xl text-white shrink-0 shadow-lg">
                                 {m.homeInitials}
                               </div>
                               <div className="min-w-0">
-                                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                                <span className="text-[10px] font-black uppercase tracking-wider text-slate-600 block">
                                   Equipo Local
                                 </span>
-                                <h3 className="text-base md:text-lg font-black text-white uppercase leading-snug truncate">
+                                <h3 className="text-base md:text-lg font-black text-slate-900 uppercase leading-snug truncate">
                                   {m.home}
                                 </h3>
                                 {isHomeFav && (
                                   <div
                                     className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border-2 font-black text-[11px] uppercase tracking-wider mt-2"
                                     style={{
-                                      backgroundColor: "#020617",
-                                      borderColor: "#FFD700",
-                                      color: "#FFD700",
-                                      boxShadow: "0 0 16px rgba(255, 215, 0, 0.45)",
+                                      backgroundColor: "#fef3c7",
+                                borderColor: "#d97706",
+                                color: "#92400e",
+                                boxShadow: "0 4px 14px rgba(217, 119, 6, 0.25)",
                                     }}
                                   >
                                     <span className="text-sm">🏆</span>
                                     <span
                                       style={{
-                                        color: "#FFD700",
-                                        fontWeight: 900,
-                                        textShadow: "0 0 10px rgba(255, 215, 0, 0.9), 0 2px 4px rgba(0, 0, 0, 0.9)",
+                                        color: "#b45309",
+                                  fontWeight: 900,
                                       }}
                                     >
                                       FAVORITO A GANAR
@@ -1636,25 +1639,25 @@ export default function EcuaPronosticoDashboard() {
 
                             {/* CENTRO: RESUMEN LIMPIO DE PROBABILIDADES DIRECTAS */}
                             <div className="md:col-span-4">
-                              <div className="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-3 text-center shadow-inner">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">
+                              <div className="bg-white/95 border border-slate-300 rounded-2xl p-3 text-center shadow-inner">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 block mb-1">
                                   Probabilidades del Modelo
                                 </span>
-                                <div className="text-xs md:text-sm font-extrabold text-white flex flex-wrap items-center justify-center gap-1.5">
+                                <div className="text-xs md:text-sm font-extrabold text-slate-900 flex flex-wrap items-center justify-center gap-1.5">
                                   <span className={isHomeFav ? "text-amber-300 font-black" : "text-slate-200"}>
-                                    Gana {m.home} <strong className="text-white">{m.cleanProb1}%</strong>
+                                    Gana {m.home} <strong className="text-slate-900">{m.cleanProb1}%</strong>
                                   </span>
                                   {isSoccer && (
                                     <>
                                       <span className="text-slate-500 font-normal">|</span>
                                       <span className={isDrawFav ? "text-amber-300 font-black" : "text-slate-300"}>
-                                        Empatan <strong className="text-white">{m.cleanProbX}%</strong>
+                                        Empatan <strong className="text-slate-900">{m.cleanProbX}%</strong>
                                       </span>
                                     </>
                                   )}
                                   <span className="text-slate-500 font-normal">|</span>
                                   <span className={isAwayFav ? "text-amber-300 font-black" : "text-slate-200"}>
-                                    Gana {m.away} <strong className="text-white">{m.cleanProb2}%</strong>
+                                    Gana {m.away} <strong className="text-slate-900">{m.cleanProb2}%</strong>
                                   </span>
                                 </div>
                               </div>
@@ -1663,28 +1666,27 @@ export default function EcuaPronosticoDashboard() {
                             {/* DERECHA: EQUIPO VISITANTE */}
                             <div className="md:col-span-4 flex items-center justify-end gap-4 text-right">
                               <div className="min-w-0">
-                                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                                <span className="text-[10px] font-black uppercase tracking-wider text-slate-600 block">
                                   Equipo Visitante
                                 </span>
-                                <h3 className="text-base md:text-lg font-black text-white uppercase leading-snug truncate">
+                                <h3 className="text-base md:text-lg font-black text-slate-900 uppercase leading-snug truncate">
                                   {m.away}
                                 </h3>
                                 {isAwayFav && (
                                   <div
                                     className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border-2 font-black text-[11px] uppercase tracking-wider mt-2"
                                     style={{
-                                      backgroundColor: "#020617",
-                                      borderColor: "#FFD700",
-                                      color: "#FFD700",
-                                      boxShadow: "0 0 16px rgba(255, 215, 0, 0.45)",
+                                      backgroundColor: "#fef3c7",
+                                borderColor: "#d97706",
+                                color: "#92400e",
+                                boxShadow: "0 4px 14px rgba(217, 119, 6, 0.25)",
                                     }}
                                   >
                                     <span className="text-sm">🏆</span>
                                     <span
                                       style={{
-                                        color: "#FFD700",
-                                        fontWeight: 900,
-                                        textShadow: "0 0 10px rgba(255, 215, 0, 0.9), 0 2px 4px rgba(0, 0, 0, 0.9)",
+                                        color: "#b45309",
+                                  fontWeight: 900,
                                       }}
                                     >
                                       FAVORITO A GANAR
@@ -1692,15 +1694,15 @@ export default function EcuaPronosticoDashboard() {
                                   </div>
                                 )}
                               </div>
-                              <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-slate-900 border-2 border-slate-600 flex items-center justify-center font-black text-lg md:text-xl text-white shrink-0 shadow-lg">
+                              <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-blue-900 border-2 border-blue-700 flex items-center justify-center font-black text-lg md:text-xl text-white shrink-0 shadow-lg">
                                 {m.awayInitials}
                               </div>
                             </div>
                           </div>
 
                           {/* PIE DE TARJETA: DESCARGO INSTITUCIONAL CON ENLACE INTERACTIVO */}
-                          <div className="mt-6 pt-4 border-t-2 border-slate-700/80 bg-slate-900/70 rounded-2xl p-4 text-center shadow-inner">
-                            <p className="text-sm md:text-base text-slate-100 font-medium leading-relaxed">
+                          <div className="mt-6 pt-4 border-t-2 border-slate-300 bg-slate-50/95 rounded-2xl p-4 text-center shadow-inner">
+                            <p className="text-sm md:text-base text-slate-900 font-medium leading-relaxed">
                               Esta es una versión simplificada de nuestro pronóstico. Si eres apostador profesional{" "}
                               <button
                                 type="button"
@@ -1708,7 +1710,7 @@ export default function EcuaPronosticoDashboard() {
                                   e.stopPropagation();
                                   handleOpenProDetails(m);
                                 }}
-                                className="inline-flex items-center gap-1.5 font-black text-amber-300 hover:text-amber-200 underline decoration-amber-400 decoration-2 underline-offset-4 transition text-sm md:text-base cursor-pointer px-1.5 py-0.5 rounded hover:bg-amber-400/10"
+                                className="inline-flex items-center gap-1.5 font-black text-amber-800 hover:text-amber-900 underline decoration-amber-400 decoration-2 underline-offset-4 transition text-sm md:text-base cursor-pointer px-1.5 py-0.5 rounded hover:bg-amber-50"
                               >
                                 <span>puedes dar clic aquí</span>
                                 <span className="text-base font-black">↗</span>
@@ -1725,14 +1727,14 @@ export default function EcuaPronosticoDashboard() {
 
               {/* BANNER INFERIOR DE CONVERSIÓN FREEMIUM */}
               {matches.length > 1 && !isEffectiveVip && (
-                <div className="p-4 bg-gradient-to-r from-amber-500/15 via-slate-900 to-amber-500/15 border border-amber-400/40 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+                <div className="p-4 bg-gradient-to-r from-amber-100/90 via-white/95 to-amber-100/90 border border-amber-400/40 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">🔒</span>
                     <div>
-                      <div className="text-xs md:text-sm font-black text-amber-300">
+                      <div className="text-xs md:text-sm font-black text-amber-800">
                         {matches.length - 1} Partidos Restantes Bloqueados en esta liga
                       </div>
-                      <div className="text-[11px] text-slate-300">
+                      <div className="text-[11px] text-slate-700">
                         Solo el primer partido es gratuito. Activa tu membresía VIP para ver todos los encuentros completos.
                       </div>
                     </div>
@@ -1750,17 +1752,17 @@ export default function EcuaPronosticoDashboard() {
             </section>
 
             {/* AUDITORÍA PRO: VARIABLES, ESTADÍSTICAS Y DETALLES PRO */}
-            <div id="auditoria-pro" className="scroll-mt-24 pt-6 border-t-2 border-slate-700/60">
-              <div className="mb-6 bg-gradient-to-r from-[#131d3b] via-[#1a2d5a] to-[#131d3b] border-2 border-blue-500/50 rounded-2xl p-4 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div id="auditoria-pro" className="scroll-mt-24 pt-6 border-t-2 border-slate-300">
+              <div className="mb-6 bg-gradient-to-r from-blue-50/95 via-white/98 to-blue-50/95 border-2 border-blue-500/50 rounded-2xl p-4 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-400/50 flex items-center justify-center text-xl shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 border border-blue-400/50 flex items-center justify-center text-xl shrink-0">
                     📊
                   </div>
                   <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-300">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-800">
                       Desglose Técnico y Estadístico PRO
                     </span>
-                    <h3 className="text-base md:text-lg font-black text-white">
+                    <h3 className="text-base md:text-lg font-black text-slate-900">
                       Auditoría Matemática: {currentMatch.home} vs {currentMatch.away}
                     </h3>
                   </div>
@@ -1771,7 +1773,7 @@ export default function EcuaPronosticoDashboard() {
                     const el = document.getElementById("lista-partidos-limpia");
                     if (el) el.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="text-xs bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white px-3.5 py-2 rounded-xl font-bold border border-slate-700 transition flex items-center gap-1.5"
+                  className="text-xs bg-white/95 hover:bg-slate-100 text-slate-700 hover:text-slate-900 px-3.5 py-2 rounded-xl font-bold border border-slate-300 transition flex items-center gap-1.5"
                 >
                   <span>↑</span>
                   <span>Volver a la Lista de Partidos</span>
@@ -1779,9 +1781,9 @@ export default function EcuaPronosticoDashboard() {
               </div>
 
             {!isMatchUnlocked ? (
-              <div className="rounded-2xl p-8 text-center bg-slate-800/60 border border-blue-500/40 shadow-2xl">
-                <h3 className="text-2xl font-black text-white mb-2">🔒 Auditoría en Vivo Bloqueada para {currentMatch.home} vs {currentMatch.away}</h3>
-                <p className="text-slate-300 text-sm mb-6 max-w-xl mx-auto">
+              <div className="rounded-2xl p-8 text-center bg-white/90 border border-blue-500/40 shadow-2xl">
+                <h3 className="text-2xl font-black text-slate-900 mb-2">🔒 Auditoría en Vivo Bloqueada para {currentMatch.home} vs {currentMatch.away}</h3>
+                <p className="text-slate-700 text-sm mb-6 max-w-xl mx-auto">
                   Desbloquea el veredicto real calculado con Distribución de Poisson y 10,000 Simulaciones de Montecarlo para saber en qué partidos sí hay ventaja y en cuáles no debes arriesgar tu dinero.
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
@@ -1793,32 +1795,32 @@ export default function EcuaPronosticoDashboard() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
                 <div className="lg:col-span-2 space-y-6">
-                  <div className="rounded-2xl p-5 bg-gradient-to-r from-slate-800 via-[#152247] to-slate-800 border border-slate-600 shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <div className="rounded-2xl p-5 bg-gradient-to-r from-slate-800 via-[#152247] to-slate-800 border border-slate-300 shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="flex flex-col items-center text-center sm:w-1/3">
-                      <div className="w-16 h-16 bg-slate-900 text-white font-black text-lg rounded-full flex items-center justify-center mb-2 border-2 border-blue-400 shadow-lg">{currentMatch.homeInitials}</div>
-                      <h2 className="text-base font-black text-white">{currentMatch.home}</h2>
-                      <p className="text-slate-400 text-[11px]">{currentMatch.homeAlt}</p>
-                      <p className="text-red-400 text-xs font-bold mt-2 bg-red-950/40 border border-red-500/40 px-3 py-1 rounded-full">
+                      <div className="w-16 h-16 bg-blue-900 text-white font-black text-lg rounded-full flex items-center justify-center mb-2 border-2 border-blue-400 shadow-lg">{currentMatch.homeInitials}</div>
+                      <h2 className="text-base font-black text-slate-900">{currentMatch.home}</h2>
+                      <p className="text-slate-600 text-[11px]">{currentMatch.homeAlt}</p>
+                      <p className="text-red-700 text-xs font-bold mt-2 bg-red-50 border border-red-500/40 px-3 py-1 rounded-full">
                         Mercado: {probImplicitaLocal}%
                       </p>
                     </div>
 
                     <div className="flex flex-col items-center text-center sm:w-1/3">
-                      <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 px-3 py-0.5 rounded-full text-[10px] font-black mb-1">{currentMatch.jornada}</span>
-                      <p className="text-xs text-slate-300">{currentMatch.date} • <strong className="text-white">{currentMatch.time}</strong></p>
-                      <p className="text-red-400 text-xs font-bold mt-2 bg-red-950/40 border border-red-500/40 px-3 py-1 rounded-full">
+                      <span className="bg-amber-100 text-amber-800 border border-amber-400/40 px-3 py-0.5 rounded-full text-[10px] font-black mb-1">{currentMatch.jornada}</span>
+                      <p className="text-xs text-slate-700">{currentMatch.date} • <strong className="text-slate-900">{currentMatch.time}</strong></p>
+                      <p className="text-red-700 text-xs font-bold mt-2 bg-red-50 border border-red-500/40 px-3 py-1 rounded-full">
                         Empate: {probImplicitaEmpate}%
                       </p>
-                      <span className="text-[10px] text-green-300 mt-1.5 font-semibold">
+                      <span className="text-[10px] text-green-800 mt-1.5 font-semibold">
                         {currentMatch.dataSource}
                       </span>
                     </div>
 
                     <div className="flex flex-col items-center text-center sm:w-1/3">
-                      <div className="w-16 h-16 bg-slate-900 text-white font-black text-lg rounded-full flex items-center justify-center mb-2 border-2 border-amber-400 shadow-lg">{currentMatch.awayInitials}</div>
-                      <h2 className="text-base font-black text-white">{currentMatch.away}</h2>
-                      <p className="text-slate-400 text-[11px]">{currentMatch.awayAlt}</p>
-                      <p className="text-red-400 text-xs font-bold mt-2 bg-red-950/40 border border-red-500/40 px-3 py-1 rounded-full">
+                      <div className="w-16 h-16 bg-blue-900 text-white font-black text-lg rounded-full flex items-center justify-center mb-2 border-2 border-amber-400 shadow-lg">{currentMatch.awayInitials}</div>
+                      <h2 className="text-base font-black text-slate-900">{currentMatch.away}</h2>
+                      <p className="text-slate-600 text-[11px]">{currentMatch.awayAlt}</p>
+                      <p className="text-red-700 text-xs font-bold mt-2 bg-red-50 border border-red-500/40 px-3 py-1 rounded-full">
                         Mercado: {probImplicitaVisita}%
                       </p>
                     </div>
@@ -1827,77 +1829,77 @@ export default function EcuaPronosticoDashboard() {
                   {/* 4 CAJAS SUPERIORES - RESUMEN EJECUTIVO (JERARQUÍA CLARA Y TEXTO AUXILIAR PARA NOVATOS) */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                     {/* CAJA 1: OPCIÓN ANALIZADA PRINCIPAL */}
-                    <div className="bg-gradient-to-b from-slate-900/95 to-slate-900/80 border-2 border-amber-400/80 rounded-2xl p-4 text-center shadow-lg flex flex-col justify-between">
+                    <div className="bg-gradient-to-b from-white/98 to-slate-50/95 border-2 border-amber-400/80 rounded-2xl p-4 text-center shadow-lg flex flex-col justify-between">
                       <div>
-                        <span className="text-amber-300 text-[11px] uppercase font-black tracking-wider block">
+                        <span className="text-amber-800 text-[11px] uppercase font-black tracking-wider block">
                           1. OPCIÓN ANALIZADA PRINCIPAL
                         </span>
-                        <h3 className="text-base md:text-lg font-black text-white mt-1.5 leading-snug">
+                        <h3 className="text-base md:text-lg font-black text-slate-900 mt-1.5 leading-snug">
                           {currentMatch.bestMarketName}
                         </h3>
-                        <span className="inline-block mt-1 text-xs text-amber-300 font-bold bg-amber-950/60 border border-amber-500/40 px-2.5 py-0.5 rounded-md font-mono">
+                        <span className="inline-block mt-1 text-xs text-amber-800 font-bold bg-amber-50 border border-amber-500/40 px-2.5 py-0.5 rounded-md font-mono">
                           Cuota Ref: <strong>{currentMatch.bestOdd}</strong>
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-300 mt-2.5 pt-2 border-t border-slate-800 leading-snug font-medium">
+                      <p className="text-[11px] text-slate-700 mt-2.5 pt-2 border-t border-slate-300 leading-snug font-medium">
                         {currentMatch.bestMarketDynamicSubtitle || "La opción con mayor probabilidad matemática detectada por el modelo"}
                       </p>
                     </div>
 
                     {/* CAJA 2: LO QUE CREE LA CASA */}
-                    <div className="bg-gradient-to-b from-slate-900/95 to-slate-900/80 border border-slate-700 rounded-2xl p-4 text-center shadow-lg flex flex-col justify-between">
+                    <div className="bg-gradient-to-b from-white/98 to-slate-50/95 border border-slate-300 rounded-2xl p-4 text-center shadow-lg flex flex-col justify-between">
                       <div>
-                        <span className="text-slate-300 text-[11px] uppercase font-bold tracking-wider block">
+                        <span className="text-slate-700 text-[11px] uppercase font-bold tracking-wider block">
                           2. LO QUE CREE LA CASA
                         </span>
-                        <p className="text-2xl md:text-3xl text-slate-200 font-black font-mono mt-1.5">
+                        <p className="text-2xl md:text-3xl text-slate-800 font-black font-mono mt-1.5">
                           {currentMatch.probImplicitaBest}%
                         </p>
-                        <span className="text-[11px] text-slate-400 font-mono block mt-0.5">
+                        <span className="text-[11px] text-slate-600 font-mono block mt-0.5">
                           Según cuota de {currentMatch.bestOdd}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-2.5 pt-2 border-t border-slate-800 leading-snug">
+                      <p className="text-[11px] text-slate-600 mt-2.5 pt-2 border-t border-slate-300 leading-snug">
                         Probabilidad que la casa de apuestas le asigna según su cuota
                       </p>
                     </div>
 
                     {/* CAJA 3: VALOR ESPERADO (+EV REAL) */}
-                    <div className={`bg-gradient-to-b from-slate-900/95 to-slate-900/80 border-2 ${
-                      currentMatch.ev >= 1.0 ? "border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.25)]" : "border-slate-700"
+                    <div className={`bg-gradient-to-b from-white/98 to-slate-50/95 border-2 ${
+                      currentMatch.ev >= 1.0 ? "border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.25)]" : "border-slate-300"
                     } rounded-2xl p-4 text-center shadow-lg flex flex-col justify-between`}>
                       <div>
-                        <span className="text-emerald-300 text-[11px] uppercase font-black tracking-wider block">
+                        <span className="text-emerald-800 text-[11px] uppercase font-black tracking-wider block">
                           3. VALOR ESPERADO (+EV REAL)
                         </span>
                         <p className={`text-2xl md:text-3xl font-black font-mono mt-1.5 ${
-                          currentMatch.ev >= 1.0 ? "text-emerald-400" : "text-slate-200"
+                          currentMatch.ev >= 1.0 ? "text-emerald-700" : "text-slate-800"
                         }`}>
                           {currentMatch.ev > 0 ? `+${currentMatch.ev}` : currentMatch.ev}% EV
                         </p>
-                        <span className="text-[11px] text-emerald-300/80 font-mono block mt-0.5">
+                        <span className="text-[11px] text-emerald-800 font-mono block mt-0.5">
                           Pos De-vigging The Odds API
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-300 mt-2.5 pt-2 border-t border-slate-800 leading-snug">
+                      <p className="text-[11px] text-slate-700 mt-2.5 pt-2 border-t border-slate-300 leading-snug">
                         Ventaja matemática real tras descontar el margen de la casa
                       </p>
                     </div>
 
                     {/* CAJA 4: CUOTA MÍNIMA RENTABLE */}
-                    <div className="bg-gradient-to-b from-green-950/40 to-slate-900/90 border-2 border-green-500/60 rounded-2xl p-4 text-center shadow-lg flex flex-col justify-between">
+                    <div className="bg-gradient-to-b from-green-50/95 to-white/95 border-2 border-green-500/60 rounded-2xl p-4 text-center shadow-lg flex flex-col justify-between">
                       <div>
-                        <span className="text-green-400 text-[11px] uppercase font-black tracking-wider block">
+                        <span className="text-green-700 text-[11px] uppercase font-black tracking-wider block">
                           4. CUOTA MÍNIMA RENTABLE
                         </span>
-                        <p className="text-2xl md:text-3xl font-black font-mono mt-1.5 text-green-400">
+                        <p className="text-2xl md:text-3xl font-black font-mono mt-1.5 text-green-700">
                           {currentMatch.minFairOddForTopPick}
                         </p>
-                        <span className="text-[11px] text-green-300/90 font-bold block mt-0.5">
+                        <span className="text-[11px] text-green-800 font-bold block mt-0.5">
                           Apuesta si pagan más de {currentMatch.minFairOddForTopPick}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-300 mt-2.5 pt-2 border-t border-slate-800 leading-snug">
+                      <p className="text-[11px] text-slate-700 mt-2.5 pt-2 border-t border-slate-300 leading-snug">
                         Límite inferior para que tu apuesta sea matemáticamente rentable
                       </p>
                     </div>
@@ -1905,79 +1907,79 @@ export default function EcuaPronosticoDashboard() {
 
                   {/* ESTRUCTURA JERÁRQUICA DE 3 FILAS/OPCIONES CLAVE */}
                   {currentMatch.hierarchicalPicks && (
-                    <div className="bg-slate-900/95 border border-slate-700/80 rounded-2xl p-4 shadow-xl">
-                      <div className="flex flex-wrap justify-between items-center pb-2.5 mb-3 border-b border-slate-800 gap-2">
+                    <div className="bg-white/95 border border-slate-300 rounded-2xl p-4 shadow-xl">
+                      <div className="flex flex-wrap justify-between items-center pb-2.5 mb-3 border-b border-slate-300 gap-2">
                         <div className="flex items-center gap-2">
                           <span className="text-sm">🎯</span>
-                          <h4 className="text-xs md:text-sm font-black uppercase text-amber-300 tracking-wider">
+                          <h4 className="text-xs md:text-sm font-black uppercase text-amber-800 tracking-wider">
                             Estructura Jerárquica de Apuesta (3 Opciones Clave)
                           </h4>
                         </div>
-                        <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                        <span className="text-[10px] text-slate-600 uppercase font-bold tracking-wider">
                           Modelado Montecarlo + De-vigging
                         </span>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {/* 1. Ganador Directo (1X2) */}
-                        <div className="bg-slate-800/80 border border-amber-500/40 rounded-xl p-3 flex flex-col justify-between">
+                        <div className="bg-slate-100/90 border border-amber-500/40 rounded-xl p-3 flex flex-col justify-between">
                           <div>
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-[10px] uppercase font-black text-amber-300">🥇 1. Ganador Directo</span>
-                              <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-950 px-1.5 py-0.5 rounded border border-amber-500/30">
+                              <span className="text-[10px] uppercase font-black text-amber-800">🥇 1. Ganador Directo</span>
+                              <span className="text-[10px] font-mono font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-500/30">
                                 Cuota {currentMatch.hierarchicalPicks.pick1Winner?.odd}
                               </span>
                             </div>
-                            <p className="text-sm font-black text-white">{currentMatch.hierarchicalPicks.pick1Winner?.name}</p>
-                            <div className="mt-1 flex items-center gap-2 text-xs text-slate-300 font-mono">
+                            <p className="text-sm font-black text-slate-900">{currentMatch.hierarchicalPicks.pick1Winner?.name}</p>
+                            <div className="mt-1 flex items-center gap-2 text-xs text-slate-700 font-mono">
                               <span>Prob: <strong>{currentMatch.hierarchicalPicks.pick1Winner?.realProb}%</strong></span>
                               <span>•</span>
-                              <span className="text-emerald-400 font-bold">{currentMatch.hierarchicalPicks.pick1Winner?.ev > 0 ? `+${currentMatch.hierarchicalPicks.pick1Winner?.ev}% EV` : `${currentMatch.hierarchicalPicks.pick1Winner?.ev}% EV`}</span>
+                              <span className="text-emerald-700 font-bold">{currentMatch.hierarchicalPicks.pick1Winner?.ev > 0 ? `+${currentMatch.hierarchicalPicks.pick1Winner?.ev}% EV` : `${currentMatch.hierarchicalPicks.pick1Winner?.ev}% EV`}</span>
                             </div>
                           </div>
-                          <p className="text-[10px] text-slate-400 mt-2 pt-1 border-t border-slate-700/60 leading-tight">
+                          <p className="text-[10px] text-slate-600 mt-2 pt-1 border-t border-slate-300 leading-tight">
                             {currentMatch.hierarchicalPicks.pick1Winner?.role}
                           </p>
                         </div>
 
                         {/* 2. Cobertura Hándicap Asiático */}
-                        <div className="bg-slate-800/80 border border-sky-500/40 rounded-xl p-3 flex flex-col justify-between">
+                        <div className="bg-slate-100/90 border border-sky-500/40 rounded-xl p-3 flex flex-col justify-between">
                           <div>
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-[10px] uppercase font-black text-sky-300">🛡️ 2. Cobertura Asiática</span>
-                              <span className="text-[10px] font-mono font-bold text-sky-400 bg-sky-950 px-1.5 py-0.5 rounded border border-sky-500/30">
+                              <span className="text-[10px] uppercase font-black text-sky-800">🛡️ 2. Cobertura Asiática</span>
+                              <span className="text-[10px] font-mono font-bold text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded border border-sky-500/30">
                                 Cuota {currentMatch.hierarchicalPicks.pick2Asian?.odd}
                               </span>
                             </div>
-                            <p className="text-sm font-black text-white">{currentMatch.hierarchicalPicks.pick2Asian?.name}</p>
-                            <div className="mt-1 flex items-center gap-2 text-xs text-slate-300 font-mono">
+                            <p className="text-sm font-black text-slate-900">{currentMatch.hierarchicalPicks.pick2Asian?.name}</p>
+                            <div className="mt-1 flex items-center gap-2 text-xs text-slate-700 font-mono">
                               <span>Prob: <strong>{currentMatch.hierarchicalPicks.pick2Asian?.realProb}%</strong></span>
                               <span>•</span>
-                              <span className="text-emerald-400 font-bold">{currentMatch.hierarchicalPicks.pick2Asian?.ev > 0 ? `+${currentMatch.hierarchicalPicks.pick2Asian?.ev}% EV` : `${currentMatch.hierarchicalPicks.pick2Asian?.ev}% EV`}</span>
+                              <span className="text-emerald-700 font-bold">{currentMatch.hierarchicalPicks.pick2Asian?.ev > 0 ? `+${currentMatch.hierarchicalPicks.pick2Asian?.ev}% EV` : `${currentMatch.hierarchicalPicks.pick2Asian?.ev}% EV`}</span>
                             </div>
                           </div>
-                          <p className="text-[10px] text-slate-400 mt-2 pt-1 border-t border-slate-700/60 leading-tight">
+                          <p className="text-[10px] text-slate-600 mt-2 pt-1 border-t border-slate-300 leading-tight">
                             {currentMatch.hierarchicalPicks.pick2Asian?.role}
                           </p>
                         </div>
 
                         {/* 3. Mercado de Goles */}
-                        <div className="bg-slate-800/80 border border-emerald-500/40 rounded-xl p-3 flex flex-col justify-between">
+                        <div className="bg-slate-100/90 border border-emerald-500/40 rounded-xl p-3 flex flex-col justify-between">
                           <div>
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-[10px] uppercase font-black text-emerald-300">⚽ 3. Mercado de Goles</span>
-                              <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                              <span className="text-[10px] uppercase font-black text-emerald-800">⚽ 3. Mercado de Goles</span>
+                              <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-500/30">
                                 Cuota {currentMatch.hierarchicalPicks.pick3Goals?.odd}
                               </span>
                             </div>
-                            <p className="text-sm font-black text-white">{currentMatch.hierarchicalPicks.pick3Goals?.name}</p>
-                            <div className="mt-1 flex items-center gap-2 text-xs text-slate-300 font-mono">
+                            <p className="text-sm font-black text-slate-900">{currentMatch.hierarchicalPicks.pick3Goals?.name}</p>
+                            <div className="mt-1 flex items-center gap-2 text-xs text-slate-700 font-mono">
                               <span>Prob: <strong>{currentMatch.hierarchicalPicks.pick3Goals?.realProb}%</strong></span>
                               <span>•</span>
-                              <span className="text-emerald-400 font-bold">{currentMatch.hierarchicalPicks.pick3Goals?.ev > 0 ? `+${currentMatch.hierarchicalPicks.pick3Goals?.ev}% EV` : `${currentMatch.hierarchicalPicks.pick3Goals?.ev}% EV`}</span>
+                              <span className="text-emerald-700 font-bold">{currentMatch.hierarchicalPicks.pick3Goals?.ev > 0 ? `+${currentMatch.hierarchicalPicks.pick3Goals?.ev}% EV` : `${currentMatch.hierarchicalPicks.pick3Goals?.ev}% EV`}</span>
                             </div>
                           </div>
-                          <p className="text-[10px] text-slate-400 mt-2 pt-1 border-t border-slate-700/60 leading-tight">
+                          <p className="text-[10px] text-slate-600 mt-2 pt-1 border-t border-slate-300 leading-tight">
                             {currentMatch.hierarchicalPicks.pick3Goals?.role}
                           </p>
                         </div>
@@ -1987,87 +1989,87 @@ export default function EcuaPronosticoDashboard() {
 
                   {/* PANEL CONTEXTUAL DINÁMICO DE LAS 3 APIS + CONTEXTO GEOGRÁFICO */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div className="bg-slate-900/90 border border-sky-500/40 rounded-xl p-3.5 flex flex-col justify-between">
+                    <div className="bg-white/95 border border-sky-500/40 rounded-xl p-3.5 flex flex-col justify-between">
                       <div>
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-[10px] uppercase font-black text-sky-300">👨‍⚖️ Árbitro Oficial</span>
-                          <span className="text-[9px] bg-sky-950 text-sky-400 border border-sky-500/30 px-1.5 py-0.5 rounded font-bold">
+                          <span className="text-[10px] uppercase font-black text-sky-800">👨‍⚖️ Árbitro Oficial</span>
+                          <span className="text-[9px] bg-sky-100 text-sky-700 border border-sky-500/30 px-1.5 py-0.5 rounded font-bold">
                             {currentMatch.refereeName && currentMatch.refereeName !== "Por designar" && currentMatch.refereeCardsAvg && currentMatch.refereeCardsAvg !== "N/D"
                               ? `${currentMatch.refereeCardsAvg} tarj/p`
                               : "Por designar"}
                           </span>
                         </div>
-                        <p className="text-sm font-black text-white">{currentMatch.refereeName || "Por designar"}</p>
-                        <p className="text-[11px] text-slate-300 mt-1 leading-snug">
+                        <p className="text-sm font-black text-slate-900">{currentMatch.refereeName || "Por designar"}</p>
+                        <p className="text-[11px] text-slate-700 mt-1 leading-snug">
                           {currentMatch.refereeName && currentMatch.refereeName !== "Por designar"
                             ? (currentMatch.refereeAlert || "Terna arbitral confirmada para este partido")
                             : "Terna arbitral aún no oficializada por la comisión técnica de la competición."}
                         </p>
                       </div>
-                      <span className="text-[10px] text-slate-400 mt-2 font-mono">
+                      <span className="text-[10px] text-slate-600 mt-2 font-mono">
                         {currentMatch.refereeName && currentMatch.refereeName !== "Por designar" && currentMatch.refereePenaltiesAvg && currentMatch.refereePenaltiesAvg !== "N/D"
                           ? `Penales estimados: ${currentMatch.refereePenaltiesAvg}/p`
                           : "Penales: Pendiente de designación"}
                       </span>
                     </div>
 
-                    <div className="bg-slate-900/90 border border-amber-500/40 rounded-xl p-3.5 flex flex-col justify-between">
+                    <div className="bg-white/95 border border-amber-500/40 rounded-xl p-3.5 flex flex-col justify-between">
                       <div>
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-[10px] uppercase font-black text-amber-300">📋 Novedades de Plantel (ESPN)</span>
-                          <span className="text-[9px] bg-amber-950 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded font-bold">Oficial</span>
+                          <span className="text-[10px] uppercase font-black text-amber-800">📋 Novedades de Plantel (ESPN)</span>
+                          <span className="text-[9px] bg-amber-100 text-amber-700 border border-amber-500/30 px-1.5 py-0.5 rounded font-bold">Oficial</span>
                         </div>
-                        <p className="text-sm font-black text-white">{currentMatch.lineupStatus}</p>
-                        <p className="text-[11px] text-slate-300 mt-1 leading-snug">{currentMatch.lineupAlert}</p>
+                        <p className="text-sm font-black text-slate-900">{currentMatch.lineupStatus}</p>
+                        <p className="text-[11px] text-slate-700 mt-1 leading-snug">{currentMatch.lineupAlert}</p>
                       </div>
-                      <span className="text-[10px] text-slate-400 mt-2">Ajuste aplicado a generación xG</span>
+                      <span className="text-[10px] text-slate-600 mt-2">Ajuste aplicado a generación xG</span>
                     </div>
 
-                    <div className="bg-slate-900/90 border border-emerald-500/40 rounded-xl p-3.5 flex flex-col justify-between">
+                    <div className="bg-white/95 border border-emerald-500/40 rounded-xl p-3.5 flex flex-col justify-between">
                       <div>
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-[10px] uppercase font-black text-emerald-300">📈 Dinámica de Mercado</span>
-                          <span className="text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold">{currentMatch.bookmakerCount || 28} Casas</span>
+                          <span className="text-[10px] uppercase font-black text-emerald-800">📈 Dinámica de Mercado</span>
+                          <span className="text-[9px] bg-emerald-100 text-emerald-700 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold">{currentMatch.bookmakerCount || 28} Casas</span>
                         </div>
-                        <p className="text-sm font-black text-white">The Odds API En Vivo</p>
-                        <p className="text-[11px] text-slate-300 mt-1 leading-snug">{currentMatch.marketTrend}</p>
+                        <p className="text-sm font-black text-slate-900">The Odds API En Vivo</p>
+                        <p className="text-[11px] text-slate-700 mt-1 leading-snug">{currentMatch.marketTrend}</p>
                       </div>
-                      <span className="text-[10px] text-slate-400 mt-2 font-mono">Margen casa: {currentMatch.marginCasa}% | Desmargenizado</span>
+                      <span className="text-[10px] text-slate-600 mt-2 font-mono">Margen casa: {currentMatch.marginCasa}% | Desmargenizado</span>
                     </div>
 
                     {/* FACTOR ALTITUD / DESGASTE FISIOLÓGICO */}
-                    <div className="bg-slate-900/90 border border-purple-500/50 rounded-xl p-3.5 flex flex-col justify-between shadow-sm">
+                    <div className="bg-white/95 border border-purple-500/50 rounded-xl p-3.5 flex flex-col justify-between shadow-sm">
                       <div>
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-[10px] uppercase font-black text-purple-300">⛰️ Factor Altitud / Desgaste</span>
-                          <span className="text-[9px] bg-purple-950 text-purple-300 border border-purple-500/40 px-1.5 py-0.5 rounded font-bold">
+                          <span className="text-[10px] uppercase font-black text-purple-800">⛰️ Factor Altitud / Desgaste</span>
+                          <span className="text-[9px] bg-purple-100 text-purple-800 border border-purple-500/40 px-1.5 py-0.5 rounded font-bold">
                             {currentMatch.altitudeMeters ? `${currentMatch.altitudeMeters}m` : "Sede"}
                           </span>
                         </div>
-                        <p className="text-sm font-black text-white">{currentMatch.altitudeBadge || "Condiciones Simétricas"}</p>
-                        <p className="text-[11px] text-slate-300 mt-1 leading-snug">{currentMatch.altitudeAlert}</p>
+                        <p className="text-sm font-black text-slate-900">{currentMatch.altitudeBadge || "Condiciones Simétricas"}</p>
+                        <p className="text-[11px] text-slate-700 mt-1 leading-snug">{currentMatch.altitudeAlert}</p>
                       </div>
-                      <span className="text-[10px] text-purple-300 font-mono mt-2 font-bold bg-purple-950/40 px-2 py-0.5 rounded border border-purple-500/30">
+                      <span className="text-[10px] text-purple-800 font-mono mt-2 font-bold bg-purple-50 px-2 py-0.5 rounded border border-purple-500/30">
                         Impacto: {currentMatch.altitudeImpactXg}
                       </span>
                     </div>
                   </div>
 
-                  <div className="bg-slate-800/90 border border-amber-400/40 rounded-2xl p-4 space-y-2 shadow-lg">
+                  <div className="bg-slate-50/95 border border-amber-400/40 rounded-2xl p-4 space-y-2 shadow-lg">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-black uppercase text-amber-300">📋 Datos Oficiales del Calendario y Regla de Inversión</h4>
-                      <span className="text-[10px] bg-blue-950 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded font-bold">{currentMatch.leagueTitle}</span>
+                      <h4 className="text-xs font-black uppercase text-amber-800">📋 Datos Oficiales del Calendario y Regla de Inversión</h4>
+                      <span className="text-[10px] bg-blue-100 text-blue-800 border border-blue-500/30 px-2 py-0.5 rounded font-bold">{currentMatch.leagueTitle}</span>
                     </div>
-                    <p className="text-xs md:text-sm text-slate-200 leading-relaxed">
+                    <p className="text-xs md:text-sm text-slate-800 leading-relaxed">
                       {currentMatch.reportePlantilla}
                     </p>
-                    <p className="text-xs md:text-sm text-amber-200 bg-slate-900/80 p-2.5 rounded-lg border border-slate-700">
+                    <p className="text-xs md:text-sm text-amber-900 bg-white/92 p-2.5 rounded-lg border border-slate-300">
                       💡 <strong>Cómo usar este dato en tu casa de apuestas:</strong> Busca el partido <strong>{currentMatch.home} vs {currentMatch.away}</strong> y revisa la opción <strong>"{currentMatch.bestMarketName}"</strong> ({currentMatch.bestMarketExplanation}). Si tu casa de apuestas te paga una cuota mayor a <strong>{currentMatch.minFairOddForTopPick}</strong>, tienes ventaja matemática real a tu favor.
                     </p>
                   </div>
 
-                  <div className="bg-[#131d3b] border border-slate-700 rounded-2xl overflow-hidden">
-                    <div className="flex overflow-x-auto bg-[#1c2a52] border-b border-slate-700 p-1.5 gap-1.5 text-xs font-bold">
+                  <div className="bg-white/95 border border-slate-300 rounded-2xl overflow-hidden">
+                    <div className="flex overflow-x-auto bg-slate-100 border-b border-slate-300 p-1.5 gap-1.5 text-xs font-bold">
                       {[
                         { id: "todos", label: "📊 Todas las Opciones Explicadas" },
                         { id: "asiatico", label: "🛡️ Hándicap Asiático & Coberturas (+EV)" },
@@ -2077,7 +2079,7 @@ export default function EcuaPronosticoDashboard() {
                         <button
                           key={tab.id}
                           onClick={() => setActiveMarketTab(tab.id)}
-                          className={`px-3 py-2 rounded-lg whitespace-nowrap transition-all ${activeMarketTab === tab.id ? "bg-blue-600 text-white shadow" : "text-slate-300 hover:bg-slate-800"}`}
+                          className={`px-3 py-2 rounded-lg whitespace-nowrap transition-all ${activeMarketTab === tab.id ? "bg-blue-600 text-white shadow" : "text-slate-700 hover:bg-slate-100"}`}
                         >
                           {tab.label}
                         </button>
@@ -2087,42 +2089,42 @@ export default function EcuaPronosticoDashboard() {
                     <div className="p-4 space-y-4">
                       
                       {(activeMarketTab === "todos") && (
-                        <div className="bg-slate-900/90 border border-slate-700/80 rounded-xl p-4">
+                        <div className="bg-white/95 border border-slate-300 rounded-xl p-4">
                           <div className="flex flex-wrap justify-between items-center mb-3 gap-2">
-                            <h4 className="text-xs font-black uppercase text-amber-400">⭐ Probabilidad de Victoria 1X2 (Montecarlo & De-vigging)</h4>
-                            <span className="text-[11px] text-slate-200 bg-slate-800 px-2.5 py-1 rounded border border-slate-700">
-                              Peligro Ofensivo (xG Real API-Football): <strong className="text-blue-400">{currentMatch.homeInitials} {currentMatch.xgHome} xG</strong> vs <strong className="text-amber-400">{currentMatch.awayInitials} {currentMatch.xgAway} xG</strong> (<strong className="text-emerald-300 font-mono">ΔxG: {currentMatch.xgDiff > 0 ? "+" + currentMatch.xgDiff : currentMatch.xgDiff}</strong> | Total: {currentMatch.expectedGoals} xG)
+                            <h4 className="text-xs font-black uppercase text-amber-700">⭐ Probabilidad de Victoria 1X2 (Montecarlo & De-vigging)</h4>
+                            <span className="text-[11px] text-slate-800 bg-slate-100 px-2.5 py-1 rounded border border-slate-300">
+                              Peligro Ofensivo (xG Real API-Football): <strong className="text-blue-700">{currentMatch.homeInitials} {currentMatch.xgHome} xG</strong> vs <strong className="text-amber-700">{currentMatch.awayInitials} {currentMatch.xgAway} xG</strong> (<strong className="text-emerald-800 font-mono">ΔxG: {currentMatch.xgDiff > 0 ? "+" + currentMatch.xgDiff : currentMatch.xgDiff}</strong> | Total: {currentMatch.expectedGoals} xG)
                             </span>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                            <div className="bg-slate-800 p-3 rounded-lg border border-slate-700 space-y-1">
-                              <div className="flex justify-between font-bold text-white">
+                            <div className="bg-slate-100 p-3 rounded-lg border border-slate-300 space-y-1">
+                              <div className="flex justify-between font-bold text-slate-900">
                                 <span>Gana {currentMatch.home}</span>
-                                <span className="text-amber-300">Cuota {currentMatch.cuotaLocal}</span>
+                                <span className="text-amber-800">Cuota {currentMatch.cuotaLocal}</span>
                               </div>
-                              <div className="text-[11px] text-slate-400 flex justify-between">
+                              <div className="text-[11px] text-slate-600 flex justify-between">
                                 <span>Casa sin comisión: {currentMatch.cleanProb1}%</span>
-                                <strong className="text-blue-400">Montecarlo: {currentMatch.probHomeSim}%</strong>
+                                <strong className="text-blue-700">Montecarlo: {currentMatch.probHomeSim}%</strong>
                               </div>
                             </div>
-                            <div className="bg-slate-800 p-3 rounded-lg border border-slate-700 space-y-1">
-                              <div className="flex justify-between font-bold text-white">
+                            <div className="bg-slate-100 p-3 rounded-lg border border-slate-300 space-y-1">
+                              <div className="flex justify-between font-bold text-slate-900">
                                 <span>Empate</span>
-                                <span className="text-amber-300">Cuota {currentMatch.cuotaEmpate}</span>
+                                <span className="text-amber-800">Cuota {currentMatch.cuotaEmpate}</span>
                               </div>
-                              <div className="text-[11px] text-slate-400 flex justify-between">
+                              <div className="text-[11px] text-slate-600 flex justify-between">
                                 <span>Casa sin comisión: {currentMatch.cleanProbX}%</span>
-                                <strong className="text-blue-400">Montecarlo: {currentMatch.probDrawSim}%</strong>
+                                <strong className="text-blue-700">Montecarlo: {currentMatch.probDrawSim}%</strong>
                               </div>
                             </div>
-                            <div className="bg-slate-800 p-3 rounded-lg border border-slate-700 space-y-1">
-                              <div className="flex justify-between font-bold text-white">
+                            <div className="bg-slate-100 p-3 rounded-lg border border-slate-300 space-y-1">
+                              <div className="flex justify-between font-bold text-slate-900">
                                 <span>Gana {currentMatch.away}</span>
-                                <span className="text-amber-300">Cuota {currentMatch.cuotaVisita}</span>
+                                <span className="text-amber-800">Cuota {currentMatch.cuotaVisita}</span>
                               </div>
-                              <div className="text-[11px] text-slate-400 flex justify-between">
+                              <div className="text-[11px] text-slate-600 flex justify-between">
                                 <span>Casa sin comisión: {currentMatch.cleanProb2}%</span>
-                                <strong className="text-blue-400">Montecarlo: {currentMatch.probAwaySim}%</strong>
+                                <strong className="text-blue-700">Montecarlo: {currentMatch.probAwaySim}%</strong>
                               </div>
                             </div>
                           </div>
@@ -2131,54 +2133,54 @@ export default function EcuaPronosticoDashboard() {
 
                       {/* MÓDULO DE HÁNDICAP ASIÁTICO & COBERTURAS (+EV) */}
                       {(activeMarketTab === "todos" || activeMarketTab === "asiatico") && (
-                        <div className="bg-slate-900/90 border border-sky-500/40 rounded-xl p-4">
+                        <div className="bg-white/95 border border-sky-500/40 rounded-xl p-4">
                           <div className="flex flex-wrap justify-between items-center mb-3 gap-2">
                             <div className="flex items-center gap-2">
                               <span className="text-sm">🛡️</span>
-                              <h4 className="text-xs font-black uppercase text-sky-400">
+                              <h4 className="text-xs font-black uppercase text-sky-700">
                                 Mercado de Hándicap Asiático & Coberturas (The Odds API & De-vigging)
                               </h4>
                             </div>
-                            <span className="text-[11px] text-sky-300 bg-sky-950/80 px-2.5 py-1 rounded border border-sky-500/30 font-medium">
+                            <span className="text-[11px] text-sky-800 bg-sky-100 px-2.5 py-1 rounded border border-sky-500/30 font-medium">
                               Protección contra el empate: Reembolso parcial o total de la apuesta
                             </span>
                           </div>
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs mb-3">
                             {currentMatch.asianLines?.map((line: any, idx: number) => (
-                              <div key={idx} className="bg-slate-800/90 p-3 rounded-xl border border-slate-700 flex flex-col justify-between">
+                              <div key={idx} className="bg-slate-50/95 p-3 rounded-xl border border-slate-300 flex flex-col justify-between">
                                 <div>
                                   <div className="flex justify-between items-center mb-1">
-                                    <span className="font-extrabold text-white text-xs">{line.name}</span>
-                                    <span className="text-amber-300 font-bold font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">
+                                    <span className="font-extrabold text-slate-900 text-xs">{line.name}</span>
+                                    <span className="text-amber-800 font-bold font-mono bg-white px-1.5 py-0.5 rounded border border-slate-300">
                                       Cuota {line.odd}
                                     </span>
                                   </div>
-                                  <div className="text-[11px] text-slate-300 font-mono space-y-0.5 mt-1.5">
+                                  <div className="text-[11px] text-slate-700 font-mono space-y-0.5 mt-1.5">
                                     <div className="flex justify-between">
-                                      <span className="text-slate-400">Prob. De-vig:</span>
+                                      <span className="text-slate-600">Prob. De-vig:</span>
                                       <span>{line.cleanProb}%</span>
                                     </div>
                                     <div className="flex justify-between">
-                                      <span className="text-slate-400">Prob. Montecarlo:</span>
-                                      <strong className="text-blue-300">{line.realProb}%</strong>
+                                      <span className="text-slate-600">Prob. Montecarlo:</span>
+                                      <strong className="text-blue-800">{line.realProb}%</strong>
                                     </div>
                                     <div className="flex justify-between">
-                                      <span className="text-slate-400">Valor Esperado:</span>
+                                      <span className="text-slate-600">Valor Esperado:</span>
                                       <strong className={line.ev > 0 ? "text-emerald-400 font-bold" : "text-slate-300"}>
                                         {line.ev > 0 ? `+${line.ev}% EV` : `${line.ev}% EV`}
                                       </strong>
                                     </div>
                                   </div>
                                 </div>
-                                <p className="text-[10px] text-slate-400 mt-2 pt-1.5 border-t border-slate-700 leading-tight">
+                                <p className="text-[10px] text-slate-600 mt-2 pt-1.5 border-t border-slate-300 leading-tight">
                                   💡 <strong>Regla:</strong> {line.rule}
                                 </p>
                               </div>
                             ))}
                           </div>
 
-                          <div className="bg-sky-950/40 border border-sky-500/30 rounded-lg p-2.5 text-xs text-slate-300 flex items-start gap-2">
+                          <div className="bg-sky-50 border border-sky-500/30 rounded-lg p-2.5 text-xs text-slate-700 flex items-start gap-2">
                             <span className="text-base leading-none">ℹ️</span>
                             <p className="leading-snug">
                               <strong>¿Por qué usar Hándicap Asiático?</strong> A diferencia del 1X2 tradicional donde el empate te hace perder tu dinero, las líneas asiáticas como <strong>0.0 (DNB)</strong> o <strong>-0.25 / +0.25</strong> eliminan o mitigan el riesgo de empate devolviéndote el 100% o 50% de tu apuesta.
@@ -2188,67 +2190,67 @@ export default function EcuaPronosticoDashboard() {
                       )}
 
                       {(activeMarketTab === "todos" || activeMarketTab === "goles") && (
-                        <div className="bg-slate-900/90 border border-slate-700/80 rounded-xl p-4">
-                          <h4 className="text-xs font-black uppercase text-green-400 mb-3">⚽ Pronóstico de Goles Totales (Distribución de Poisson) & Ambos Equipos Marcan</h4>
+                        <div className="bg-white/95 border border-slate-300 rounded-xl p-4">
+                          <h4 className="text-xs font-black uppercase text-green-700 mb-3">⚽ Pronóstico de Goles Totales (Distribución de Poisson) & Ambos Equipos Marcan</h4>
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                            <div className="bg-slate-800 p-3 rounded-lg border border-slate-700">
-                              <div className="flex justify-between font-bold text-white mb-1">
+                            <div className="bg-slate-100 p-3 rounded-lg border border-slate-300">
+                              <div className="flex justify-between font-bold text-slate-900 mb-1">
                                 <span>Más de {currentMatch.lineGoals} goles</span>
-                                <span className="text-amber-300">Cuota {currentMatch.cuotaOver}</span>
+                                <span className="text-amber-800">Cuota {currentMatch.cuotaOver}</span>
                               </div>
-                              <p className="text-[10px] text-slate-400 mb-1">Ganas si hay {currentMatch.lineGoals === 3.5 ? "4" : "3"} goles o más en total</p>
-                              <p className="text-[11px] text-blue-300 font-bold">Probabilidad Poisson: {currentMatch.probOverSim}%</p>
+                              <p className="text-[10px] text-slate-600 mb-1">Ganas si hay {currentMatch.lineGoals === 3.5 ? "4" : "3"} goles o más en total</p>
+                              <p className="text-[11px] text-blue-800 font-bold">Probabilidad Poisson: {currentMatch.probOverSim}%</p>
                             </div>
-                            <div className="bg-slate-800 p-3 rounded-lg border border-slate-700">
-                              <div className="flex justify-between font-bold text-white mb-1">
+                            <div className="bg-slate-100 p-3 rounded-lg border border-slate-300">
+                              <div className="flex justify-between font-bold text-slate-900 mb-1">
                                 <span>Menos de {currentMatch.lineGoals} goles</span>
-                                <span className="text-amber-300">Cuota {currentMatch.cuotaUnder}</span>
+                                <span className="text-amber-800">Cuota {currentMatch.cuotaUnder}</span>
                               </div>
-                              <p className="text-[10px] text-slate-400 mb-1">Ganas si hay máximo {currentMatch.lineGoals === 3.5 ? "3" : "2"} goles en total</p>
-                              <p className="text-[11px] text-blue-300 font-bold">Probabilidad Poisson: {currentMatch.probUnderSim}%</p>
+                              <p className="text-[10px] text-slate-600 mb-1">Ganas si hay máximo {currentMatch.lineGoals === 3.5 ? "3" : "2"} goles en total</p>
+                              <p className="text-[11px] text-blue-800 font-bold">Probabilidad Poisson: {currentMatch.probUnderSim}%</p>
                             </div>
-                            <div className="bg-slate-800 p-3 rounded-lg border border-slate-700">
-                              <div className="flex justify-between font-bold text-white mb-1">
+                            <div className="bg-slate-100 p-3 rounded-lg border border-slate-300">
+                              <div className="flex justify-between font-bold text-slate-900 mb-1">
                                 <span>Ambos Equipos Anotan</span>
-                                <span className="text-green-400">{currentMatch.probBttsYesSim}% prob.</span>
+                                <span className="text-green-700">{currentMatch.probBttsYesSim}% prob.</span>
                               </div>
-                              <p className="text-[10px] text-slate-400 mb-1">Que los dos equipos hagan al menos 1 gol</p>
-                              <p className="text-[11px] text-slate-300">Cuota justa mínima: <strong className="text-white">{currentMatch.fairOddBttsYes}</strong></p>
+                              <p className="text-[10px] text-slate-600 mb-1">Que los dos equipos hagan al menos 1 gol</p>
+                              <p className="text-[11px] text-slate-700">Cuota justa mínima: <strong className="text-slate-900">{currentMatch.fairOddBttsYes}</strong></p>
                             </div>
                           </div>
                         </div>
                       )}
 
                       {(activeMarketTab === "todos" || activeMarketTab === "marcadores") && (
-                        <div className="bg-slate-900/90 border border-slate-700/80 rounded-xl p-4">
-                          <h4 className="text-xs font-black uppercase text-sky-400 mb-3">🎯 Los 3 Marcadores Más Probables (Simulación Montecarlo) & Doble Oportunidad</h4>
+                        <div className="bg-white/95 border border-slate-300 rounded-xl p-4">
+                          <h4 className="text-xs font-black uppercase text-sky-700 mb-3">🎯 Los 3 Marcadores Más Probables (Simulación Montecarlo) & Doble Oportunidad</h4>
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                            <div className="bg-slate-800 p-3 rounded-lg border border-sky-500/30">
-                              <span className="text-[10px] text-sky-300 font-bold uppercase block">Marcadores más probables</span>
+                            <div className="bg-slate-100 p-3 rounded-lg border border-sky-500/30">
+                              <span className="text-[10px] text-sky-800 font-bold uppercase block">Marcadores más probables</span>
                               <div className="mt-1.5 space-y-1">
                                 {currentMatch.topScores?.map((s: any, idx: number) => (
                                   <div key={idx} className="flex justify-between text-xs">
-                                    <span className="text-white font-bold">Resultado {s.score}</span>
-                                    <span className="text-amber-300 font-bold">{s.prob}% de las veces</span>
+                                    <span className="text-slate-900 font-bold">Resultado {s.score}</span>
+                                    <span className="text-amber-800 font-bold">{s.prob}% de las veces</span>
                                   </div>
                                 ))}
                               </div>
                             </div>
-                            <div className="bg-slate-800 p-3 rounded-lg border border-amber-500/30 flex flex-col justify-between">
+                            <div className="bg-slate-100 p-3 rounded-lg border border-amber-500/30 flex flex-col justify-between">
                               <div>
-                                <span className="text-[10px] text-amber-300 font-bold uppercase block">Doble Oportunidad</span>
-                                <strong className="text-white text-xs block mt-1">Gana {currentMatch.home} o Empatan: {currentMatch.prob1X}%</strong>
-                                <strong className="text-slate-200 text-xs block mt-1">Gana {currentMatch.away} o Empatan: {currentMatch.probX2}%</strong>
+                                <span className="text-[10px] text-amber-800 font-bold uppercase block">Doble Oportunidad</span>
+                                <strong className="text-slate-900 text-xs block mt-1">Gana {currentMatch.home} o Empatan: {currentMatch.prob1X}%</strong>
+                                <strong className="text-slate-800 text-xs block mt-1">Gana {currentMatch.away} o Empatan: {currentMatch.probX2}%</strong>
                               </div>
-                              <span className="text-[10px] text-slate-400 mt-2">Sumatoria real de Montecarlo</span>
+                              <span className="text-[10px] text-slate-600 mt-2">Sumatoria real de Montecarlo</span>
                             </div>
-                            <div className="bg-slate-800 p-3 rounded-lg border border-purple-500/30 flex flex-col justify-between">
+                            <div className="bg-slate-100 p-3 rounded-lg border border-purple-500/30 flex flex-col justify-between">
                               <div>
-                                <span className="text-[10px] text-purple-300 font-bold uppercase block">Arco en Cero / No Anotan Ambos</span>
-                                <strong className="text-white text-xs block mt-1">Al menos un equipo NO anota: {currentMatch.probBttsNoSim}%</strong>
-                                <span className="text-[11px] text-slate-300 block mt-1">Cuota mínima recomendada: {currentMatch.fairOddBttsNo}</span>
+                                <span className="text-[10px] text-purple-800 font-bold uppercase block">Arco en Cero / No Anotan Ambos</span>
+                                <strong className="text-slate-900 text-xs block mt-1">Al menos un equipo NO anota: {currentMatch.probBttsNoSim}%</strong>
+                                <span className="text-[11px] text-slate-700 block mt-1">Cuota mínima recomendada: {currentMatch.fairOddBttsNo}</span>
                               </div>
-                              <span className="text-[10px] text-green-400 font-bold mt-2">✓ Extraído de ESPN Oficial</span>
+                              <span className="text-[10px] text-green-700 font-bold mt-2">✓ Extraído de ESPN Oficial</span>
                             </div>
                           </div>
                         </div>
@@ -2257,12 +2259,12 @@ export default function EcuaPronosticoDashboard() {
                     </div>
                   </div>
 
-                  <div className="bg-blue-950/40 border-2 border-blue-500/50 p-5 rounded-2xl space-y-2 shadow-xl">
+                  <div className="bg-blue-50/95 border-2 border-blue-500/50 p-5 rounded-2xl space-y-2 shadow-xl">
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-ping"></span>
-                      <h3 className="text-white font-black text-sm md:text-base uppercase tracking-wider">🎙️ Veredicto del Analista (Poisson + Montecarlo)</h3>
+                      <h3 className="text-slate-900 font-black text-sm md:text-base uppercase tracking-wider">🎙️ Veredicto del Analista (Poisson + Montecarlo)</h3>
                     </div>
-                    <p className="text-slate-100 text-sm md:text-base leading-relaxed font-medium whitespace-pre-line">
+                    <p className="text-slate-900 text-sm md:text-base leading-relaxed font-medium whitespace-pre-line">
                       {currentMatch.analisisDinamico}
                     </p>
                   </div>
@@ -2270,38 +2272,38 @@ export default function EcuaPronosticoDashboard() {
                 </div>
 
                 <div className="space-y-6">
-                  <div className="bg-[#131d3b] border-2 border-amber-400/70 rounded-2xl overflow-hidden shadow-2xl">
+                  <div className="bg-white/95 border-2 border-amber-400/70 rounded-2xl overflow-hidden shadow-2xl">
                     <div className="bg-amber-400 text-slate-950 px-4 py-2.5 font-black text-xs uppercase flex justify-between items-center">
                       <span>🎟️ Calculadora de Ganancia</span>
                       <span>CUOTA MÍN: {currentMatch.minFairOddForTopPick}</span>
                     </div>
                     <div className="p-4 space-y-4 text-xs">
-                      <div className="bg-slate-900 p-3 rounded-xl border border-slate-700">
-                        <span className="text-[10px] text-slate-400 block">{currentMatch.home} vs {currentMatch.away}</span>
-                        <strong className="text-sm text-amber-300 block mt-0.5">Jugada: {currentMatch.bestMarketName}</strong>
-                        <span className="text-[11px] text-slate-300 block mt-0.5">{currentMatch.bestMarketExplanation}</span>
-                        <div className="flex justify-between mt-2 pt-2 border-t border-slate-800">
-                          <span>Cuota Ref: <strong className="text-white">{currentMatch.bestOdd}</strong></span>
-                          <span className="text-green-400 font-bold">Montecarlo: {currentMatch.probReal}%</span>
+                      <div className="bg-white p-3 rounded-xl border border-slate-300">
+                        <span className="text-[10px] text-slate-600 block">{currentMatch.home} vs {currentMatch.away}</span>
+                        <strong className="text-sm text-amber-800 block mt-0.5">Jugada: {currentMatch.bestMarketName}</strong>
+                        <span className="text-[11px] text-slate-700 block mt-0.5">{currentMatch.bestMarketExplanation}</span>
+                        <div className="flex justify-between mt-2 pt-2 border-t border-slate-300">
+                          <span>Cuota Ref: <strong className="text-slate-900">{currentMatch.bestOdd}</strong></span>
+                          <span className="text-green-700 font-bold">Montecarlo: {currentMatch.probReal}%</span>
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-300 mb-1 uppercase">¿Cuánto quieres simular? ($ USD)</label>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1 uppercase">¿Cuánto quieres simular? ($ USD)</label>
                         <input
                           type="number"
                           value={stakeAmount}
                           onChange={(e) => setStakeAmount(Math.max(1, Number(e.target.value)))}
-                          className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white font-bold text-base outline-none"
+                          className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 font-bold text-base outline-none"
                         />
                       </div>
 
-                      <div className="bg-green-950/50 border border-green-500/40 rounded-xl p-3 space-y-1">
-                        <div className="flex justify-between text-slate-300">
+                      <div className="bg-green-50 border border-green-500/40 rounded-xl p-3 space-y-1">
+                        <div className="flex justify-between text-slate-700">
                           <span>Cobras en total:</span>
-                          <strong className="text-base text-white">${(stakeAmount * currentMatch.bestOdd).toFixed(2)}</strong>
+                          <strong className="text-base text-slate-900">${(stakeAmount * currentMatch.bestOdd).toFixed(2)}</strong>
                         </div>
-                        <div className="flex justify-between text-green-400 font-bold">
+                        <div className="flex justify-between text-green-700 font-bold">
                           <span>Ganancia limpia:</span>
                           <span>+${(stakeAmount * currentMatch.bestOdd - stakeAmount).toFixed(2)} USD</span>
                         </div>
@@ -2309,15 +2311,15 @@ export default function EcuaPronosticoDashboard() {
                     </div>
                   </div>
 
-                  <div className="bg-slate-900 border border-blue-500/40 rounded-2xl overflow-hidden flex flex-col h-[430px] shadow-xl">
-                    <div className="bg-slate-800 px-3.5 py-2.5 border-b border-slate-700 flex justify-between items-center">
+                  <div className="bg-white border border-blue-500/40 rounded-2xl overflow-hidden flex flex-col h-[430px] shadow-xl">
+                    <div className="bg-slate-100 px-3.5 py-2.5 border-b border-slate-300 flex justify-between items-center">
                       <div className="truncate pr-2">
-                        <h3 className="text-white font-bold text-xs uppercase flex items-center gap-1.5 truncate">
+                        <h3 className="text-slate-900 font-bold text-xs uppercase flex items-center gap-1.5 truncate">
                           <span>🤖</span>
                           <span className="truncate">Auditor en Vivo: {currentMatch.home} vs {currentMatch.away}</span>
                         </h3>
                       </div>
-                      <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-500/50 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 shrink-0">
+                      <span className="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-500/50 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 shrink-0">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                         CONECTADO
                       </span>
@@ -2331,7 +2333,7 @@ export default function EcuaPronosticoDashboard() {
                             className={`max-w-[90%] p-2.5 rounded-xl text-xs leading-relaxed whitespace-pre-line shadow-sm ${
                               msg.role === 'user'
                                 ? 'bg-blue-600 text-white font-medium'
-                                : 'bg-slate-800 text-slate-200 border border-slate-700 font-sans'
+                                : 'bg-slate-100 text-slate-800 border border-slate-300 font-sans'
                             }`}
                           >
                             {msg.text}
@@ -2339,7 +2341,7 @@ export default function EcuaPronosticoDashboard() {
                         </div>
                       ))}
                       {isTyping && (
-                        <div className="flex items-center gap-2 text-xs text-blue-400 bg-slate-800/70 p-2 rounded-lg border border-slate-700/60 animate-pulse">
+                        <div className="flex items-center gap-2 text-xs text-blue-700 bg-slate-100/85 p-2 rounded-lg border border-slate-300 animate-pulse">
                           <span>🔄</span>
                           <span>Auditando {currentMatch.home} vs {currentMatch.away} en tiempo real...</span>
                         </div>
@@ -2347,47 +2349,47 @@ export default function EcuaPronosticoDashboard() {
                     </div>
 
                     {/* BOTONES DE PREGUNTAS RÁPIDAS (1-CLICK) */}
-                    <div className="px-2.5 py-1.5 bg-slate-950/70 border-t border-slate-800 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                    <div className="px-2.5 py-1.5 bg-slate-100/90 border-t border-slate-300 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
                       <button
                         onClick={() => handleSendMessage(`¿Vale la pena apostar a este partido y cuál es la cuota rentable?`)}
-                        className="text-[10px] whitespace-nowrap bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-400/30 px-2 py-1 rounded-md transition-all shrink-0 font-semibold"
+                        className="text-[10px] whitespace-nowrap bg-slate-100 hover:bg-amber-100 text-amber-800 border border-amber-400/30 px-2 py-1 rounded-md transition-all shrink-0 font-semibold"
                       >
                         💡 ¿Vale la pena?
                       </button>
                       <button
                         onClick={() => handleSendMessage(`Explícame los xG y los marcadores más probables para ${currentMatch.home} vs ${currentMatch.away}`)}
-                        className="text-[10px] whitespace-nowrap bg-slate-800 hover:bg-slate-700 text-blue-300 border border-blue-400/30 px-2 py-1 rounded-md transition-all shrink-0 font-semibold"
+                        className="text-[10px] whitespace-nowrap bg-slate-100 hover:bg-amber-100 text-blue-800 border border-blue-400/30 px-2 py-1 rounded-md transition-all shrink-0 font-semibold"
                       >
                         📊 xG y Marcador
                       </button>
                       <button
                         onClick={() => handleSendMessage(`¿Quién es el árbitro y cómo influye en este partido?`)}
-                        className="text-[10px] whitespace-nowrap bg-slate-800 hover:bg-slate-700 text-sky-300 border border-sky-400/30 px-2 py-1 rounded-md transition-all shrink-0 font-semibold"
+                        className="text-[10px] whitespace-nowrap bg-slate-100 hover:bg-amber-100 text-sky-800 border border-sky-400/30 px-2 py-1 rounded-md transition-all shrink-0 font-semibold"
                       >
                         👨‍⚖️ Árbitro
                       </button>
                       <button
                         onClick={() => handleSendMessage(`¿Cómo influye la altitud o la sede en este encuentro?`)}
-                        className="text-[10px] whitespace-nowrap bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-400/30 px-2 py-1 rounded-md transition-all shrink-0 font-semibold"
+                        className="text-[10px] whitespace-nowrap bg-slate-100 hover:bg-amber-100 text-purple-800 border border-purple-400/30 px-2 py-1 rounded-md transition-all shrink-0 font-semibold"
                       >
                         ⛰️ Altura/Sede
                       </button>
                     </div>
 
                     {/* CAJA DE ENTRADA */}
-                    <div className="p-2 bg-slate-800 border-t border-slate-700 flex gap-2">
+                    <div className="p-2 bg-slate-100 border-t border-slate-300 flex gap-2">
                       <input
                         type="text"
                         value={chatInput}
                         onChange={(e) => setChatInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                         placeholder={`Pregunta sobre ${currentMatch.home} vs ${currentMatch.away}...`}
-                        className="flex-1 bg-slate-900 border border-slate-600 text-xs text-white rounded-lg px-3 py-2 outline-none focus:border-blue-400"
+                        className="flex-1 bg-white border border-slate-300 text-xs text-slate-900 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
                       />
                       <button
                         onClick={() => handleSendMessage()}
                         disabled={isTyping}
-                        className="bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow"
+                        className="bg-blue-600 hover:bg-blue-500 disabled:bg-amber-100 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow"
                       >
                         Preguntar
                       </button>
@@ -2404,7 +2406,7 @@ export default function EcuaPronosticoDashboard() {
             {/* ========================================================================= */}
       {/* BARRA DE NAVEGACIÓN MÓVIL TIPO APP NATIVA (< 1024px, INVISIBLE EN DESKTOP) */}
       {/* ========================================================================= */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-[#091024]/95 backdrop-blur-xl border-t border-slate-800 shadow-[0_-5px_25px_rgba(0,0,0,0.85)] px-2 py-2">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-white/95 backdrop-blur-xl border-t border-slate-300 shadow-[0_-5px_25px_rgba(0,0,0,0.85)] px-2 py-2">
         <div className="grid grid-cols-4 items-center gap-1 max-w-md mx-auto">
           {/* 1. Vista Completa */}
           <button
@@ -2414,8 +2416,8 @@ export default function EcuaPronosticoDashboard() {
             }}
             className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all ${
               displayMode === "full"
-                ? "bg-blue-600/30 text-blue-300 border border-blue-500/50 shadow"
-                : "text-slate-400 hover:text-white"
+                ? "bg-blue-600/30 text-blue-800 border border-blue-500/50 shadow"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
             <span className="text-lg leading-none">📊</span>
@@ -2441,7 +2443,7 @@ export default function EcuaPronosticoDashboard() {
             className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all relative ${
               displayMode === "top4"
                 ? "bg-amber-400 text-slate-950 font-black shadow-lg shadow-amber-400/30 scale-105"
-                : "text-amber-300 hover:text-white"
+                : "text-amber-800 hover:text-slate-900"
             }`}
           >
             <span className="text-lg leading-none">🏆</span>
@@ -2454,7 +2456,7 @@ export default function EcuaPronosticoDashboard() {
           {/* 3. Historial de Aciertos */}
           <Link
             href="/aciertos"
-            className="flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-emerald-400 hover:text-white transition-all"
+            className="flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-emerald-700 hover:text-slate-900 transition-all"
           >
             <span className="text-lg leading-none">📜</span>
             <span className="text-[10px] font-bold mt-1 tracking-tight truncate">Historial</span>
@@ -2465,7 +2467,7 @@ export default function EcuaPronosticoDashboard() {
             href={whatsappLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-green-400 hover:text-white transition-all"
+            className="flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-green-700 hover:text-slate-900 transition-all"
           >
             <span className="text-lg leading-none">📲</span>
             <span className="text-[10px] font-bold mt-1 tracking-tight truncate">Activar VIP</span>
