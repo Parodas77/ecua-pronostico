@@ -194,7 +194,7 @@ export default function LandingPage() {
       )}
 
       {/* HEADER DE NAVEGACIÓN SUPERIOR */}
-      <header className="relative z-20 border-b border-slate-300 bg-white/92 backdrop-blur-md sticky top-0 shadow-sm">
+      <header className="relative z-20 border-b border-slate-300 bg-white/95 backdrop-blur-md sticky top-0 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-3 group">
             <img
@@ -261,7 +261,7 @@ export default function LandingPage() {
         {/* 1. SECCIÓN HERO (ENCABEZADO Y LOGOTIPO EN PRIMERA CAPA NÍTIDA) */}
         {/* ============================================================ */}
         <section className="pt-8 pb-14 sm:pt-12 sm:pb-20 px-4 sm:px-6 max-w-6xl mx-auto text-center">
-          <div className="bg-white/88 backdrop-blur-md border-2 border-white/95 rounded-3xl p-6 sm:p-10 md:p-12 shadow-[0_20px_60px_rgba(15,23,42,0.22)]">
+          <div className="bg-white/95 backdrop-blur-md border-2 border-slate-200 rounded-3xl p-6 sm:p-10 md:p-12 shadow-[0_20px_60px_rgba(15,23,42,0.22)]">
             {/* BADGE DE AUTORIDAD SUPERIOR */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-100 via-white to-amber-100 border-2 border-amber-400/70 text-amber-900 text-xs sm:text-sm font-black uppercase tracking-wider mb-6 shadow-sm">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
@@ -336,35 +336,35 @@ export default function LandingPage() {
 
           {/* TARJETAS DE CONFIANZA RÁPIDA (STATS BAR) */}
           <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-3.5 max-w-4xl mx-auto">
-            <div className="bg-white/92 backdrop-blur-md border-2 border-white shadow-lg rounded-2xl p-4 text-center">
+            <div className="bg-white/95 backdrop-blur-md border-2 border-slate-200 shadow-lg rounded-2xl p-4 text-center">
               <span className="text-2xl sm:text-3xl font-black text-amber-800 block font-mono">
                 10,000
               </span>
-              <span className="text-xs text-slate-700 font-extrabold uppercase tracking-wider">
+              <span className="text-xs text-slate-800 font-extrabold uppercase tracking-wider">
                 Simulaciones / Partido
               </span>
             </div>
-            <div className="bg-white/92 backdrop-blur-md border-2 border-white shadow-lg rounded-2xl p-4 text-center">
+            <div className="bg-white/95 backdrop-blur-md border-2 border-slate-200 shadow-lg rounded-2xl p-4 text-center">
               <span className="text-2xl sm:text-3xl font-black text-emerald-800 block font-mono">
                 83%
               </span>
-              <span className="text-xs text-slate-700 font-extrabold uppercase tracking-wider">
+              <span className="text-xs text-slate-800 font-extrabold uppercase tracking-wider">
                 Efectividad Comprobada
               </span>
             </div>
-            <div className="bg-white/92 backdrop-blur-md border-2 border-white shadow-lg rounded-2xl p-4 text-center">
+            <div className="bg-white/95 backdrop-blur-md border-2 border-slate-200 shadow-lg rounded-2xl p-4 text-center">
               <span className="text-2xl sm:text-3xl font-black text-blue-800 block font-mono">
                 20+ Ligas
               </span>
-              <span className="text-xs text-slate-700 font-extrabold uppercase tracking-wider">
+              <span className="text-xs text-slate-800 font-extrabold uppercase tracking-wider">
                 Monitoreadas en Vivo
               </span>
             </div>
-            <div className="bg-white/92 backdrop-blur-md border-2 border-white shadow-lg rounded-2xl p-4 text-center">
+            <div className="bg-white/95 backdrop-blur-md border-2 border-slate-200 shadow-lg rounded-2xl p-4 text-center">
               <span className="text-2xl sm:text-3xl font-black text-purple-800 block font-mono">
                 0%
               </span>
-              <span className="text-xs text-slate-700 font-extrabold uppercase tracking-wider">
+              <span className="text-xs text-slate-800 font-extrabold uppercase tracking-wider">
                 Sesgo Emocional
               </span>
             </div>
@@ -376,7 +376,7 @@ export default function LandingPage() {
         {/* ============================================================ */}
         <section className="py-12 sm:py-16">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <div className="bg-white/90 backdrop-blur-md border-2 border-white rounded-3xl p-6 sm:p-8 text-center max-w-3xl mx-auto mb-10 shadow-xl">
+            <div className="bg-white/95 backdrop-blur-md border-2 border-slate-200 rounded-3xl p-6 sm:p-8 text-center max-w-3xl mx-auto mb-10 shadow-xl">
               <span className="inline-block bg-emerald-100 text-emerald-900 border border-emerald-500/50 text-xs font-black px-4 py-1 rounded-full uppercase tracking-widest mb-3">
                 Rigor Matemático Sin Tecnicismos Complejos
               </span>
@@ -396,7 +396,7 @@ export default function LandingPage() {
             {/* 4 PILARES MATEMÁTICOS ACCESIBLES */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* PILAR 1: DESMARGINIZACIÓN (DE-VIGGING) */}
-              <div className="bg-white/92 backdrop-blur-md border-2 border-white hover:border-amber-400 rounded-3xl p-6 sm:p-8 transition-all hover:scale-[1.01] shadow-xl">
+              <div className="bg-white/95 backdrop-blur-md border-2 border-slate-200 hover:border-amber-400 rounded-3xl p-6 sm:p-8 transition-all hover:scale-[1.01] shadow-xl">
                 <div className="w-14 h-14 rounded-2xl bg-amber-100 border-2 border-amber-400/60 flex items-center justify-center text-2xl mb-5 shadow-[0_0_20px_rgba(251,191,36,0.3)]">
                   ⚖️
                 </div>
@@ -413,7 +413,7 @@ export default function LandingPage() {
               </div>
 
               {/* PILAR 2: 10,000 SIMULACIONES MONTE CARLO */}
-              <div className="bg-white/92 backdrop-blur-md border-2 border-white hover:border-emerald-400 rounded-3xl p-6 sm:p-8 transition-all hover:scale-[1.01] shadow-xl">
+              <div className="bg-white/95 backdrop-blur-md border-2 border-slate-200 hover:border-emerald-400 rounded-3xl p-6 sm:p-8 transition-all hover:scale-[1.01] shadow-xl">
                 <div className="w-14 h-14 rounded-2xl bg-emerald-400/20 border-2 border-emerald-400/60 flex items-center justify-center text-2xl mb-5 shadow-[0_0_20px_rgba(52,211,153,0.3)]">
                   ⚡
                 </div>
@@ -429,7 +429,7 @@ export default function LandingPage() {
               </div>
 
               {/* PILAR 3: DISTRIBUCIÓN DE POISSON & XG REAL */}
-              <div className="bg-white/92 backdrop-blur-md border-2 border-white hover:border-blue-400 rounded-3xl p-6 sm:p-8 transition-all hover:scale-[1.01] shadow-xl">
+              <div className="bg-white/95 backdrop-blur-md border-2 border-slate-200 hover:border-blue-400 rounded-3xl p-6 sm:p-8 transition-all hover:scale-[1.01] shadow-xl">
                 <div className="w-14 h-14 rounded-2xl bg-blue-400/20 border-2 border-blue-400/60 flex items-center justify-center text-2xl mb-5 shadow-[0_0_20px_rgba(96,165,250,0.3)]">
                   📐
                 </div>
@@ -445,7 +445,7 @@ export default function LandingPage() {
               </div>
 
               {/* PILAR 4: VALOR ESPERADO POSITIVO (+EV) */}
-              <div className="bg-white/92 backdrop-blur-md border-2 border-white hover:border-yellow-400 rounded-3xl p-6 sm:p-8 transition-all hover:scale-[1.01] shadow-xl">
+              <div className="bg-white/95 backdrop-blur-md border-2 border-slate-200 hover:border-yellow-400 rounded-3xl p-6 sm:p-8 transition-all hover:scale-[1.01] shadow-xl">
                 <div className="w-14 h-14 rounded-2xl bg-yellow-400/20 border-2 border-yellow-400/60 flex items-center justify-center text-2xl mb-5 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
                   📈
                 </div>
@@ -467,7 +467,7 @@ export default function LandingPage() {
         {/* 3. SECCIÓN COMPARATIVA DE IMPACTO (CRO) */}
         {/* ============================================================ */}
         <section className="py-12 sm:py-16 max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="bg-white/90 backdrop-blur-md border-2 border-white rounded-3xl p-6 text-center max-w-2xl mx-auto mb-10 shadow-xl">
+          <div className="bg-white/95 backdrop-blur-md border-2 border-slate-200 rounded-3xl p-6 text-center max-w-2xl mx-auto mb-10 shadow-xl">
             <span className="text-xs font-black uppercase tracking-widest text-amber-800 block mb-2">
               El Secreto del 3% Ganador
             </span>
@@ -481,7 +481,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
             {/* LADO ROJO: APOSTADOR TRADICIONAL */}
-            <div className="bg-white/92 backdrop-blur-md border-2 border-red-500/50 rounded-3xl p-6 sm:p-8 shadow-xl">
+            <div className="bg-white/95 backdrop-blur-md border-2 border-red-500/50 rounded-3xl p-6 sm:p-8 shadow-xl">
               <div className="flex items-center gap-3 pb-4 mb-5 border-b border-red-500/30">
                 <span className="text-2xl">❌</span>
                 <div>
@@ -523,7 +523,7 @@ export default function LandingPage() {
             </div>
 
             {/* LADO VERDE: USUARIO ECUAPRONÓSTICO */}
-            <div className="bg-white/92 backdrop-blur-md border-2 border-emerald-500/80 rounded-3xl p-6 sm:p-8 shadow-[0_0_35px_rgba(16,185,129,0.25)] relative overflow-hidden">
+            <div className="bg-white/95 backdrop-blur-md border-2 border-emerald-500/80 rounded-3xl p-6 sm:p-8 shadow-[0_0_35px_rgba(16,185,129,0.25)] relative overflow-hidden">
               <div className="absolute top-3 right-3 bg-emerald-400 text-slate-950 font-black text-[10px] px-3 py-0.5 rounded-full uppercase tracking-wider shadow">
                 Ventaja Matemática
               </div>
@@ -574,7 +574,7 @@ export default function LandingPage() {
         {/* 4. SECCIÓN DE LLAMADA A LA ACCIÓN (DOBLE BOTÓN DE ENTRADA) */}
         {/* ============================================================ */}
         <section className="py-14 px-4 sm:px-6 max-w-5xl mx-auto">
-          <div className="bg-white/92 backdrop-blur-md border-2 border-amber-400/80 rounded-3xl p-8 sm:p-12 text-center shadow-[0_20px_60px_rgba(15,23,42,0.25)] relative z-10">
+          <div className="bg-white/95 backdrop-blur-md border-2 border-amber-400/80 rounded-3xl p-8 sm:p-12 text-center shadow-[0_20px_60px_rgba(15,23,42,0.25)] relative z-10">
             <span className="inline-block bg-amber-400 text-slate-950 font-black text-xs px-4 py-1.5 rounded-full uppercase tracking-widest mb-4 shadow">
               Comienza Hoy Con Inteligencia Cuantitativa
             </span>
@@ -627,7 +627,7 @@ export default function LandingPage() {
       </main>
 
       {/* FOOTER INSTITUCIONAL */}
-      <footer className="relative z-10 border-t border-slate-300 bg-white/92 backdrop-blur-md text-slate-700 text-xs py-10 px-4 sm:px-6">
+      <footer className="relative z-10 border-t border-slate-300 bg-white/95 backdrop-blur-md text-slate-700 text-xs py-10 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left">
           <div className="flex items-center gap-3">
             <img src="/logo.png" alt="Ecuapronóstico" className="h-10 object-contain" />

@@ -275,12 +275,12 @@ function ActivacionVipForm() {
         {/* CASO 2: ACCESO DENEGADO / TOKEN INVÁLIDO O SIN TOKEN */}
         {/* ============================================================== */}
         {tokenStatus === "unauthorized" && (
-          <div className="bg-white/95 border-2 border-red-500/60 rounded-3xl p-6 sm:p-8 text-center space-y-5 shadow-[0_0_50px_rgba(239,68,68,0.2)] animate-in fade-in zoom-in duration-300">
-            <div className="w-16 h-16 rounded-full bg-red-950/80 border-2 border-red-500 text-3xl flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(239,68,68,0.3)]">
+          <div className="bg-white border-2 border-red-500 rounded-3xl p-6 sm:p-8 text-center space-y-5 shadow-[0_0_50px_rgba(239,68,68,0.2)] animate-in fade-in zoom-in duration-300">
+            <div className="w-16 h-16 rounded-full bg-red-100 border-2 border-red-500 text-3xl flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(239,68,68,0.3)]">
               🔒
             </div>
 
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-950 border border-red-500/60 text-red-700 text-xs font-black uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 border border-red-500/60 text-red-800 text-xs font-black uppercase tracking-wider">
               <span>Blindaje de Seguridad Activo</span>
             </div>
 

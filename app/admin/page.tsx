@@ -613,14 +613,14 @@ export default function AdminCrmPage() {
 
               {/* KPIS DE SUSCRIPTORES */}
               <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                <div className="bg-white/92 border border-slate-300 rounded-2xl p-4">
+                <div className="bg-white border border-slate-300 rounded-2xl p-4 shadow-sm">
                   <span className="text-xs text-slate-600 font-bold uppercase tracking-wider block">Total Clientes</span>
                   <div className="text-3xl font-black text-slate-900 mt-1 font-mono">{metrics.total}</div>
                   <span className="text-[11px] text-slate-500">Perfiles en CRM</span>
                 </div>
 
                 {/* KPI PENDIENTES */}
-                <div className="bg-white/92 border-2 border-amber-400/80 rounded-2xl p-4 relative overflow-hidden shadow-[0_0_20px_rgba(251,191,36,0.15)]">
+                <div className="bg-white border-2 border-amber-400 rounded-2xl p-4 relative overflow-hidden shadow-[0_0_20px_rgba(251,191,36,0.15)]">
                   {metrics.pendientes > 0 && (
                     <div className="absolute top-2 right-2 bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded uppercase animate-pulse">
                       Por Autorizar
@@ -631,19 +631,19 @@ export default function AdminCrmPage() {
                   <span className="text-[11px] text-amber-800/80">Pagos listos para activar</span>
                 </div>
 
-                <div className="bg-white/92 border border-emerald-500/30 rounded-2xl p-4">
+                <div className="bg-white border border-emerald-500/40 rounded-2xl p-4 shadow-sm">
                   <span className="text-xs text-emerald-700 font-bold uppercase tracking-wider block">🟢 Activos VIP</span>
                   <div className="text-3xl font-black text-emerald-800 mt-1 font-mono">{metrics.activos}</div>
                   <span className="text-[11px] text-emerald-700/80">30 días corriendo</span>
                 </div>
 
-                <div className="bg-white/92 border border-slate-300 rounded-2xl p-4">
+                <div className="bg-white border border-slate-300 rounded-2xl p-4 shadow-sm">
                   <span className="text-xs text-slate-600 font-bold uppercase tracking-wider block">⚪ Inactivos</span>
                   <div className="text-3xl font-black text-slate-700 mt-1 font-mono">{metrics.inactivos}</div>
                   <span className="text-[11px] text-slate-500">Pausados</span>
                 </div>
 
-                <div className="bg-white/92 border border-red-500/30 rounded-2xl p-4 relative overflow-hidden">
+                <div className="bg-white border border-red-500/40 rounded-2xl p-4 relative overflow-hidden shadow-sm">
                   <span className="text-xs text-red-700 font-bold uppercase tracking-wider block">🔴 Expirados</span>
                   <div className="text-3xl font-black text-red-700 mt-1 font-mono">{metrics.expirados}</div>
                   <span className="text-[11px] text-red-700/80">Listos para remarketing</span>
@@ -839,7 +839,7 @@ export default function AdminCrmPage() {
                                   ? "bg-emerald-100 text-emerald-800 border border-emerald-500/50"
                                   : u.estado_suscripcion === "inactivo"
                                   ? "bg-slate-100 text-slate-700 border border-slate-300"
-                                  : "bg-red-950 text-red-700 border border-red-500/50"
+                                  : "bg-red-100 text-red-800 border border-red-500/50"
                               }`}
                             >
                               {isPending ? "⏳ Por Autorizar" : u.estado_suscripcion}
@@ -951,7 +951,7 @@ export default function AdminCrmPage() {
       {activeTab === "auditoria_ia" && (
         <div className="space-y-6 animate-in fade-in">
           {/* FICHA TÉCNICA Y WEBHOOK META CLOUD */}
-          <div className="bg-gradient-to-r from-emerald-950/70 via-slate-900 to-slate-900 border-2 border-emerald-500/50 rounded-2xl p-6 shadow-2xl space-y-4">
+          <div className="bg-white bg-gradient-to-r from-emerald-50 via-white to-blue-50 border-2 border-emerald-500 rounded-2xl p-6 shadow-2xl space-y-4">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-emerald-500/20 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-100 border border-emerald-400 flex items-center justify-center text-2xl">
@@ -966,7 +966,7 @@ export default function AdminCrmPage() {
                       Activo
                     </span>
                   </div>
-                  <p className="text-xs text-emerald-900/80">
+                  <p className="text-xs text-emerald-900 font-semibold">
                     WhatsApp Meta Cloud API + Google Gemini 1.5 Flash Vision Multimodal
                   </p>
                 </div>
@@ -974,7 +974,7 @@ export default function AdminCrmPage() {
 
               <button
                 onClick={fetchReceipts}
-                className="text-xs bg-emerald-900 hover:bg-emerald-800 text-emerald-900 border border-emerald-500/40 px-3.5 py-2 rounded-xl font-bold flex items-center gap-1.5 transition cursor-pointer"
+                className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500 px-3.5 py-2 rounded-xl font-bold flex items-center gap-1.5 transition cursor-pointer"
               >
                 <span>🔄</span>
                 <span>Actualizar Comprobantes</span>
@@ -1061,25 +1061,25 @@ export default function AdminCrmPage() {
 
           {/* KPIS DE AUDITORÍA */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white/92 border border-slate-300 rounded-2xl p-4">
+            <div className="bg-white border border-slate-300 rounded-2xl p-4 shadow-sm">
               <span className="text-xs text-slate-600 font-bold uppercase tracking-wider block">Total Comprobantes</span>
               <div className="text-3xl font-black text-slate-900 mt-1 font-mono">{receiptStats.total}</div>
               <span className="text-[11px] text-slate-500">Recibidos o auditados</span>
             </div>
 
-            <div className="bg-white/92 border border-emerald-500/30 rounded-2xl p-4">
+            <div className="bg-white border border-emerald-500/40 rounded-2xl p-4 shadow-sm">
               <span className="text-xs text-emerald-700 font-bold uppercase tracking-wider block">🟢 Aprobados IA</span>
               <div className="text-3xl font-black text-emerald-800 mt-1 font-mono">{receiptStats.aprobadosAutomaticos}</div>
               <span className="text-[11px] text-emerald-700/80">≥ $14.99 verificados</span>
             </div>
 
-            <div className="bg-white/92 border border-amber-500/30 rounded-2xl p-4">
+            <div className="bg-white border border-amber-500/40 rounded-2xl p-4 shadow-sm">
               <span className="text-xs text-amber-800 font-bold uppercase tracking-wider block">🟡 Requieren Revisión</span>
               <div className="text-3xl font-black text-amber-800 mt-1 font-mono">{receiptStats.requiereRevision}</div>
               <span className="text-[11px] text-amber-800/80">Monto menor o ilegible</span>
             </div>
 
-            <div className="bg-white/92 border border-blue-500/30 rounded-2xl p-4">
+            <div className="bg-white border border-blue-500/40 rounded-2xl p-4 shadow-sm">
               <span className="text-xs text-blue-700 font-bold uppercase tracking-wider block">🔵 Autorizados Manual</span>
               <div className="text-3xl font-black text-blue-800 mt-1 font-mono">{receiptStats.autorizadosManual}</div>
               <span className="text-[11px] text-blue-700/80">Aprobados por el Admin</span>
@@ -1542,8 +1542,8 @@ export default function AdminCrmPage() {
                     key={sub.id}
                     className={`rounded-2xl p-4 border transition-all ${
                       isUrgent
-                        ? "bg-gradient-to-br from-amber-950/40 via-slate-900 to-slate-900 border-amber-500/60 shadow-[0_0_25px_rgba(245,158,11,0.18)]"
-                        : "bg-slate-100/90 border-slate-300 hover:border-slate-300"
+                        ? "bg-white bg-gradient-to-br from-amber-50 via-white to-amber-50 border-amber-500 shadow-[0_0_25px_rgba(245,158,11,0.18)]"
+                        : "bg-slate-100 border-slate-300 hover:border-slate-400"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -1551,8 +1551,8 @@ export default function AdminCrmPage() {
                         <div
                           className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xl ${
                             sub.nombre_servicio.includes("Football")
-                              ? "bg-blue-900/60 text-blue-800 border border-blue-500/40"
-                              : "bg-emerald-900/60 text-emerald-800 border border-emerald-500/40"
+                              ? "bg-blue-100 text-blue-800 border border-blue-500/40"
+                              : "bg-emerald-100 text-emerald-800 border border-emerald-500/40"
                           }`}
                         >
                           {sub.nombre_servicio.includes("Football") ? "⚽" : "🎲"}
