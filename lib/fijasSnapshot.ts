@@ -84,6 +84,19 @@ export function getEcuadorFormattedDate(date = new Date()): string {
   return `${dayName}, ${dayNum} de ${monthName} de ${year}`;
 }
 
+/**
+ * Retorna el rango exacto en milisegundos [startOfDayMs, endOfDayMs] para el día calendario de Ecuador (00:00:00.000 ECT a 23:59:59.999 ECT)
+ */
+export function getEcuadorDayWindowMs(dayKey: string): { startOfDayMs: number; endOfDayMs: number } {
+  // dayKey está en formato "YYYY-MM-DD" en zona America/Guayaquil (UTC-5, sin horario de verano)
+  const startOfDayMs = new Date(`${dayKey}T00:00:00.000-05:00`).getTime();
+  const endOfDayMs = new Date(`${dayKey}T23:59:59.999-05:00`).getTime();
+  return { startOfDayMs, endOfDayMs };
+}
+
+// Caché en memoria de proceso para velocidad instantánea en la misma instancia serverless
+const memorySnapshots: Record<string, FijasSnapshotPayload> = {};
+
 // Lectura de snapshots locales
 function readLocalSnapshots(): Record<string, FijasSnapshotPayload> {
   try {
@@ -114,6 +127,15 @@ function writeLocalSnapshots(data: Record<string, FijasSnapshotPayload>): void {
 export async function getDailySnapshotAsync(
   dayKey: string
 ): Promise<FijasSnapshotPayload | null> {
+  // 0. Verificar memoria del proceso actual
+  if (
+    memorySnapshots[dayKey] &&
+    Array.isArray(memorySnapshots[dayKey].fijas) &&
+    memorySnapshots[dayKey].fijas.length === 4
+  ) {
+    return memorySnapshots[dayKey];
+  }
+
   // 1. Verificar archivo local (solo si tiene los 4 partidos completos)
   const localMap = readLocalSnapshots();
   if (
@@ -121,6 +143,7 @@ export async function getDailySnapshotAsync(
     Array.isArray(localMap[dayKey].fijas) &&
     localMap[dayKey].fijas.length === 4
   ) {
+    memorySnapshots[dayKey] = localMap[dayKey];
     return localMap[dayKey];
   }
 
@@ -135,6 +158,7 @@ export async function getDailySnapshotAsync(
         .single();
 
       if (!error && data?.payload && Array.isArray(data.payload.fijas) && data.payload.fijas.length === 4) {
+        memorySnapshots[dayKey] = data.payload as FijasSnapshotPayload;
         localMap[dayKey] = data.payload;
         writeLocalSnapshots(localMap);
         return data.payload as FijasSnapshotPayload;
@@ -157,6 +181,9 @@ export async function saveDailySnapshotAsync(
     console.warn("Intento de guardar snapshot incompleto abortado. Fijas count:", payload?.fijas?.length);
     return;
   }
+
+  // 0. Guardar en memoria del proceso
+  memorySnapshots[dayKey] = payload;
 
   // 1. Guardar localmente
   const localMap = readLocalSnapshots();

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { saveHistorialRecordAsync } from "@/lib/historialDb";
-import { getEcuadorDayKey, getEcuadorFormattedDate, getDailySnapshotAsync, saveDailySnapshotAsync, FijasSnapshotPayload } from "@/lib/fijasSnapshot";
+import { getEcuadorDayKey, getEcuadorFormattedDate, getEcuadorDayWindowMs, getDailySnapshotAsync, saveDailySnapshotAsync, FijasSnapshotPayload } from "@/lib/fijasSnapshot";
 
 // =========================================================================
 // MOTOR MATEMÁTICO Y DE SELECCIÓN PARA "LAS 4 FIJAS DEL DÍA"
@@ -226,7 +226,12 @@ export async function GET(request: Request) {
     return NextResponse.json(existingSnapshot);
   }
 
-  const nowMs = Date.now();
+  // ANCLAJE TEMPORAL ABSOLUTO AL DÍA CALENDARIO DE ECUADOR (00:00:00.000 ECT a 23:59:59.999 ECT)
+  // Garantiza que sin importar a qué hora del día entre el primer cliente, o en qué instancia
+  // serverless se ejecute, las 4 fijas seleccionadas para `dayKey` son SIEMPRE las mismas 4
+  // de toda la jornada completa (00:00 a 23:59 ECT), sin descartar partidos por la hora actual.
+  const { startOfDayMs, endOfDayMs } = getEcuadorDayWindowMs(dayKey);
+  const espnDateParam = dayKey.replace(/-/g, ""); // YYYYMMDD exacto de la jornada ECT
 
   const browserHeaders = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
@@ -234,11 +239,13 @@ export async function GET(request: Request) {
   };
 
   try {
-    // 1. SOLICITUDES SIMULTÁNEAS A TODAS LAS 20 LIGAS ACTIVAS
+    // 1. SOLICITUDES SIMULTÁNEAS A TODAS LAS 20 LIGAS ACTIVAS FIJANDO LA FECHA DEL DÍA (?dates=YYYYMMDD)
+    // Usamos next: { revalidate: 86400 } para que además el Data Cache global de Vercel congele
+    // las cuotas de apertura de la jornada y ningún movimiento de línea intradía cambie las 4 fijas.
     const leaguePromises = ALL_ACTIVE_LEAGUES.map(async (lg) => {
       try {
-        const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sportPath}/scoreboard`;
-        const res = await fetch(url, { headers: browserHeaders, cache: "no-store" });
+        const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sportPath}/scoreboard?dates=${espnDateParam}`;
+        const res = await fetch(url, { headers: browserHeaders, next: { revalidate: 86400 } });
         if (!res.ok) return [];
         const data = await res.json();
         const events = Array.isArray(data?.events) ? data.events : [];
@@ -251,34 +258,47 @@ export async function GET(request: Request) {
     const results = await Promise.all(leaguePromises);
     const allEvents = results.flat();
 
-    // 2. FILTRO TEMPORAL ESTRICTO: NOW() a NOW() + 24 HORAS
-    const windowStart = nowMs - 15 * 60 * 1000; // tolera partidos recién iniciados
-    const windowEnd24h = nowMs + 24 * 60 * 60 * 1000;
-
+    // 2. FILTRO TEMPORAL ANCLADO A LAS 00:00 ECT DEL DÍA:
+    // Incluye TODOS los partidos programados dentro del día calendario de Ecuador (00:00 a 23:59 ECT),
+    // sin importar si a la hora actual de consulta el partido está por jugarse, en juego o ya terminó hoy.
     let eligibleEvents = allEvents.filter((ev: any) => {
       if (!ev || !ev.date) return false;
-      const state = ev.status?.type?.state || ev.competitions?.[0]?.status?.type?.state;
-      const completed = ev.status?.type?.completed || ev.competitions?.[0]?.status?.type?.completed;
-      if (state === "post" || completed === true) return false;
-
       const eventTime = new Date(ev.date).getTime();
       if (isNaN(eventTime)) return false;
-      return eventTime >= windowStart && eventTime <= windowEnd24h;
+      return eventTime >= startOfDayMs && eventTime <= endOfDayMs;
     });
 
-    // Salvaguarda: si por día de baja actividad mundial hay menos de 4 en 24h, ampliar a 48h
-    let windowApplied = "24 HORAS";
+    // Salvaguarda: si por día de baja actividad hay menos de 4 partidos en las 24h del día calendario,
+    // consultar también el día siguiente (startOfDayMs a endOfDayMs + 24h) de forma 100% determinista.
+    let windowApplied = "JORNADA 00:00 A 23:59 ECT";
     if (eligibleEvents.length < 4) {
-      const windowEnd48h = nowMs + 48 * 60 * 60 * 1000;
-      eligibleEvents = allEvents.filter((ev: any) => {
-        if (!ev || !ev.date) return false;
-        const state = ev.status?.type?.state;
-        const completed = ev.status?.type?.completed;
-        if (state === "post" || completed === true) return false;
-        const eventTime = new Date(ev.date).getTime();
-        return eventTime >= windowStart && eventTime <= windowEnd48h;
+      const nextDayDate = new Date(endOfDayMs + 12 * 60 * 60 * 1000);
+      const nextDayParam = getEcuadorDayKey(nextDayDate).replace(/-/g, "");
+      const nextDayPromises = ALL_ACTIVE_LEAGUES.map(async (lg) => {
+        try {
+          const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sportPath}/scoreboard?dates=${nextDayParam}`;
+          const res = await fetch(url, { headers: browserHeaders, next: { revalidate: 86400 } });
+          if (!res.ok) return [];
+          const data = await res.json();
+          const events = Array.isArray(data?.events) ? data.events : [];
+          return events.map((ev: any) => ({ ...ev, _leagueMeta: lg }));
+        } catch {
+          return [];
+        }
       });
-      windowApplied = "48 HORAS (Ampliación por baja actividad en 24h)";
+      const nextResults = await Promise.all(nextDayPromises);
+      const combined = [...allEvents, ...nextResults.flat()];
+      const seenIds = new Set<string>();
+      const endOf48hMs = endOfDayMs + 24 * 60 * 60 * 1000;
+      eligibleEvents = combined.filter((ev: any) => {
+        if (!ev || !ev.date || !ev.id) return false;
+        const idStr = String(ev.id);
+        if (seenIds.has(idStr)) return false;
+        seenIds.add(idStr);
+        const eventTime = new Date(ev.date).getTime();
+        return !isNaN(eventTime) && eventTime >= startOfDayMs && eventTime <= endOf48hMs;
+      });
+      windowApplied = "48 HORAS DESDE 00:00 ECT (Ampliación determinista)";
     }
 
     // 3. MODELO MATEMÁTICO Y EVALUACIÓN AISLADA POR FIXTURE
@@ -298,11 +318,24 @@ export async function GET(request: Request) {
 
       const eventDate = new Date(ev.date);
       const matchTimeMs = eventDate.getTime();
-      const hoursUntilKickoff = Number(((matchTimeMs - nowMs) / (1000 * 60 * 60)).toFixed(1));
+      // Horas calculadas respecto al corte de 00:00 ECT del día para que sea 100% determinista e invariable
+      const hoursFromMidnight = Number(Math.max(0.5, (matchTimeMs - startOfDayMs) / (1000 * 60 * 60)).toFixed(1));
 
-      // Cuotas reales exhaustivas de ESPN
+      // Cuotas de apertura ("open") priorizadas sobre "close" para garantizar que las cuotas a las 00:00 ECT
+      // jamás cambien durante el transcurso del día en ninguna instancia:
       const espnOdds = comp?.odds?.[0];
-      let { odd1, odd2, oddX } = extractEspnOdds(espnOdds, isSoccer);
+      const rawHomeOpen = espnOdds?.moneyline?.home?.open?.odds ?? espnOdds?.moneyline?.home?.close?.odds ?? espnOdds?.homeTeamOdds?.open?.moneyLine ?? espnOdds?.homeTeamOdds?.moneyLine;
+      const rawAwayOpen = espnOdds?.moneyline?.away?.open?.odds ?? espnOdds?.moneyline?.away?.close?.odds ?? espnOdds?.awayTeamOdds?.open?.moneyLine ?? espnOdds?.awayTeamOdds?.moneyLine;
+      const rawDrawOpen = espnOdds?.moneyline?.draw?.open?.odds ?? espnOdds?.moneyline?.draw?.close?.odds ?? espnOdds?.drawOdds?.open?.moneyLine ?? espnOdds?.drawOdds?.moneyLine;
+      let odd1 = parseAmericanOdd(rawHomeOpen);
+      let odd2 = parseAmericanOdd(rawAwayOpen);
+      let oddX = parseAmericanOdd(rawDrawOpen) || (isSoccer ? 3.20 : 0);
+      if (odd1 <= 1.05 || odd2 <= 1.05) {
+        const fallbackOdds = extractEspnOdds(espnOdds, isSoccer);
+        odd1 = fallbackOdds.odd1;
+        odd2 = fallbackOdds.odd2;
+        oddX = fallbackOdds.oddX;
+      }
       const lineGoals = espnOdds?.overUnder || (isSoccer ? 2.5 : lg.sportCategory === "basketball" ? 222.5 : lg.sportCategory === "baseball" ? 8.5 : 5.5);
 
       // Si este partido particular no tiene cuotas en la API, calcular cuotas deterministas y aisladas para este fixture
@@ -471,10 +504,10 @@ export async function GET(request: Request) {
         icon: lg.icon,
         dateIso: ev.date,
         matchTimeMs,
-        hoursUntilKickoff,
+        hoursUntilKickoff: hoursFromMidnight,
         date: dateFormatted,
         time: timeFormatted,
-        timeDisplay: hoursUntilKickoff <= 1 ? "¡Comienza en menos de 1 hora!" : `En ${hoursUntilKickoff} horas`,
+        timeDisplay: `Jornada Oficial (${timeFormatted})`,
         home: homeName,
         homeInitials: getInitials(homeName),
         away: awayName,
@@ -517,19 +550,24 @@ export async function GET(request: Request) {
         xgDiff: sportMetrics.metricDiffNum,
         refereeName,
         refereeCardsAvg,
-        lineupStatus: hoursUntilKickoff <= 3
-          ? (isSoccer ? "Alineación oficial confirmada en planilla" : "Quinteto / Roster titular confirmado")
-          : (isSoccer ? "Once titular proyectado sin bajas críticas" : "Roster proyectado sin bajas críticas"),
+        lineupStatus: isSoccer ? "Once titular proyectado sin bajas críticas" : "Roster titular proyectado sin bajas críticas",
         isFreeSample: false,
       });
     }
 
-    // 4. SELECCIÓN DE LOS TOP 4 PARTIDOS POR PUNTAJE DE CONFIANZA Y VALOR (CERO AZAR, EV+)
-    evaluatedMatches.sort((a, b) => b.confidenceScore - a.confidenceScore);
+    // 4. SELECCIÓN DETERMINISTA DE LOS TOP 4 PARTIDOS POR PUNTAJE DE CONFIANZA Y VALOR (CON DESEMPATE POR FIXTURE ID)
+    evaluatedMatches.sort((a, b) => {
+      if (b.confidenceScore !== a.confidenceScore) return b.confidenceScore - a.confidenceScore;
+      if (b.ev !== a.ev) return b.ev - a.ev;
+      return String(a.fixtureId).localeCompare(String(b.fixtureId));
+    });
     const top4Selected = evaluatedMatches.slice(0, 4);
 
-    // 5. ORDENAMIENTO RIGUROSAMENTE CRONOLÓGICO (VENTANA 24H: DEL MÁS PRÓXIMO AL MÁS LEJANO)
-    top4Selected.sort((a, b) => a.matchTimeMs - b.matchTimeMs);
+    // 5. ORDENAMIENTO RIGUROSAMENTE CRONOLÓGICO (CON DESEMPATE POR FIXTURE ID)
+    top4Selected.sort((a, b) => {
+      if (a.matchTimeMs !== b.matchTimeMs) return a.matchTimeMs - b.matchTimeMs;
+      return String(a.fixtureId).localeCompare(String(b.fixtureId));
+    });
 
     // 6. CÁLCULO DE CUOTA COMBINADA / PARLEY MULTIPLICADOR (OBJETIVO: DUPLICAR O MULTIPLICAR CAPITAL)
     const parleyMultiplier = Number(

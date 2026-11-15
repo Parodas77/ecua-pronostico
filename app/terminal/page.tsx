@@ -340,9 +340,13 @@ export default function EcuaPronosticoDashboard() {
       if (data.matches && data.matches.length > 0) {
         setMatches(data.matches);
         setSelectedMatchId(data.matches[0].id);
-        fetchAllLeaguesForTop4(force);
+        // REGLA INQUEBRANTABLE: Las 4 Fijas del Día se congelan a las 00:00 ECT y NUNCA cambian con "Forzar Sincronización".
+        // Solo se cargan si aún no están en memoria del cliente.
+        if (top4Matches.length === 0) {
+          fetchAllLeaguesForTop4();
+        }
         if (force) {
-          setSyncToast("✓ Sincronización exitosa: 3 APIs conectadas en tiempo real (The Odds API + ESPN + API-Football)");
+          setSyncToast("✓ Sincronización exitosa: Cartelera actualizada en vivo (Las 4 Fijas del Día permanecen inmutables desde las 00:00 ECT)");
           setTimeout(() => setSyncToast(null), 4500);
         }
       } else {
@@ -383,10 +387,11 @@ export default function EcuaPronosticoDashboard() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  const fetchAllLeaguesForTop4 = async (force = false) => {
+  const fetchAllLeaguesForTop4 = async () => {
     setIsLoadingTop4(true);
     try {
-      const res = await fetch(`/api/fijas${force ? "?refresh=true&t=" + Date.now() : ""}`);
+      // NUNCA se envía ?refresh=true a /api/fijas: el snapshot de las 00:00 ECT es 100% inmutable para todos los niveles y clientes
+      const res = await fetch("/api/fijas");
       const data = await res.json();
       if (data && Array.isArray(data.fijas) && data.fijas.length > 0) {
         setTop4Matches(data.fijas);
@@ -396,12 +401,9 @@ export default function EcuaPronosticoDashboard() {
         setFijasSyncInfo(
           `🔒 Snapshot Oficial Inmutable: ${data.snapshotDate || "Hoy"} (${data.lockedAt || "00:00 ECT"}) • Vigente hasta 23:59 ECT`
         );
-      } else {
-        setTop4Matches(matches.slice(0, 4));
       }
     } catch (err) {
       console.error("Error al obtener Las 4 Fijas del Día:", err);
-      setTop4Matches(matches.slice(0, 4));
     } finally {
       setIsLoadingTop4(false);
     }
@@ -999,7 +1001,9 @@ export default function EcuaPronosticoDashboard() {
                     return;
                   }
                   setDisplayMode("top4");
-                  fetchAllLeaguesForTop4();
+                  if (top4Matches.length === 0) {
+                    fetchAllLeaguesForTop4();
+                  }
                 }}
                 className={`px-4 py-2.5 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   displayMode === "top4"
@@ -2437,7 +2441,9 @@ export default function EcuaPronosticoDashboard() {
                 return;
               }
               setDisplayMode("top4");
-              fetchAllLeaguesForTop4();
+              if (top4Matches.length === 0) {
+                fetchAllLeaguesForTop4();
+              }
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
             className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all relative ${
