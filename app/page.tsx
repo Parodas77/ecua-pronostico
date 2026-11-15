@@ -50,10 +50,11 @@ export default function LandingPage() {
           lastActivity: Date.now(),
         };
         localStorage.setItem(VIP_SESSION_KEY, JSON.stringify(session));
+        localStorage.setItem("ecuapronostico_admin_auth", JSON.stringify(session));
       } catch {}
       setShowLoginModal(false);
       setLoginError("");
-      router.push("/radar");
+      window.location.href = "/radar";
       return;
     }
 
@@ -77,7 +78,7 @@ export default function LandingPage() {
         } catch {}
         setShowLoginModal(false);
         setLoginError("");
-        router.push("/radar");
+        window.location.href = "/radar";
       } else {
         setLoginError(data.error || "Usuario o contraseña incorrectos. Verifica tus credenciales.");
       }

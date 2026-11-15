@@ -212,7 +212,7 @@ const clearVipSession = () => {
 };
 
 export default function EcuaPronosticoDashboard() {
-  const [view, setView] = useState("basic");
+  const [view, setView] = useState("premium");
   const [league, setLeague] = useState("ligapro");
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [activeMarketTab, setActiveMarketTab] = useState("todos");
@@ -227,8 +227,8 @@ export default function EcuaPronosticoDashboard() {
   const [liveWindow, setLiveWindow] = useState<string>("Sincronizando corte diario de 8 días...");
   const [apiDiagnostics, setApiDiagnostics] = useState<string[]>([]);
 
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
