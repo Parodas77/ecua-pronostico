@@ -921,9 +921,7 @@ export default function EcuaPronosticoDashboard() {
                     {/* MENÚ DESPLEGABLE CON SECCIONES */}
                     {isOpen && (
                       <div
-                        className={`absolute top-full mt-2 w-72 sm:w-80 md:w-96 bg-white border-2 border-blue-600 rounded-2xl shadow-[0_25px_70px_rgba(15,23,42,0.45)] p-2.5 z-[9999] max-h-[72vh] overflow-y-auto divide-y divide-slate-200 animate-in fade-in zoom-in-95 duration-150 ${
-                          tabIdx === 2 ? "left-0 xl:left-auto xl:right-0" : "left-0"
-                        }`}
+                        className="absolute top-full left-0 mt-2 w-72 sm:w-80 md:w-96 max-w-[92vw] bg-white border-2 border-blue-600 rounded-2xl shadow-[0_25px_70px_rgba(15,23,42,0.45)] p-2.5 z-[9999] max-h-[72vh] overflow-y-auto divide-y divide-slate-200 animate-in fade-in zoom-in-95 duration-150"
                       >
                         <div className="px-3 py-2 mb-1 flex items-center justify-between border-b border-slate-300">
                           <div>
@@ -1517,8 +1515,8 @@ export default function EcuaPronosticoDashboard() {
                         }}
                         className={`relative rounded-3xl overflow-hidden border-2 transition-all cursor-pointer ${
                           isSelected && isUnlocked
-                            ? "border-amber-400 bg-white bg-gradient-to-r from-amber-50 via-white to-blue-50 shadow-[0_12px_30px_rgba(15,23,42,0.25)]"
-                            : "border-slate-300 hover:border-amber-400 bg-white bg-gradient-to-r from-white via-slate-50 to-white shadow-xl"
+                            ? "border-amber-400 bg-white/80 shadow-[0_12px_30px_rgba(15,23,42,0.25)]"
+                            : "border-slate-300 hover:border-amber-400 bg-white/80 shadow-xl"
                         }`}
                       >
                         {/* OVERLAY DE BLOQUEO VIP (FILTRO DE OPACIDAD Y CANDADO) PARA PARTIDOS 2 EN ADELANTE */}
