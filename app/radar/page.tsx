@@ -329,7 +329,8 @@ export default function EcuaPronosticoDashboard() {
       setSyncToast("🔄 Sincronizando en vivo: The Odds API + ESPN API + API-Football...");
     }
     try {
-      const res = await fetch(`/api/partidos?league=${targetLeague}${force ? "&refresh=true&t=" + Date.now() : ""}`);
+      const adminParam = force && isAdmin ? "&adminForce=true" : "";
+      const res = await fetch(`/api/partidos?league=${targetLeague}${force ? "&refresh=true" + adminParam + "&t=" + Date.now() : ""}`);
       const data = await res.json();
       if (data.window) {
         setLiveWindow(data.window);

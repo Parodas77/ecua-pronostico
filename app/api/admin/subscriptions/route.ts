@@ -5,12 +5,22 @@ import {
   updateSystemSubscription,
   extendSystemSubscription,
 } from "@/lib/subscriptions";
+import { probeLiveApisStatus, saveApiKeysVault } from "@/lib/apiPacemaker";
 
 export async function GET(request: NextRequest) {
   try {
     const onlyAlerts = request.nextUrl.searchParams.get("alerts") === "true";
+    const includeLive = request.nextUrl.searchParams.get("live") === "true";
     const subscriptions = getAllSystemSubscriptions();
     const alerts = getActiveAdminAlerts();
+
+    let liveTelemetry = null;
+    let vaultMasked = null;
+    if (includeLive) {
+      const liveData = await probeLiveApisStatus();
+      liveTelemetry = liveData.telemetry;
+      vaultMasked = liveData.vaultMasked;
+    }
 
     return NextResponse.json({
       success: true,
@@ -18,6 +28,8 @@ export async function GET(request: NextRequest) {
       alertsCount: alerts.length,
       alerts: alerts,
       subscriptions: onlyAlerts ? alerts : subscriptions,
+      liveTelemetry,
+      vaultMasked,
     });
   } catch (err: any) {
     if (err?.digest?.startsWith("NEXT_PRERENDER")) {
@@ -34,7 +46,24 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, id, fecha_renovacion, costo, nombre_servicio, notas, daysToAdd } = body;
+    const { action, id, fecha_renovacion, costo, nombre_servicio, notas, daysToAdd, apiFootballKey, apiFootballEmail, oddsApiKey, oddsApiEmail } = body;
+
+    if (action === "update_keys") {
+      const savedVault = saveApiKeysVault({
+        apiFootballKey,
+        apiFootballEmail,
+        oddsApiKey,
+        oddsApiEmail,
+      });
+      const liveData = await probeLiveApisStatus();
+      return NextResponse.json({
+        success: true,
+        message: "🔐 Bóveda de Claves API actualizada y verificada en vivo exitosamente.",
+        vaultMasked: liveData.vaultMasked,
+        liveTelemetry: liveData.telemetry,
+        savedVault,
+      });
+    }
 
     if (!id || typeof id !== "number") {
       return NextResponse.json(

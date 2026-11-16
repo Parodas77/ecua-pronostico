@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { fetchOddsWithPacemaker, fetchApiFootballWithDailyQuota } from "@/lib/apiPacemaker";
 
 function getNext8DaysWindow() {
   const now = new Date();
@@ -691,12 +692,11 @@ const LEAGUE_CONFIG: Record<
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const leagueParam = searchParams.get("league") || "ligapro";
+  const forceRefresh = searchParams.get("refresh") === "true";
+  const isAdminForce = searchParams.get("adminForce") === "true";
 
   const config = LEAGUE_CONFIG[leagueParam] || LEAGUE_CONFIG["ligapro"];
   const { fromIso, toIso, daysCompact, currentYear } = getNext8DaysWindow();
-
-  const apiFootballKey = process.env.API_FOOTBALL_KEY || process.env.NEXT_PUBLIC_API_FOOTBALL_KEY || "2ceb3637610213b4d82a91d894642826";
-  const oddsApiKey = process.env.ODDS_API_KEY || process.env.NEXT_PUBLIC_ODDS_API_KEY || "e5d6dd7668f865a60b12ee09a670089a";
 
   const diagnostics: string[] = [];
   const browserHeaders = {
@@ -706,16 +706,16 @@ export async function GET(request: Request) {
 
   try {
     // =========================================================================
-    // 1. SOLICITUDES SIMULTÁNEAS (PROMISE.ALL): ESPN + THE ODDS API + API-FOOTBALL
+    // 1. SOLICITUDES SIMULTÁNEAS (PROMISE.ALL): ESPN + THE ODDS API (AUTO-PACING) + API-FOOTBALL (7,500/DÍA)
     // =========================================================================
     const nowTimestamp = Date.now() - 1000 * 60 * 120;
 
-    // A) Solicitudes paralelas a ESPN para los 8 días
+    // A) Solicitudes paralelas a ESPN para los 8 días (Caché de 3 minutos para velocidad instantánea)
     const espnDayPromises = daysCompact.map(async (dateCompact) => {
       try {
         const sportPath = config.espnSportPath || `soccer/${config.espnSlug}`;
         const url = `https://site.api.espn.com/apis/site/v2/sports/${sportPath}/scoreboard?dates=${dateCompact}`;
-        const res = await fetch(url, { headers: browserHeaders, cache: "no-store" });
+        const res = await fetch(url, { headers: browserHeaders, next: { revalidate: 180 } });
         if (!res.ok) return [];
         const data = await res.json();
         return Array.isArray(data?.events) ? data.events : [];
@@ -724,69 +724,36 @@ export async function GET(request: Request) {
       }
     });
 
-    // B) Solicitud en tiempo real a The Odds API (H2H, Totales y Spreads / Hándicap Asiático)
-    const oddsPromise = (async () => {
-      try {
-        if (!config.oddsApiSportKey) return [];
-        const res = await fetch(
-          `https://api.the-odds-api.com/v4/sports/${config.oddsApiSportKey}/odds/?apiKey=${oddsApiKey}&regions=eu,us,uk&markets=h2h,totals,spreads&oddsFormat=decimal`,
-          { headers: browserHeaders, cache: "no-store" }
-        );
-        return res.ok ? await res.json() : [];
-      } catch {
-        return [];
-      }
-    })();
+    // B) Solicitud gobernada por el MARCAPASOS AUTOMÁTICO DE CRÉDITOS a The Odds API
+    // - Modo Alta Frecuencia (10-12 min) mientras haya holgura para aprovechar el 100% del mes
+    // - Modo Ajuste Automático (20-30 min) en picos de tráfico para nunca agotar antes del día 30
+    // - Protección Anti-Abuso: usuarios normales/VIP con "Forzar Sincronización" usan caché si tiene <10 min; solo Admin fuerza gasto real
+    const oddsPromise = fetchOddsWithPacemaker(config.oddsApiSportKey, {
+      forceRefresh,
+      isAdminForce,
+      browserHeaders,
+    });
 
-    // C) Solicitud en tiempo real a API-Football (Standings y Fixtures con árbitros para fútbol)
-    const apiFootballStandingsPromise = (async () => {
-      try {
-        if (!config.apiFootballLeagueId || config.apiFootballLeagueId <= 0) return [];
-        let stdRes = await fetch(
-          `https://v3.football.api-sports.io/standings?league=${config.apiFootballLeagueId}&season=${currentYear}`,
-          { headers: { ...browserHeaders, "x-apisports-key": apiFootballKey }, cache: "no-store" }
-        );
-        let stdData = stdRes.ok ? await stdRes.json() : null;
-        if (!stdData?.response?.[0]?.league?.standings && currentYear > 2024) {
-          // Fallback a última temporada completa si la actual está vacía
-          stdRes = await fetch(
-            `https://v3.football.api-sports.io/standings?league=${config.apiFootballLeagueId}&season=2024`,
-            { headers: { ...browserHeaders, "x-apisports-key": apiFootballKey }, cache: "no-store" }
-          );
-          stdData = stdRes.ok ? await stdRes.json() : null;
-        }
-        return stdData?.response?.[0]?.league?.standings || [];
-      } catch {
-        return [];
-      }
-    })();
-
-    const apiFootballFixturesPromise = (async () => {
-      try {
-        if (!config.apiFootballLeagueId || config.apiFootballLeagueId <= 0) return [];
-        const fixRes = await fetch(
-          `https://v3.football.api-sports.io/fixtures?league=${config.apiFootballLeagueId}&season=2024&from=${fromIso}&to=${toIso}`,
-          { headers: { ...browserHeaders, "x-apisports-key": apiFootballKey }, cache: "no-store" }
-        );
-        if (fixRes.ok) {
-          const fixData = await fixRes.json();
-          return Array.isArray(fixData?.response) ? fixData.response : [];
-        }
-        return [];
-      } catch {
-        return [];
-      }
-    })();
+    // C) Solicitud a API-Football v3 (Límite DIARIO de 7,500 peticiones/día con reinicio automático a las 00:00)
+    // - Caché de alta frecuencia (5 min)
+    const apiFootballPromise = fetchApiFootballWithDailyQuota(
+      config.apiFootballLeagueId,
+      currentYear,
+      fromIso,
+      toIso,
+      { forceRefresh, isAdminForce, browserHeaders }
+    );
 
     // Ejecutar todo en paralelo
-    const [espnResultsByDay, liveOddsEventsRaw, standingsGroups, apiFootballFixtures] = await Promise.all([
+    const [espnResultsByDay, oddsResult, apiFootballResult] = await Promise.all([
       Promise.all(espnDayPromises),
       oddsPromise,
-      apiFootballStandingsPromise,
-      apiFootballFixturesPromise,
+      apiFootballPromise,
     ]);
 
-    const liveOddsEvents = Array.isArray(liveOddsEventsRaw) ? liveOddsEventsRaw : [];
+    const liveOddsEvents = Array.isArray(oddsResult.events) ? oddsResult.events : [];
+    const standingsGroups = apiFootballResult.standings;
+    const apiFootballFixtures = apiFootballResult.fixtures;
 
     // Filtrar y ordenar eventos únicos de ESPN por jugar
     const rawUpcomingEspnEvents: any[] = [];

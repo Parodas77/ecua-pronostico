@@ -57,11 +57,21 @@ export default function AdminCrmPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
-  // Suscripciones de APIs externas
+  // Suscripciones de APIs externas + Telemetría en Vivo y Bóveda de Claves
   const [subscriptions, setSubscriptions] = useState<SubscriptionItem[]>([]);
   const [editingSubId, setEditingSubId] = useState<number | null>(null);
   const [editDate, setEditDate] = useState<string>("");
   const [editCost, setEditCost] = useState<number>(0);
+  const [liveTelemetry, setLiveTelemetry] = useState<any>(null);
+  const [vaultMasked, setVaultMasked] = useState<any>(null);
+  const [isLoadingLiveApis, setIsLoadingLiveApis] = useState(false);
+  const [showVaultEditor, setShowVaultEditor] = useState(false);
+  const [vaultForm, setVaultForm] = useState({
+    apiFootballKey: "",
+    apiFootballEmail: "",
+    oddsApiKey: "",
+    oddsApiEmail: "",
+  });
 
   // Pestaña principal de navegación
   const [activeTab, setActiveTab] = useState<"crm" | "auditoria_ia" | "apis">("crm");
@@ -136,14 +146,56 @@ export default function AdminCrmPage() {
   };
 
   const fetchSubscriptions = async () => {
+    setIsLoadingLiveApis(true);
     try {
-      const res = await fetch("/api/admin/subscriptions");
+      const res = await fetch("/api/admin/subscriptions?live=true");
       const data = await res.json();
       if (data.success && Array.isArray(data.subscriptions)) {
         setSubscriptions(data.subscriptions);
       }
+      if (data.liveTelemetry) {
+        setLiveTelemetry(data.liveTelemetry);
+      }
+      if (data.vaultMasked) {
+        setVaultMasked(data.vaultMasked);
+        setVaultForm({
+          apiFootballKey: data.vaultMasked.apiFootballKeyFull || "",
+          apiFootballEmail: data.vaultMasked.apiFootballEmail || "",
+          oddsApiKey: data.vaultMasked.oddsApiKeyFull || "",
+          oddsApiEmail: data.vaultMasked.oddsApiEmail || "",
+        });
+      }
     } catch (err) {
       console.error("Error al cargar suscripciones del sistema:", err);
+    } finally {
+      setIsLoadingLiveApis(false);
+    }
+  };
+
+  const handleSaveVaultKeys = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoadingLiveApis(true);
+    try {
+      const res = await fetch("/api/admin/subscriptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update_keys",
+          ...vaultForm,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (data.liveTelemetry) setLiveTelemetry(data.liveTelemetry);
+        if (data.vaultMasked) setVaultMasked(data.vaultMasked);
+        setShowVaultEditor(false);
+        setActionSuccess(data.message || "🔐 Claves API blindadas y verificadas.");
+        setTimeout(() => setActionSuccess(null), 5000);
+      }
+    } catch (err) {
+      console.error("Error al guardar claves en bóveda:", err);
+    } finally {
+      setIsLoadingLiveApis(false);
     }
   };
 
@@ -1507,7 +1559,204 @@ export default function AdminCrmPage() {
       {/* ================= PESTAÑA 3: CONTROL DE APIS EXTERNAS ================= */}
       {activeTab === "apis" && (
         <div className="space-y-6 animate-in fade-in">
-          <div id="apis" className="bg-white/95 border border-slate-300 rounded-2xl p-5 shadow-xl space-y-4">
+          {/* PANEL DE TELEMETRÍA EN VIVO: MARCAPASOS DE CRÉDITOS + CUOTA DIARIA + BÓVEDA DE CLAVES */}
+          <div className="bg-white border-2 border-blue-500 rounded-2xl p-5 shadow-2xl space-y-5">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-300 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-blue-100 border border-blue-400 flex items-center justify-center text-2xl shrink-0">
+                  🛡️
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-base sm:text-xl font-black text-slate-950 uppercase">
+                      MARCAPASOS AUTOMÁTICO DE CRÉDITOS & BÓVEDA BLINDADA DE CLAVES
+                    </h2>
+                    <span className="text-[10px] bg-emerald-400 text-slate-950 font-black px-2.5 py-0.5 rounded-full uppercase">
+                      Auto-Pacing Activo
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-700 font-medium">
+                    Aprovechamiento inteligente del 98% de tus créditos mensuales sin agotar antes del día 30 y protección anti-abuso en Forzar Sincronización.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowVaultEditor(!showVaultEditor)}
+                  className="text-xs bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow cursor-pointer"
+                >
+                  <span>🔐</span>
+                  <span>{showVaultEditor ? "Cerrar Bóveda" : "Bóveda de Claves API"}</span>
+                </button>
+                <button
+                  onClick={fetchSubscriptions}
+                  disabled={isLoadingLiveApis}
+                  className="text-xs bg-blue-600 hover:bg-blue-500 text-white font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow cursor-pointer"
+                >
+                  <span className={isLoadingLiveApis ? "animate-spin" : ""}>🔄</span>
+                  <span>{isLoadingLiveApis ? "Verificando..." : "Auditar Estado en Vivo"}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* EDITOR DE BÓVEDA DE CLAVES DESDE EL PANEL ADMIN */}
+            {showVaultEditor && (
+              <form onSubmit={handleSaveVaultKeys} className="bg-slate-50 border-2 border-amber-400 rounded-2xl p-4 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-300 pb-2">
+                  <span className="text-xs font-black uppercase text-amber-900">
+                    🔐 Bóveda de Claves API y Cuentas Asociadas (Actualización sin tocar código)
+                  </span>
+                  <span className="text-[10px] text-slate-600 font-mono">
+                    Último blindaje: {vaultMasked?.updatedAt ? new Date(vaultMasked.updatedAt).toLocaleString("es-EC") : "Hoy"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  <div className="bg-white p-3.5 rounded-xl border border-slate-300 space-y-2">
+                    <span className="font-black text-blue-900 uppercase block">⚽ 1. API-Football v3 (api-sports.io)</span>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-700 block mb-0.5">Correo / Cuenta Registrada:</label>
+                      <input
+                        type="text"
+                        value={vaultForm.apiFootballEmail}
+                        onChange={(e) => setVaultForm({ ...vaultForm, apiFootballEmail: e.target.value })}
+                        className="w-full bg-slate-100 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-700 block mb-0.5">API Key (x-apisports-key):</label>
+                      <input
+                        type="text"
+                        value={vaultForm.apiFootballKey}
+                        onChange={(e) => setVaultForm({ ...vaultForm, apiFootballKey: e.target.value })}
+                        className="w-full bg-slate-100 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-950 font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-3.5 rounded-xl border border-slate-300 space-y-2">
+                    <span className="font-black text-emerald-900 uppercase block">🎲 2. The Odds API v4 (the-odds-api.com)</span>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-700 block mb-0.5">Correo / Cuenta Registrada:</label>
+                      <input
+                        type="text"
+                        value={vaultForm.oddsApiEmail}
+                        onChange={(e) => setVaultForm({ ...vaultForm, oddsApiEmail: e.target.value })}
+                        className="w-full bg-slate-100 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-700 block mb-0.5">API Key (apiKey):</label>
+                      <input
+                        type="text"
+                        value={vaultForm.oddsApiKey}
+                        onChange={(e) => setVaultForm({ ...vaultForm, oddsApiKey: e.target.value })}
+                        className="w-full bg-slate-100 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-950 font-bold"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowVaultEditor(false)}
+                    className="px-3 py-1.5 text-xs text-slate-700 font-bold cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-xs uppercase shadow cursor-pointer"
+                  >
+                    💾 Guardar, Blindar y Verificar en Vivo
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* TARJETAS DE MONITOREO EN VIVO DE LAS 2 APIS */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs">
+              {/* TARJETA A: API-FOOTBALL (LÍMITE DIARIO 7,500 REQ/DÍA) */}
+              <div className="bg-slate-50 border-2 border-blue-400 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">⚽</span>
+                    <div>
+                      <h3 className="font-black text-slate-950 text-sm uppercase">A) API-Football (Límite Diario)</h3>
+                      <span className="text-[10px] text-slate-700 font-mono block">
+                        Clave activa: <strong>{vaultMasked?.apiFootballKeyMasked || "2ceb36••••••••••••••••••••2826"}</strong>
+                      </span>
+                    </div>
+                  </div>
+                  <span
+                    className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                      liveTelemetry?.footballAccountStatus === "ACTIVA"
+                        ? "bg-emerald-100 text-emerald-800 border border-emerald-500"
+                        : "bg-red-100 text-red-800 border border-red-500"
+                    }`}
+                  >
+                    {liveTelemetry?.footballAccountStatus === "ACTIVA" ? "🟢 CUENTA ACTIVA" : "🔴 CUENTA SUSPENDIDA"}
+                  </span>
+                </div>
+
+                <div className="bg-white border border-slate-300 rounded-xl p-3 space-y-1.5">
+                  <div className="flex justify-between font-bold text-slate-900">
+                    <span>Bolsa de Peticiones Diarias (Se reinicia cada 00:00):</span>
+                    <span className="font-mono text-blue-800">
+                      {(liveTelemetry?.footballRemainingToday ?? 7500).toLocaleString()} / {(liveTelemetry?.footballDailyLimit ?? 7500).toLocaleString()} hoy
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-[11px] text-slate-700">
+                    <span>Frecuencia de Caché configurada:</span>
+                    <strong className="text-emerald-800">Alta Frecuencia (Cada 5 minutos)</strong>
+                  </div>
+                  <p className="text-[11px] text-slate-700 pt-1 border-t border-slate-200 leading-snug">
+                    ℹ️ {liveTelemetry?.footballStatusMessage || "El plan Pro te da 7,500 peticiones CADA DÍA que se reinician solas a medianoche sin agotar el mes."}
+                  </p>
+                </div>
+              </div>
+
+              {/* TARJETA B: THE ODDS API (MARCAPASOS AUTOMÁTICO MENSUAL) */}
+              <div className="bg-slate-50 border-2 border-emerald-500 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🎲</span>
+                    <div>
+                      <h3 className="font-black text-slate-950 text-sm uppercase">B) The Odds API (Marcapasos Automático)</h3>
+                      <span className="text-[10px] text-slate-700 font-mono block">
+                        Clave activa: <strong>{vaultMasked?.oddsApiKeyMasked || "e5d6dd••••••••••••••••••••089a"}</strong>
+                      </span>
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-500">
+                    🟢 {liveTelemetry?.oddsPacingMode === "ALTA_FRECUENCIA" ? "MODO ALTA FRECUENCIA" : "MODO AJUSTE AUTO"}
+                  </span>
+                </div>
+
+                <div className="bg-white border border-slate-300 rounded-xl p-3 space-y-1.5">
+                  <div className="flex justify-between font-bold text-slate-900">
+                    <span>Créditos Reales Restantes (x-requests-remaining):</span>
+                    <span className="font-mono text-emerald-800">
+                      {(liveTelemetry?.oddsRemaining ?? 500).toLocaleString()} disponibles ({(liveTelemetry?.oddsUsed ?? 0).toLocaleString()} usados)
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-[11px] text-slate-700">
+                    <span>Intervalo regulado por el Marcapasos:</span>
+                    <strong className="text-blue-800">
+                      Cada {liveTelemetry?.oddsCurrentTtlMinutes ?? 12} min (Presupuesto: {liveTelemetry?.oddsDailyBudget ?? 666} créd/día)
+                    </strong>
+                  </div>
+                  <p className="text-[11px] text-slate-700 pt-1 border-t border-slate-200 leading-snug">
+                    ⚡ {liveTelemetry?.oddsPacingDescription || "Modo Alta Frecuencia (10-15 min) activo. Protección Anti-Abuso en Forzar Sincronización activada."}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="apis" className="bg-white border border-slate-300 rounded-2xl p-5 shadow-xl space-y-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-300 pb-3">
               <div className="flex items-center gap-2.5">
                 <span className="text-2xl">⚡</span>
