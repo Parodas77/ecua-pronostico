@@ -109,19 +109,61 @@ export default function AdminCrmPage() {
     } catch {}
   }, []);
 
-  const handleAdminLogin = (e: React.FormEvent) => {
+  const getAdminHeaders = (): Record<string, string> => {
+    try {
+      const raw = localStorage.getItem("ecuapronostico_vip_session_v1");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.adminToken) {
+          return { "Content-Type": "application/json", "x-admin-token": parsed.adminToken };
+        }
+      }
+    } catch {}
+    return { "Content-Type": "application/json", "x-admin-token": "ecuapronostico2026@" };
+  };
+
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (adminUser.trim().toLowerCase() === "admin" && adminPass.trim() === "ecuapronostico2026@") {
+    if (adminUser.trim().toLowerCase() === "admin" && adminPass.trim().toLowerCase() === "ecuapronostico2026@") {
+      let signedToken = "ecuapronostico2026@";
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: "admin", password: adminPass.trim() }),
+        });
+        const data = await res.json();
+        if (data?.adminToken) signedToken = data.adminToken;
+      } catch {}
+
       setIsAdminAuth(true);
       setAuthError("");
       try {
         localStorage.setItem(
           "ecuapronostico_vip_session_v1",
-          JSON.stringify({ authenticated: true, username: "admin", role: "admin", lastActivity: Date.now() })
+          JSON.stringify({
+            authenticated: true,
+            username: "admin",
+            role: "admin",
+            owner: "Pedro Alfonso Rodas Talbott",
+            adminToken: signedToken,
+            lastActivity: Date.now(),
+          })
+        );
+        localStorage.setItem(
+          "ecuapronostico_admin_auth",
+          JSON.stringify({
+            authenticated: true,
+            username: "admin",
+            role: "admin",
+            owner: "Pedro Alfonso Rodas Talbott",
+            adminToken: signedToken,
+            lastActivity: Date.now(),
+          })
         );
       } catch {}
     } else {
-      setAuthError("Credenciales de administrador inválidas.");
+      setAuthError("Credenciales de administrador inválidas. Acceso exclusivo para Pedro Rodas.");
     }
   };
 
@@ -132,7 +174,9 @@ export default function AdminCrmPage() {
       if (filterStatus !== "todos") query.set("status", filterStatus);
       if (searchQuery) query.set("q", searchQuery);
 
-      const res = await fetch(`/api/admin/users?${query.toString()}`);
+      const res = await fetch(`/api/admin/users?${query.toString()}`, {
+        headers: getAdminHeaders(),
+      });
       const data = await res.json();
       if (data.success) {
         setUsers(data.users || []);
@@ -148,7 +192,9 @@ export default function AdminCrmPage() {
   const fetchSubscriptions = async () => {
     setIsLoadingLiveApis(true);
     try {
-      const res = await fetch("/api/admin/subscriptions?live=true");
+      const res = await fetch("/api/admin/subscriptions?live=true", {
+        headers: getAdminHeaders(),
+      });
       const data = await res.json();
       if (data.success && Array.isArray(data.subscriptions)) {
         setSubscriptions(data.subscriptions);
@@ -178,7 +224,7 @@ export default function AdminCrmPage() {
     try {
       const res = await fetch("/api/admin/subscriptions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminHeaders(),
         body: JSON.stringify({
           action: "update_keys",
           ...vaultForm,
@@ -202,7 +248,9 @@ export default function AdminCrmPage() {
   const fetchReceipts = async () => {
     setReceiptsLoading(true);
     try {
-      const res = await fetch(`/api/admin/receipts?filter=${receiptFilter}`);
+      const res = await fetch(`/api/admin/receipts?filter=${receiptFilter}`, {
+        headers: getAdminHeaders(),
+      });
       const data = await res.json();
       if (data.success) {
         setReceipts(data.receipts || []);
@@ -240,7 +288,7 @@ export default function AdminCrmPage() {
     try {
       const res = await fetch("/api/admin/receipts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminHeaders(),
         body: JSON.stringify({
           action: "audit_image",
           imageBase64: testBase64,
@@ -273,7 +321,7 @@ export default function AdminCrmPage() {
     try {
       const res = await fetch("/api/admin/receipts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminHeaders(),
         body: JSON.stringify({ action: "update_status", id, newStatus }),
       });
       const data = await res.json();
@@ -295,12 +343,12 @@ export default function AdminCrmPage() {
     }
   }, [isAdminAuth, filterStatus, searchQuery, receiptFilter]);
 
-  // AUTORIZAR PAGO: Inicia los 30 días exactamente en este momento
+  // AUTORIZAR PAGO: Inicia los 30 días exactamente en este momento (Exclusivo Pedro Rodas)
   const handleApproveUser = async (id: number) => {
     try {
       const res = await fetch("/api/admin/users", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminHeaders(),
         body: JSON.stringify({ id, action: "approve", extendDays: 30 }),
       });
       const data = await res.json();
@@ -322,7 +370,7 @@ export default function AdminCrmPage() {
     try {
       const res = await fetch("/api/admin/subscriptions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminHeaders(),
         body: JSON.stringify({ action: "renew", id, daysToAdd: 30 }),
       });
       const data = await res.json();
@@ -341,7 +389,7 @@ export default function AdminCrmPage() {
     try {
       const res = await fetch("/api/admin/subscriptions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminHeaders(),
         body: JSON.stringify({
           action: "update",
           id,
@@ -365,7 +413,7 @@ export default function AdminCrmPage() {
     try {
       const res = await fetch("/api/admin/users", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminHeaders(),
         body: JSON.stringify({ id, extendDays: days }),
       });
       const data = await res.json();
@@ -383,7 +431,7 @@ export default function AdminCrmPage() {
     try {
       const res = await fetch("/api/admin/users", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminHeaders(),
         body: JSON.stringify({ id, estado_suscripcion: newStatus }),
       });
       const data = await res.json();
@@ -412,7 +460,7 @@ export default function AdminCrmPage() {
     try {
       const res = await fetch("/api/admin/receipts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminHeaders(),
         body: JSON.stringify({
           action: "generate_token",
           adminNotes: "Enlace generado manualmente por Administrador",
@@ -521,10 +569,10 @@ export default function AdminCrmPage() {
             <div className="flex items-center gap-3">
               <img src="/logo.png" alt="Logo" className="h-12 object-contain" />
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-xl sm:text-2xl font-black text-slate-900">CRM & AUTORIZACIÓN DE PAGOS</h1>
-                  <span className="text-[10px] bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded uppercase">
-                    Admin
+                  <span className="text-[10px] bg-amber-400 text-slate-950 font-black px-2.5 py-0.5 rounded uppercase">
+                    🔒 Admin Exclusivo: Pedro Rodas
                   </span>
                 </div>
                 <p className="text-xs text-slate-600">
@@ -778,7 +826,7 @@ export default function AdminCrmPage() {
                 </button>
 
                 <a
-                  href={`/api/admin/export?scope=${filterStatus === "todos" ? "all" : "retargeting"}`}
+                  href={`/api/admin/export?scope=${filterStatus === "todos" ? "all" : "retargeting"}&adminToken=ecuapronostico2026@`}
                   download
                   className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl font-bold flex items-center gap-1.5 transition shadow cursor-pointer"
                 >

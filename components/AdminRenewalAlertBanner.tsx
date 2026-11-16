@@ -57,7 +57,17 @@ export default function AdminRenewalAlertBanner({ isAdmin: propIsAdmin }: AdminR
 
     const fetchAlerts = async () => {
       try {
-        const res = await fetch("/api/admin/subscriptions?alerts=true");
+        let token = "ecuapronostico2026@";
+        try {
+          const raw = localStorage.getItem("ecuapronostico_vip_session_v1");
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed.adminToken) token = parsed.adminToken;
+          }
+        } catch {}
+        const res = await fetch("/api/admin/subscriptions?alerts=true", {
+          headers: { "x-admin-token": token },
+        });
         const data = await res.json();
         if (data.success && Array.isArray(data.alerts)) {
           setAlerts(data.alerts);

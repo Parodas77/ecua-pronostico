@@ -8,8 +8,12 @@ import {
   approveAndActivateUser,
   approveAndActivateUserAsync,
 } from "@/lib/crm";
+import { isAuthorizedAdminRequest, unauthorizedAdminResponse } from "@/lib/adminAuth";
 
 export async function GET(request: NextRequest) {
+  if (!isAuthorizedAdminRequest(request)) {
+    return unauthorizedAdminResponse();
+  }
   try {
     const filterStatus = request.nextUrl.searchParams.get("status") || "todos";
     const searchQuery = (request.nextUrl.searchParams.get("q") || "").trim().toLowerCase();
@@ -65,6 +69,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: Request) {
+  if (!isAuthorizedAdminRequest(request)) {
+    return unauthorizedAdminResponse();
+  }
   try {
     const body = await request.json();
     const { id, action, estado_suscripcion, extendDays, notas_admin } = body;

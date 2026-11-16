@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAllUsers, getRetargetingUsers, generateRetargetingCsv } from "@/lib/crm";
+import { isAuthorizedAdminRequest, unauthorizedAdminResponse } from "@/lib/adminAuth";
 
 export async function GET(request: NextRequest) {
+  if (!isAuthorizedAdminRequest(request)) {
+    return unauthorizedAdminResponse();
+  }
   try {
     const scope = request.nextUrl.searchParams.get("scope") || "retargeting"; // "retargeting" o "all"
 

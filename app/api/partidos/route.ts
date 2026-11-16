@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchOddsWithPacemaker, fetchApiFootballWithDailyQuota } from "@/lib/apiPacemaker";
+import { isAuthorizedAdminRequest } from "@/lib/adminAuth";
 
 function getNext8DaysWindow() {
   const now = new Date();
@@ -693,7 +694,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const leagueParam = searchParams.get("league") || "ligapro";
   const forceRefresh = searchParams.get("refresh") === "true";
-  const isAdminForce = searchParams.get("adminForce") === "true";
+  const isAdminForce = searchParams.get("adminForce") === "true" && isAuthorizedAdminRequest(request);
 
   const config = LEAGUE_CONFIG[leagueParam] || LEAGUE_CONFIG["ligapro"];
   const { fromIso, toIso, daysCompact, currentYear } = getNext8DaysWindow();

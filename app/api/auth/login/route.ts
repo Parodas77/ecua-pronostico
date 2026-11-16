@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getUserByUsernameAsync, verifyPassword } from "@/lib/crm";
+import { ADMIN_COOKIE_NAME, ADMIN_OWNER_NAME, generateAdminMasterToken } from "@/lib/adminAuth";
 
 // ==============================================================================
 // BLINDAJE DE SEGURIDAD: RATE LIMITING CONTRA ATAQUES DE FUERZA BRUTA
@@ -76,17 +77,26 @@ export async function POST(request: Request) {
       );
     }
 
-    // 1. Acceso de Superadministrador (admin / ecuapronostico2026@)
+    // 1. Acceso de Superadministrador Único: Pedro Alfonso Rodas Talbott (admin / ecuapronostico2026@)
     if (username === "admin" && password.toLowerCase() === "ecuapronostico2026@") {
       clearFailures(clientKey);
-      return NextResponse.json({
+      const adminToken = generateAdminMasterToken();
+      const response = NextResponse.json({
         success: true,
         role: "admin",
         username: "admin",
-        nombre: "Administrador Maestro",
+        nombre: ADMIN_OWNER_NAME,
+        adminToken,
         estado_suscripcion: "activo",
         fecha_expiracion: new Date(Date.now() + 365 * 86400000).toISOString(),
       });
+      response.cookies.set(ADMIN_COOKIE_NAME, adminToken, {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30, // 30 días
+      });
+      return response;
     }
 
     // 2. Consulta en la base de datos CRM

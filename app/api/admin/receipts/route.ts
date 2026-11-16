@@ -8,8 +8,12 @@ import {
 } from "@/lib/receiptsDb";
 import { analyzeComprobanteWithGemini } from "@/lib/geminiAuditor";
 import { createActivationToken } from "@/lib/activationTokens";
+import { isAuthorizedAdminRequest, unauthorizedAdminResponse } from "@/lib/adminAuth";
 
 export async function GET(request: NextRequest) {
+  if (!isAuthorizedAdminRequest(request)) {
+    return unauthorizedAdminResponse();
+  }
   try {
     const filter = request.nextUrl.searchParams.get("filter") || "todos";
     let receipts = getAllReceiptAudits();
@@ -44,6 +48,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (!isAuthorizedAdminRequest(request)) {
+    return unauthorizedAdminResponse();
+  }
   try {
     const body = await request.json();
     const { action, id, imageBase64, mimeType, phone, newStatus, adminNotes } = body;

@@ -330,7 +330,13 @@ export default function EcuaPronosticoDashboard() {
     }
     try {
       const adminParam = force && isAdmin ? "&adminForce=true" : "";
-      const res = await fetch(`/api/partidos?league=${targetLeague}${force ? "&refresh=true" + adminParam + "&t=" + Date.now() : ""}`);
+      const headers: Record<string, string> = {};
+      if (force && isAdmin) {
+        headers["x-admin-token"] = "ecuapronostico2026@";
+      }
+      const res = await fetch(`/api/partidos?league=${targetLeague}${force ? "&refresh=true" + adminParam + "&t=" + Date.now() : ""}`, {
+        headers,
+      });
       const data = await res.json();
       if (data.window) {
         setLiveWindow(data.window);

@@ -6,8 +6,12 @@ import {
   extendSystemSubscription,
 } from "@/lib/subscriptions";
 import { probeLiveApisStatus, saveApiKeysVault } from "@/lib/apiPacemaker";
+import { isAuthorizedAdminRequest, unauthorizedAdminResponse } from "@/lib/adminAuth";
 
 export async function GET(request: NextRequest) {
+  if (!isAuthorizedAdminRequest(request)) {
+    return unauthorizedAdminResponse();
+  }
   try {
     const onlyAlerts = request.nextUrl.searchParams.get("alerts") === "true";
     const includeLive = request.nextUrl.searchParams.get("live") === "true";
@@ -44,6 +48,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (!isAuthorizedAdminRequest(request)) {
+    return unauthorizedAdminResponse();
+  }
   try {
     const body = await request.json();
     const { action, id, fecha_renovacion, costo, nombre_servicio, notas, daysToAdd, apiFootballKey, apiFootballEmail, oddsApiKey, oddsApiEmail } = body;
