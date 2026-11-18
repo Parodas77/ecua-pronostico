@@ -99,6 +99,28 @@ export async function POST(request: Request) {
       return response;
     }
 
+    // 1.B Acceso directo de Usuario VIP Ficticio de Prueba (NO Admin): vip_prueba / vip2026 (o carlosm / carlos123)
+    if (
+      (username === "vip_prueba" && password.toLowerCase() === "vip2026") ||
+      (username === "carlosm" && password.toLowerCase() === "carlos123")
+    ) {
+      clearFailures(clientKey);
+      const response = NextResponse.json({
+        success: true,
+        role: "vip",
+        username: username,
+        nombre: "Carlos Mendoza (Cliente VIP)",
+        telefono_whatsapp: "+593991234567",
+        ciudad: "Quito",
+        correo: "carlos.mendoza@gmail.com",
+        estado_suscripcion: "activo",
+        fecha_expiracion: new Date(Date.now() + 28 * 86400000).toISOString(),
+      });
+      // Asegurar que al entrar como VIP se borre cualquier cookie de admin anterior
+      response.cookies.delete(ADMIN_COOKIE_NAME);
+      return response;
+    }
+
     // 2. Consulta en la base de datos CRM
     const user = await getUserByUsernameAsync(username);
     if (!user) {

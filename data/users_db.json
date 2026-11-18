@@ -21,21 +21,21 @@
   {
     "id": 2,
     "nombre": "Carlos",
-    "apellido": "Mendoza",
+    "apellido": "Mendoza (Cliente VIP Prueba)",
     "telefono_whatsapp": "+593991234567",
     "ciudad": "Quito",
     "correo": "carlos.mendoza@gmail.com",
-    "username": "carlosm",
+    "username": "vip_prueba",
     "password_hash": "e1bf3b4f8a59254af3f376bb1f194809d06ddd4db1549d05ad5cdecabb4e4e21",
     "estado_suscripcion": "activo",
     "metodo_pago": "Banco Pichincha",
     "referencia_pago": "Transf #893012",
     "monto_pago": 14.99,
     "aprobado_por_admin": true,
-    "fecha_inicio_suscripcion": "2026-10-17T19:21:39.484Z",
-    "fecha_expiracion_suscripcion": "2026-11-16T19:21:39.484Z",
-    "created_at": "2026-10-17T19:21:39.484Z",
-    "notas_admin": "Pago confirmado vía transferencia Banco Pichincha"
+    "fecha_inicio_suscripcion": "2026-11-16T19:21:39.484Z",
+    "fecha_expiracion_suscripcion": "2026-12-18T19:21:39.484Z",
+    "created_at": "2026-11-16T19:21:39.484Z",
+    "notas_admin": "Usuario VIP ficticio para pruebas de vista de cliente"
   },
   {
     "id": 3,

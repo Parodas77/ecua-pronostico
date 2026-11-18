@@ -267,16 +267,21 @@ export default function EcuaPronosticoDashboard() {
       recordVipActivity();
     }
 
-    // Chequear si el usuario es administrador autenticado (ocultamiento del botón CRM para público general)
+    // Chequear si el usuario es administrador autenticado (ocultamiento estricto del botón CRM para usuarios VIP y público general)
     try {
-      const rawAdmin = localStorage.getItem("ecuapronostico_admin_auth");
-      if (rawAdmin) {
-        const parsed = JSON.parse(rawAdmin);
-        if (parsed.authenticated && (parsed.username === "admin" || parsed.role === "admin")) {
-          setIsAdmin(true);
-        }
-      } else if (session && session.username === "admin") {
+      if (session && session.username === "admin") {
         setIsAdmin(true);
+      } else if (session && session.username !== "admin") {
+        setIsAdmin(false);
+        localStorage.removeItem("ecuapronostico_admin_auth");
+      } else {
+        const rawAdmin = localStorage.getItem("ecuapronostico_admin_auth");
+        if (rawAdmin) {
+          const parsed = JSON.parse(rawAdmin);
+          if (parsed.authenticated && (parsed.username === "admin" || parsed.role === "admin")) {
+            setIsAdmin(true);
+          }
+        }
       }
     } catch {}
 
@@ -457,6 +462,11 @@ export default function EcuaPronosticoDashboard() {
               "ecuapronostico_admin_auth",
               JSON.stringify({ authenticated: true, username: "admin", role: "admin", lastActivity: Date.now() })
             );
+          } catch {}
+        } else {
+          setIsAdmin(false);
+          try {
+            localStorage.removeItem("ecuapronostico_admin_auth");
           } catch {}
         }
         setIsAuthenticated(true);
