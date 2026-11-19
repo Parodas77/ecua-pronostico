@@ -22,7 +22,7 @@ const INITIAL_TOKENS: ActivationTokenRecord[] = [
   {
     token: "a9f82bc1",
     phone: "+593981122334",
-    amount: 14.99,
+    amount: 4.99,
     reference: "00948271",
     bank: "Banco Pichincha (Ahorros)",
     used: false,
@@ -32,7 +32,7 @@ const INITIAL_TOKENS: ActivationTokenRecord[] = [
   {
     token: "demo_vip_2026",
     phone: "+593979198755",
-    amount: 14.99,
+    amount: 4.99,
     reference: "PAGO_DIRECTO_ADMIN",
     bank: "Banco del Guayaquil",
     used: false,
@@ -89,7 +89,7 @@ export function createActivationToken(data: {
   const record: ActivationTokenRecord = {
     token,
     phone: cleanPhone,
-    amount: data.amount || 14.99,
+    amount: data.amount || 4.99,
     reference: data.reference || "COMPROBANTE_WHATSAPP",
     bank: data.bank || "Banco Pichincha / Guayaquil",
     used: false,

@@ -236,7 +236,7 @@ export default function EcuaPronosticoDashboard() {
   const [showGuide, setShowGuide] = useState(false);
 
   const [stakeAmount, setStakeAmount] = useState<number>(10);
-  const [paywallReason, setPaywallReason] = useState<string>("Desbloquea el Radar VIP completo por solo $14.99/mes");
+  const [paywallReason, setPaywallReason] = useState<string>("Desbloquea el Radar VIP completo por solo $4.99/mes");
   const [fijasSyncInfo, setFijasSyncInfo] = useState<string>("Snapshot Oficial del Día (Inmutable hasta las 23:59 ECT)");
   const [fijasEstrategia, setFijasEstrategia] = useState<any>(null);
   const [isLoadingTop4, setIsLoadingTop4] = useState<boolean>(false);
@@ -324,7 +324,7 @@ export default function EcuaPronosticoDashboard() {
   const [isTyping, setIsTyping] = useState(false);
 
   const whatsappNumber = "593979198755";
-  const whatsappMessage = "Hola, quiero activar mi suscripción Premium en EcuaPronóstico ($14.99/mes) para desbloquear las 4 Fijas del Día. ¿Me ayudan con los datos de pago?";
+  const whatsappMessage = "Hola, quiero activar mi suscripción Premium en EcuaPronóstico ($4.99/mes) para desbloquear las 4 Fijas del Día. ¿Me ayudan con los datos de pago?";
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
   const fetchMatchesFromServer = async (targetLeague: string, force = false) => {
@@ -563,7 +563,7 @@ export default function EcuaPronosticoDashboard() {
 
     if (!isUnlocked) {
       openVipPaywall(
-        `El acceso a todas las variables PRO, matrices de Poisson, simulaciones Monte Carlo y auditoría técnica completa de ${matchItem.home} vs ${matchItem.away} está reservado para miembros VIP ($14.99/mes).`
+        `El acceso a todas las variables PRO, matrices de Poisson, simulaciones Monte Carlo y auditoría técnica completa de ${matchItem.home} vs ${matchItem.away} está reservado para miembros VIP ($4.99/mes).`
       );
       return;
     }
@@ -659,7 +659,7 @@ export default function EcuaPronosticoDashboard() {
                   Desbloquea el Radar Completo
                 </h3>
                 <div className="text-amber-700 font-extrabold text-lg mt-1 font-mono">
-                  $14.99 USD / mes
+                  $4.99 USD / mes
                 </div>
               </div>
 
@@ -701,7 +701,7 @@ export default function EcuaPronosticoDashboard() {
                   className="w-full bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-black py-3.5 px-4 rounded-xl text-sm md:text-base flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(37,211,102,0.4)] transition-all hover:scale-[1.02]"
                 >
                   <span className="text-lg">📲</span>
-                  <span>Activar Suscripción por WhatsApp ($14.99/mes)</span>
+                  <span>Activar Suscripción por WhatsApp ($4.99/mes)</span>
                 </a>
 
                 <div className="pt-4 border-t border-slate-300">
@@ -784,9 +784,9 @@ export default function EcuaPronosticoDashboard() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-black px-3 py-2 rounded-lg flex items-center gap-1.5 transition-all shadow-md shadow-[#25D366]/20 hover:scale-105"
-                title="Activar membresía VIP por WhatsApp ($14.99/mes)"
+                title="Activar membresía VIP por WhatsApp ($4.99/mes)"
               >
-                <span>📲 Activar VIP ($14.99)</span>
+                <span>📲 Activar VIP ($4.99)</span>
               </a>
               <Link
                 href="/"
@@ -806,7 +806,7 @@ export default function EcuaPronosticoDashboard() {
               <button
                 onClick={() => {
                   if (view !== "premium") {
-                    openVipPaywall("La sincronización en tiempo real con 3 APIs oficiales (The Odds API + ESPN + API-Football) es una función exclusiva para miembros VIP ($14.99/mes).");
+                    openVipPaywall("La sincronización en tiempo real con 3 APIs oficiales (The Odds API + ESPN + API-Football) es una función exclusiva para miembros VIP ($4.99/mes).");
                     return;
                   }
                   fetchMatchesFromServer(league, true);
@@ -825,7 +825,7 @@ export default function EcuaPronosticoDashboard() {
               <button
                 onClick={() => {
                   if (view !== "premium") {
-                    openVipPaywall("La Guía Fácil de Inversión Cuantitativa (+EV) es exclusiva para miembros VIP ($14.99/mes).");
+                    openVipPaywall("La Guía Fácil de Inversión Cuantitativa (+EV) es exclusiva para miembros VIP ($4.99/mes).");
                     return;
                   }
                   setShowGuide(!showGuide);
@@ -837,7 +837,7 @@ export default function EcuaPronosticoDashboard() {
               </button>
               <div className="flex gap-1 bg-slate-100 p-1 rounded-lg border border-slate-300">
                 <button onClick={() => setView("basic")} className={`px-3 py-1.5 text-xs font-bold rounded-md ${view === "basic" ? "bg-amber-200 text-slate-900" : "text-slate-600"}`}>Gratis</button>
-                <button onClick={handlePremiumSwitch} className={`px-3 py-1.5 text-xs font-bold rounded-md ${view === "premium" ? "bg-blue-600 text-white" : "text-slate-600"}`}>VIP ($14.99)</button>
+                <button onClick={handlePremiumSwitch} className={`px-3 py-1.5 text-xs font-bold rounded-md ${view === "premium" ? "bg-blue-600 text-white" : "text-slate-600"}`}>VIP ($4.99)</button>
               </div>
               {isAuthenticated && <button onClick={handleLogout} className="text-xs text-red-700 border border-slate-300 px-2.5 py-1.5 rounded-lg">Salir</button>}
             </div>
@@ -876,7 +876,7 @@ export default function EcuaPronosticoDashboard() {
                 rel="noopener noreferrer"
                 className="text-xs bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-black px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-md shadow-[#25D366]/30 active:scale-95"
               >
-                <span>📲 Activar VIP ($14.99)</span>
+                <span>📲 Activar VIP ($4.99)</span>
               </a>
             </div>
           </div>
@@ -1012,7 +1012,7 @@ export default function EcuaPronosticoDashboard() {
                     if (!isAuthenticated) setIsAuthenticated(true);
                     if (view !== "premium") setView("premium");
                   } else if (view !== "premium") {
-                    openVipPaywall("Las 4 Fijas del Día (las predicciones de máxima certeza matemática del radar multiligas) son exclusivas para miembros VIP ($14.99/mes).");
+                    openVipPaywall("Las 4 Fijas del Día (las predicciones de máxima certeza matemática del radar multiligas) son exclusivas para miembros VIP ($4.99/mes).");
                     return;
                   }
                   setDisplayMode("top4");
@@ -1524,7 +1524,7 @@ export default function EcuaPronosticoDashboard() {
                         onClick={() => {
                           if (!isUnlocked) {
                             openVipPaywall(
-                              `Desbloquea el pronóstico y estadísticas completas de ${m.home} vs ${m.away} con tu membresía VIP ($14.99/mes).`
+                              `Desbloquea el pronóstico y estadísticas completas de ${m.home} vs ${m.away} con tu membresía VIP ($4.99/mes).`
                             );
                           } else {
                             setSelectedMatchId(m.id);
@@ -1542,7 +1542,7 @@ export default function EcuaPronosticoDashboard() {
                             onClick={(e) => {
                               e.stopPropagation();
                               openVipPaywall(
-                                `Desbloquea el análisis completo de ${m.home} vs ${m.away} y todos los partidos con tu membresía VIP ($14.99/mes).`
+                                `Desbloquea el análisis completo de ${m.home} vs ${m.away} y todos los partidos con tu membresía VIP ($4.99/mes).`
                               );
                             }}
                             className="absolute inset-0 z-20 backdrop-blur-[4px] bg-slate-100/95 flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all hover:bg-white/50 group"
@@ -1564,12 +1564,12 @@ export default function EcuaPronosticoDashboard() {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 openVipPaywall(
-                                  `Desbloquea ${m.home} vs ${m.away} y todos los partidos con tu membresía VIP ($14.99/mes).`
+                                  `Desbloquea ${m.home} vs ${m.away} y todos los partidos con tu membresía VIP ($4.99/mes).`
                                 );
                               }}
                               className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-amber-400/30 transform group-hover:scale-105 transition-all"
                             >
-                              Desbloquear con VIP ($14.99/mes)
+                              Desbloquear con VIP ($4.99/mes)
                             </button>
                           </div>
                         )}
@@ -1760,11 +1760,11 @@ export default function EcuaPronosticoDashboard() {
                   </div>
                   <button
                     onClick={() =>
-                      openVipPaywall("Desbloquea todos los partidos y ligas completas con la membresía VIP ($14.99/mes).")
+                      openVipPaywall("Desbloquea todos los partidos y ligas completas con la membresía VIP ($4.99/mes).")
                     }
                     className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-4 py-2 rounded-xl text-xs uppercase tracking-wider shrink-0 shadow-lg"
                   >
-                    Desbloquear Todo VIP ($14.99)
+                    Desbloquear Todo VIP ($4.99)
                   </button>
                 </div>
               )}
@@ -1807,7 +1807,7 @@ export default function EcuaPronosticoDashboard() {
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
                   <button onClick={() => openVipPaywall(`Inicia sesión o adquiere tu membresía VIP para desbloquear el análisis de ${currentMatch.home} vs ${currentMatch.away}.`)} className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl text-sm shadow-lg">Iniciar Sesión VIP</button>
-                  <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-black py-3 px-6 rounded-xl text-sm shadow-lg">Suscribirme por WhatsApp - $14.99/mes</a>
+                  <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 font-black py-3 px-6 rounded-xl text-sm shadow-lg">Suscribirme por WhatsApp - $4.99/mes</a>
                 </div>
               </div>
             ) : (

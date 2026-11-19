@@ -498,7 +498,7 @@ export default function AdminCrmPage() {
       ? u.fecha_expiracion_suscripcion.slice(0, 10)
       : "los próximos 30 días";
     const cleanPhone = u.telefono_whatsapp.replace(/\D/g, "");
-    const msg = `¡Hola ${u.nombre}! Te confirmamos que tu pago de $14.99 en Ecuapronóstico ha sido VERIFICADO y tu cuenta VIP está AUTORIZADA por 30 días (activa hasta el ${expDate}). Ya puedes ingresar con tu usuario: ${u.username} en: https://ecua-pronostico-git-main-parodas77-8597s-projects.vercel.app/radar ¡Muchos éxitos en tus jugadas!`;
+    const msg = `¡Hola ${u.nombre}! Te confirmamos que tu pago de $4.99 en Ecuapronóstico ha sido VERIFICADO y tu cuenta VIP está AUTORIZADA por 30 días (activa hasta el ${expDate}). Ya puedes ingresar con tu usuario: ${u.username} en: https://ecua-pronostico-git-main-parodas77-8597s-projects.vercel.app/radar ¡Muchos éxitos en tus jugadas!`;
     return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
   };
 
@@ -576,7 +576,7 @@ export default function AdminCrmPage() {
                   </span>
                 </div>
                 <p className="text-xs text-slate-600">
-                  Verificación de comprobantes de pago ($14.99), inicio de 30 días VIP y remarketing por WhatsApp
+                  Verificación de comprobantes de pago ($4.99), inicio de 30 días VIP y remarketing por WhatsApp
                 </p>
               </div>
             </div>
@@ -1154,7 +1154,7 @@ export default function AdminCrmPage() {
                 </div>
               </div>
               <p className="text-[11px] text-slate-600 leading-relaxed border-t border-slate-300 pt-1.5">
-                💡 <span className="font-bold text-slate-700">Regla Estricta Gemini Vision:</span> Valida que el monto sea ≥ $14.99 USD, fecha del día/reciente, y que el beneficiario coincida con Pedro Alfonso Rodas Talbott (o C.I. 1710893965 / Cuentas oficiales).
+                💡 <span className="font-bold text-slate-700">Regla Estricta Gemini Vision:</span> Valida que el monto sea ≥ $4.99 USD, fecha del día/reciente, y que el beneficiario coincida con Pedro Alfonso Rodas Talbott (o C.I. 1710893965 / Cuentas oficiales).
               </p>
             </div>
           </div>
@@ -1170,7 +1170,7 @@ export default function AdminCrmPage() {
             <div className="bg-white border border-emerald-500/40 rounded-2xl p-4 shadow-sm">
               <span className="text-xs text-emerald-700 font-bold uppercase tracking-wider block">🟢 Aprobados IA</span>
               <div className="text-3xl font-black text-emerald-800 mt-1 font-mono">{receiptStats.aprobadosAutomaticos}</div>
-              <span className="text-[11px] text-emerald-700/80">≥ $14.99 verificados</span>
+              <span className="text-[11px] text-emerald-700/80">≥ $4.99 verificados</span>
             </div>
 
             <div className="bg-white border border-amber-500/40 rounded-2xl p-4 shadow-sm">

@@ -26,7 +26,7 @@ export default function HistorialAciertosPage() {
 
   const whatsappNumber = "593979198755";
   const whatsappMessage =
-    "Hola, vi el Historial de Aciertos en EcuaPronóstico y quiero activar mi suscripción VIP ($14.99/mes) para recibir los pronósticos de mañana antes de los partidos. ¿Me ayudan con los datos de pago?";
+    "Hola, vi el Historial de Aciertos en EcuaPronóstico y quiero activar mi suscripción VIP ($4.99/mes) para recibir los pronósticos de mañana antes de los partidos. ¿Me ayudan con los datos de pago?";
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
   const fetchAciertosData = async (leagueParam: string) => {
@@ -256,7 +256,7 @@ export default function HistorialAciertosPage() {
                 Membresía VIP EcuaPronóstico
               </span>
               <div className="text-2xl sm:text-3xl font-black text-slate-900 my-1">
-                $14.99 <span className="text-xs text-slate-600 font-normal">/ mes</span>
+                $4.99 <span className="text-xs text-slate-600 font-normal">/ mes</span>
               </div>
               <p className="text-[11px] text-slate-700 leading-snug">
                 Acceso a Las 4 Fijas del Día y pronósticos de mañana antes del inicio
@@ -751,7 +751,7 @@ export default function HistorialAciertosPage() {
           </h3>
           <p className="text-xs md:text-sm text-slate-700 max-w-2xl mx-auto leading-relaxed">
             Únete a la suscripción Premium de EcuaPronóstico por solo{" "}
-            <strong className="text-amber-800 text-base">$14.99 / mes</strong>. Desbloquea toda la cartelera completa de las 22 ligas, Las 4 Fijas del Día y el Auditor Cuantitativo en vivo sin censura.
+            <strong className="text-amber-800 text-base">$4.99 / mes</strong>. Desbloquea toda la cartelera completa de las 22 ligas, Las 4 Fijas del Día y el Auditor Cuantitativo en vivo sin censura.
           </p>
           <div className="pt-2">
             <a

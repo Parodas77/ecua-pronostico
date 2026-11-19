@@ -18,7 +18,7 @@ export default function LandingPage() {
 
   const whatsappNumber = "593979198755";
   const whatsappMessage =
-    "Hola, quiero activar mi membresía VIP en EcuaPronóstico ($14.99/mes) para desbloquear todas las ligas y Las 4 Fijas del Día. ¿Me ayudan con los datos de pago?";
+    "Hola, quiero activar mi membresía VIP en EcuaPronóstico ($4.99/mes) para desbloquear todas las ligas y Las 4 Fijas del Día. ¿Me ayudan con los datos de pago?";
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
   useEffect(() => {
@@ -191,7 +191,7 @@ export default function LandingPage() {
                   rel="noopener noreferrer"
                   className="text-xs font-bold text-emerald-700 hover:text-emerald-800 underline"
                 >
-                  Adquirir por WhatsApp por solo $14.99/mes →
+                  Adquirir por WhatsApp por solo $4.99/mes →
                 </a>
               </div>
             </form>
@@ -229,10 +229,10 @@ export default function LandingPage() {
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs bg-[#25D366] hover:bg-[#1ebe5d] text-slate-950 px-3.5 py-2 rounded-xl font-black flex items-center gap-1.5 transition-all shadow-md shadow-[#25D366]/25 hover:scale-105"
-              title="Activar VIP por WhatsApp ($14.99/mes)"
+              title="Activar VIP por WhatsApp ($4.99/mes)"
             >
               <span>📲</span>
-              <span>Activar VIP ($14.99)</span>
+              <span>Activar VIP ($4.99)</span>
             </a>
 
             <Link
@@ -321,7 +321,7 @@ export default function LandingPage() {
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl font-black text-sm sm:text-base uppercase tracking-wider text-slate-950 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 hover:from-amber-300 hover:to-yellow-400 border-2 border-amber-500 shadow-[0_8px_25px_rgba(245,158,11,0.4)] transform hover:scale-[1.03] transition-all cursor-pointer"
               >
                 <span className="text-lg">🔓</span>
-                <span>Obtener Membresía VIP ($14.99 / mes)</span>
+                <span>Obtener Membresía VIP ($4.99 / mes)</span>
               </a>
 
               {/* BOTÓN 2: SECUNDARIO / FREEMIUM */}
@@ -604,7 +604,7 @@ export default function LandingPage() {
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4.5 rounded-2xl font-black text-sm sm:text-base uppercase tracking-wider text-slate-950 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 hover:from-amber-300 hover:to-yellow-400 border-2 border-amber-500 shadow-[0_0_35px_rgba(251,191,36,0.5)] transform hover:scale-[1.04] transition-all cursor-pointer"
               >
                 <span className="text-xl">🔓</span>
-                <span>Obtener Membresía VIP ($14.99 / mes)</span>
+                <span>Obtener Membresía VIP ($4.99 / mes)</span>
               </a>
 
               {/* BOTÓN 2 (SECUNDARIO / FREEMIUM) */}

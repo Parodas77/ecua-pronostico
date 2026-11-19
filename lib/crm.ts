@@ -71,7 +71,7 @@ const INITIAL_USERS: UserRecord[] = [
     estado_suscripcion: "activo",
     metodo_pago: "Banco Pichincha",
     referencia_pago: "Transf #893012",
-    monto_pago: 14.99,
+    monto_pago: 4.99,
     aprobado_por_admin: true,
     fecha_inicio_suscripcion: new Date(Date.now() - 2 * 86400000).toISOString(),
     fecha_expiracion_suscripcion: new Date(Date.now() + 28 * 86400000).toISOString(),
@@ -89,8 +89,8 @@ const INITIAL_USERS: UserRecord[] = [
     password_hash: hashPassword("wilson2026"),
     estado_suscripcion: "pendiente",
     metodo_pago: "Banco Pichincha (Deuna)",
-    referencia_pago: "Comprobante Deuna #948271 por $14.99",
-    monto_pago: 14.99,
+    referencia_pago: "Comprobante Deuna #948271 por $4.99",
+    monto_pago: 4.99,
     aprobado_por_admin: false,
     fecha_inicio_suscripcion: "",
     fecha_expiracion_suscripcion: "",
@@ -109,7 +109,7 @@ const INITIAL_USERS: UserRecord[] = [
     estado_suscripcion: "expirado",
     metodo_pago: "Banco Guayaquil",
     referencia_pago: "Depósito #120938",
-    monto_pago: 14.99,
+    monto_pago: 4.99,
     aprobado_por_admin: true,
     fecha_inicio_suscripcion: new Date(Date.now() - 35 * 86400000).toISOString(),
     fecha_expiracion_suscripcion: new Date(Date.now() - 5 * 86400000).toISOString(),
@@ -128,7 +128,7 @@ const INITIAL_USERS: UserRecord[] = [
     estado_suscripcion: "inactivo",
     metodo_pago: "Banco Pichincha",
     referencia_pago: "Transf #772810",
-    monto_pago: 14.99,
+    monto_pago: 4.99,
     aprobado_por_admin: true,
     fecha_inicio_suscripcion: new Date(Date.now() - 40 * 86400000).toISOString(),
     fecha_expiracion_suscripcion: new Date(Date.now() - 10 * 86400000).toISOString(),
@@ -265,7 +265,7 @@ export function createUser(input: CreateUserInput): { success: boolean; user?: U
     estado_suscripcion: estado,
     metodo_pago: input.metodo_pago || "Transferencia Bancaria",
     referencia_pago: input.referencia_pago || "Comprobante enviado por WhatsApp",
-    monto_pago: input.monto_pago || 14.99,
+    monto_pago: input.monto_pago || 4.99,
     aprobado_por_admin: estado === "activo",
     fecha_aprobacion: estado === "activo" ? now.toISOString() : "",
     fecha_inicio_suscripcion: fechaInicio,
@@ -444,7 +444,7 @@ export async function createUserAsync(
           estado_suscripcion: estado,
           metodo_pago: input.metodo_pago || "Transferencia Bancaria",
           referencia_pago: input.referencia_pago || "Comprobante enviado por WhatsApp",
-          monto_pago: input.monto_pago || 14.99,
+          monto_pago: input.monto_pago || 4.99,
           aprobado_por_admin: estado === "activo",
           fecha_aprobacion: estado === "activo" ? now.toISOString() : null,
           fecha_inicio_suscripcion: fechaInicio,
@@ -627,7 +627,7 @@ export async function authenticateAndReactivateUserAsync(
 
   const newRef = tokenData?.reference || foundUser.referencia_pago || "Reactivación WhatsApp";
   const newBank = tokenData?.bank || foundUser.metodo_pago || "Transferencia Bancaria";
-  const newAmount = tokenData?.amount || 14.99;
+  const newAmount = tokenData?.amount || 4.99;
   const logNote = ` | Reactivado +${additionalDays}d VIP [Token: ${tokenData?.token || "manual"}] el ${new Date().toLocaleDateString("es-EC")}`;
   const updatedNotes = `${foundUser.notas_admin || ""}${logNote}`.trim();
 

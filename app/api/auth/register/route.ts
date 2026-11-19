@@ -145,7 +145,7 @@ export async function POST(request: Request) {
     // Crear usuario en base de datos CRM en estado ACTIVO POR 30 DÍAS (pago ya verificado por token)
     const tokenData = tokenCheck.tokenData;
     const finalPhone = tokenData?.phone || telefono_whatsapp;
-    const finalAmount = tokenData?.amount || 14.99;
+    const finalAmount = tokenData?.amount || 4.99;
     const finalRef = tokenData?.reference || referencia_pago;
     const finalBank = tokenData?.bank || metodo_pago;
 

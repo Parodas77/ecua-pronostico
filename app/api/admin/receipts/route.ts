@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       const tokenResult = createActivationToken({
         phone: clientPhone,
         reference: adminNotes || "INVITACION_MANUAL_ADMIN",
-        amount: 14.99,
+        amount: 4.99,
         bank: "Transferencia Bancaria",
       });
       return NextResponse.json({
@@ -101,8 +101,8 @@ export async function POST(request: NextRequest) {
         }\n\n¡Tus 30 días VIP comenzarán en cuanto completes tu usuario y contraseña! Bienvenido a EcuaPronóstico 🚀⚽`;
       } else {
         clientMessage = `Hola, no pudimos validar automáticamente tu comprobante (${
-          audit.motivo || "imagen poco legible, monto menor a $14.99 o titular no coincide"
-        }).\n\nPor favor envía una foto clara y nítida donde se aprecie la cuenta de destino (Pedro Alfonso Rodas Talbott) y el valor transferido ($14.99), o espera un momento a que un administrador valide tu comprobante manualmente. 🤝`;
+          audit.motivo || "imagen poco legible, monto menor a $4.99 o titular no coincide"
+        }).\n\nPor favor envía una foto clara y nítida donde se aprecie la cuenta de destino (Pedro Alfonso Rodas Talbott) y el valor transferido ($4.99), o espera un momento a que un administrador valide tu comprobante manualmente. 🤝`;
       }
 
       const record: ReceiptAuditRecord = {

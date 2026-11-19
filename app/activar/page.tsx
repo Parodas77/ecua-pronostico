@@ -35,7 +35,7 @@ function ActivacionVipForm() {
   const [tokenStatus, setTokenStatus] = useState<"validating" | "authorized" | "unauthorized">("validating");
   const [tokenError, setTokenError] = useState("");
   const [currentToken, setCurrentToken] = useState("");
-  const [verifiedAmount, setVerifiedAmount] = useState<number>(14.99);
+  const [verifiedAmount, setVerifiedAmount] = useState<number>(4.99);
 
   // Selector de Pestaña: "nuevo" (Crear cuenta) o "reactivar" (Cliente existente)
   const [activeTab, setActiveTab] = useState<"nuevo" | "reactivar">("nuevo");
@@ -92,7 +92,7 @@ function ActivacionVipForm() {
           setTokenStatus("authorized");
           if (data.tokenData) {
             const td = data.tokenData;
-            setVerifiedAmount(td.amount || 14.99);
+            setVerifiedAmount(td.amount || 4.99);
             setFormData((prev) => ({
               ...prev,
               telefono_whatsapp: td.phone || prev.telefono_whatsapp,
@@ -235,7 +235,7 @@ function ActivacionVipForm() {
 
   const adminWhatsappNumber = "593979198755";
   const whatsappSolicitudUrl = `https://wa.me/${adminWhatsappNumber}?text=${encodeURIComponent(
-    "Hola, quiero activar mi suscripción Premium en EcuaPronóstico ($14.99/mes) para desbloquear las 4 Fijas del Día. ¿Me ayudan con los datos de pago?"
+    "Hola, quiero activar mi suscripción Premium en EcuaPronóstico ($4.99/mes) para desbloquear las 4 Fijas del Día. ¿Me ayudan con los datos de pago?"
   )}`;
 
   return (
@@ -302,7 +302,7 @@ function ActivacionVipForm() {
                   1
                 </span>
                 <span>
-                  Realiza tu transferencia de <strong>$14.99 USD</strong> a Banco Pichincha o Banco del Guayaquil.
+                  Realiza tu transferencia de <strong>$4.99 USD</strong> a Banco Pichincha o Banco del Guayaquil.
                 </span>
               </div>
               <div className="flex items-start gap-2.5 text-slate-700">

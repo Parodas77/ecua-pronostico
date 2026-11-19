@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     estado_suscripcion estado_suscripcion_enum NOT NULL DEFAULT 'pendiente',
     metodo_pago VARCHAR(80) DEFAULT 'Transferencia Bancaria',
     referencia_pago VARCHAR(150),
-    monto_pago DECIMAL(10, 2) DEFAULT 14.99,
+    monto_pago DECIMAL(10, 2) DEFAULT 4.99,
     aprobado_por_admin BOOLEAN DEFAULT FALSE,
     fecha_aprobacion TIMESTAMP WITH TIME ZONE,
     fecha_inicio_suscripcion TIMESTAMP WITH TIME ZONE,

@@ -8,7 +8,7 @@ import {
 } from "@/lib/receiptsDb";
 
 // TEXTO INSTITUCIONAL OFICIAL DE RESPUESTA CON DATOS BANCARIOS LOCALES
-export const WHATSAPP_BANK_DETAILS_MESSAGE = `¡Hola! 👋 Qué gusto saludarte. Claro que sí, con mucho gusto te ayudamos a activar tu acceso VIP a *EcuaPronóstico* ($14.99/mes) para desbloquear todas las ligas y Las 4 Fijas del Día. ⚽📊
+export const WHATSAPP_BANK_DETAILS_MESSAGE = `¡Hola! 👋 Qué gusto saludarte. Claro que sí, con mucho gusto te ayudamos a activar tu acceso VIP a *EcuaPronóstico* ($4.99/mes) para desbloquear todas las ligas y Las 4 Fijas del Día. ⚽📊
 
 Realiza tu transferencia directa a cualquiera de nuestras cuentas oficiales:
 
@@ -135,8 +135,8 @@ export async function POST(request: NextRequest) {
       await sendWhatsAppMessage(fromPhone, clientMessage);
     } else {
       clientMessage = `Hola, no pudimos validar automáticamente tu comprobante (${
-        auditResult.motivo || "imagen poco legible, monto menor a $14.99 o titular no coincide"
-      }).\n\nPor favor envía una foto clara y nítida donde se aprecie la cuenta de destino (Pedro Alfonso Rodas Talbott) y el valor transferido ($14.99), o espera un momento a que un administrador valide tu comprobante manualmente. 🤝`;
+        auditResult.motivo || "imagen poco legible, monto menor a $4.99 o titular no coincide"
+      }).\n\nPor favor envía una foto clara y nítida donde se aprecie la cuenta de destino (Pedro Alfonso Rodas Talbott) y el valor transferido ($4.99), o espera un momento a que un administrador valide tu comprobante manualmente. 🤝`;
 
       await sendWhatsAppMessage(fromPhone, clientMessage);
     }
@@ -248,8 +248,8 @@ async function handleDirectTestAudit(body: any) {
     }\n\n¡Tus 30 días VIP comenzarán en cuanto completes tu usuario y contraseña! Bienvenido a EcuaPronóstico 🚀⚽`;
   } else {
     clientMessage = `Hola, no pudimos validar automáticamente tu comprobante (${
-      auditResult.motivo || "imagen poco legible, monto menor a $14.99 o titular no coincide"
-    }).\n\nPor favor envía una foto clara y nítida donde se aprecie la cuenta de destino (Pedro Alfonso Rodas Talbott) y el valor transferido ($14.99), o espera un momento a que un administrador valide tu comprobante manualmente. 🤝`;
+      auditResult.motivo || "imagen poco legible, monto menor a $4.99 o titular no coincide"
+    }).\n\nPor favor envía una foto clara y nítida donde se aprecie la cuenta de destino (Pedro Alfonso Rodas Talbott) y el valor transferido ($4.99), o espera un momento a que un administrador valide tu comprobante manualmente. 🤝`;
   }
 
   const record: ReceiptAuditRecord = {

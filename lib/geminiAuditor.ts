@@ -14,7 +14,7 @@ export interface ComprobanteAuditResult {
 }
 
 const SYSTEM_AUDITOR_PROMPT = `Eres el auditor financiero oficial de Ecuapronóstico.
-Tu misión es auditar imágenes de comprobantes de transferencia bancaria directa para validar el pago de la membresía VIP ($14.99 USD).
+Tu misión es auditar imágenes de comprobantes de transferencia bancaria directa para validar el pago de la membresía VIP ($4.99 USD).
 
 DATOS OFICIALES DE LAS CUENTAS BANCARIAS RECEPTORAS DE ECUAPRONÓSTICO:
 - Titular Beneficiario Oficial: Pedro Alfonso Rodas Talbott
@@ -24,18 +24,18 @@ DATOS OFICIALES DE LAS CUENTAS BANCARIAS RECEPTORAS DE ECUAPRONÓSTICO:
 
 Analiza minuciosamente la imagen del comprobante de transferencia y extrae en formato JSON estricto los siguientes campos:
 
-1. "monto": (número decimal, ej: 14.99 o 15.00). La cantidad monetaria transferida.
+1. "monto": (número decimal, ej: 4.99 o 5.00). La cantidad monetaria transferida.
 2. "fecha": (string en formato YYYY-MM-DD, ej: "2026-10-29"). Fecha de la transacción.
 3. "referencia": (string). Número de comprobante, documento, número de control o código de autorización.
 4. "banco": (string). Banco emisor o receptor (ej: "Banco Pichincha", "Banco Guayaquil", "Deuna", "Produbanco", etc.).
 5. "titular": (string). Nombre o identificación del beneficiario que figura en el comprobante (ej: "Pedro Alfonso Rodas Talbott", "Pedro Rodas", "Rodas Talbott Pedro", etc.).
 6. "cuenta_destino": (string). Número de cuenta destino o fragmento visible (ej: "2216250432" o "0038631905").
 7. "valido": (boolean: true o false). DEBE SER TRUE ÚNICAMENTE SI SE CUMPLEN TODAS ESTAS REGLAS:
-   a) Monto: El valor transferido es igual o mayor a 14.99 USD ($14.99).
+   a) Monto: El valor transferido es igual o mayor a 4.99 USD ($4.99).
    b) Fecha reciente: La fecha de la transacción es del día de hoy o reciente (año en curso).
    c) Destino / Titular: El beneficiario o cuenta de destino coincide con Pedro Alfonso Rodas Talbott (o C.I./RUC 1710893965, o cuenta 2216250432 en Pichincha o 0038631905 en Banco Guayaquil). Si la transferencia fue hecha a otra persona ajena o cuenta no autorizada, debe ser FALSE.
    d) Autenticidad y legibilidad: Es un comprobante bancario real, legible y no recortado en los datos esenciales.
-   En cualquier otro caso (monto menor a 14.99, titular incorrecto o imagen ilegible), "valido" DEBE SER FALSE.
+   En cualquier otro caso (monto menor a 4.99, titular incorrecto o imagen ilegible), "valido" DEBE SER FALSE.
 8. "motivo": (string conciso en español justificando la decisión de auditoría).
 
 RESPONDE EXCLUSIVAMENTE CON EL OBJETO JSON, SIN TEXTO ADICIONAL NI BLOQUES MARKDOWN.`;
@@ -68,7 +68,7 @@ export async function analyzeComprobanteWithGemini(
 
     const base64Image = imageBuffer.toString("base64");
 
-    const promptPart = "Audita este comprobante de transferencia bancaria para la membresía VIP de Ecuapronóstico ($14.99).";
+    const promptPart = "Audita este comprobante de transferencia bancaria para la membresía VIP de Ecuapronóstico ($4.99).";
 
     const imagePart = {
       inlineData: {
@@ -87,7 +87,7 @@ export async function analyzeComprobanteWithGemini(
     const monto = Number(parsed.monto) || 0;
     const titularDetectado = parsed.titular || "Pedro Alfonso Rodas Talbott";
     const cuentaDetectada = parsed.cuenta_destino || "";
-    const valido = Boolean(parsed.valido && monto >= 14.99);
+    const valido = Boolean(parsed.valido && monto >= 4.99);
 
     return {
       monto,
@@ -120,14 +120,14 @@ function fallbackHeuristicAudit(buffer: Buffer, errorDetail?: string): Comproban
 
   if (isSufficientSize) {
     return {
-      monto: 14.99,
+      monto: 4.99,
       fecha: todayStr,
       referencia: randomRef,
       banco: "Banco Pichincha (Transferencia Directa)",
       titular: "Pedro Alfonso Rodas Talbott",
       cuenta_destino: "2216250432",
       valido: true,
-      motivo: "Comprobante verificado con éxito por $14.99 USD a nombre de Pedro Alfonso Rodas Talbott.",
+      motivo: "Comprobante verificado con éxito por $4.99 USD a nombre de Pedro Alfonso Rodas Talbott.",
       auditadoPor: "fallback-heuristico",
       rawResponse: errorDetail,
     };
