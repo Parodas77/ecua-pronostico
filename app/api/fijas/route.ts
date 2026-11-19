@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { saveHistorialRecordAsync } from "@/lib/historialDb";
 import { getEcuadorDayKey, getEcuadorFormattedDate, getEcuadorDayWindowMs, getDailySnapshotAsync, saveDailySnapshotAsync, FijasSnapshotPayload } from "@/lib/fijasSnapshot";
+import { buildEcuadorBookmakersComparison } from "@/lib/ecuadorBookmakers";
 
 // =========================================================================
 // MOTOR MATEMÁTICO Y DE SELECCIÓN PARA "LAS 4 FIJAS DEL DÍA"
@@ -482,6 +483,21 @@ export async function GET(request: Request) {
       // Métricas avanzadas adaptadas semánticamente al deporte
       const sportMetrics = calculateSportMetrics(lg.sportCategory, winnerProb, loserProb, fixtureSeed);
 
+      // Comparador de Cuotas Ecuador (Betano, 1xBet, Latribet, Ecuabet, Bet365)
+      const ecuadorOddsComparison = buildEcuadorBookmakersComparison({
+        fixtureId: String(ev.id || matchTimeMs),
+        homeName,
+        awayName,
+        baseOdd1: odd1,
+        baseOddX: oddX,
+        baseOdd2: odd2,
+        baseOver: oddOver,
+        baseUnder: oddUnder,
+        bestOdd: topMarket.odd,
+        bestMarketName: topMarket.name,
+        hasDraw: isSoccer,
+      });
+
       // Formato de hora en hora de Ecuador (ECT)
       const dateFormatted = eventDate.toLocaleDateString("es-EC", {
         timeZone: "America/Guayaquil",
@@ -530,6 +546,7 @@ export async function GET(request: Request) {
         confidenceScore: Math.round(topMarket.score),
         hasRealEdge,
         headToHeadWinProb: h2hWinProb,
+        ecuadorOddsComparison,
         // Semántica dinámica por deporte
         unitLabel: lexicon.unitLabel,
         metricLabel: lexicon.metricLabel,

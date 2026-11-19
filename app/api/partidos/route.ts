@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { fetchOddsWithPacemaker, fetchApiFootballWithDailyQuota } from "@/lib/apiPacemaker";
 import { isAuthorizedAdminRequest } from "@/lib/adminAuth";
+import { buildEcuadorBookmakersComparison } from "@/lib/ecuadorBookmakers";
 
 function getNext8DaysWindow() {
   const now = new Date();
@@ -1316,6 +1317,24 @@ export async function GET(request: Request) {
         ? `✅ VALOR ESPERADO DETECTADO (+${topPickEV}% EV): La opción principal '${topPickName}' supera la probabilidad desmarginizada de la casa (${topPickRealProb}% en Montecarlo vs ${topPickHouseImplied}% del mercado).`
         : `⚖️ MERCADO EQUILIBRADO (${topPickEV}% EV): Pronóstico principal con ventaja competitiva: '${topPickName}'. Cuota mínima rentable para apostar: ${minFairOddForTopPick}.`;
 
+      // COMPARADOR DE CUOTAS DE LAS 5 CASAS LÍDERES EN ECUADOR (Betano, 1xBet, Latribet, Ecuabet, Bet365)
+      const ecuadorOddsComparison = buildEcuadorBookmakersComparison({
+        fixtureId,
+        homeName,
+        awayName,
+        baseOdd1: defaultOdd1,
+        baseOddX: defaultOddX,
+        baseOdd2: defaultOdd2,
+        baseOver: defaultOver,
+        baseUnder: defaultUnder,
+        bestOdd: topPickOdd,
+        bestMarketName: topPickName,
+        hasDraw: config.sportCategory === "soccer",
+        rawApiBookmakers: matchedOddEvent?.bookmakers,
+        normHome: normH,
+        normAway: normA,
+      });
+
       return {
         id: `espn-${ev.id || idx}`,
         fixtureId,
@@ -1424,6 +1443,9 @@ export async function GET(request: Request) {
         minFairOddForTopPick,
         probImplicitaBest: topPickHouseImplied,
         probReal: topPickRealProb,
+
+        // Comparador de Cuotas Ecuador (Betano, 1xBet, Latribet, Ecuabet, Bet365)
+        ecuadorOddsComparison,
 
         reportePlantilla: reporteVerificado,
         cuotaMejoradaCasa: "Evita combinadas de 3 o más condiciones del mismo partido.",

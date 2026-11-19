@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import AdminRenewalAlertBanner from "@/components/AdminRenewalAlertBanner";
 import SportCourtBackground, { getSportSurfaceFromLeague } from "@/components/SportCourtBackground";
+import { buildEcuadorBookmakersComparison } from "@/lib/ecuadorBookmakers";
 
 interface LeagueOption {
   id: string;
@@ -1144,6 +1145,19 @@ export default function EcuaPronosticoDashboard() {
                   const headToHeadWinProb = m.headToHeadWinProb || Number(((rawWinProb / Math.max(1, rawWinProb + (isHomeWinner ? awayProb : homeProb))) * 100).toFixed(1));
                   const safeDoubleProb = isHomeWinner ? m.prob1X : m.probX2;
                   const lexicon = getSportLexicon(m.sportCategory);
+                  const fijaComparison = m.ecuadorOddsComparison || buildEcuadorBookmakersComparison({
+                    fixtureId: String(m.fixtureId || m.id || idx),
+                    homeName: m.home || "Local",
+                    awayName: m.away || "Visitante",
+                    baseOdd1: Number(m.bestOdd || 1.85),
+                    baseOddX: 3.20,
+                    baseOdd2: 3.40,
+                    baseOver: 1.90,
+                    baseUnder: 1.90,
+                    bestOdd: Number(m.bestOdd || 1.85),
+                    bestMarketName: m.bestMarketName || "Ganador",
+                    hasDraw: !m.sportCategory || m.sportCategory === "soccer",
+                  });
 
                   return (
                     <div
@@ -1296,6 +1310,33 @@ export default function EcuaPronosticoDashboard() {
                                 <span>🛡️</span> Sello IA EcuaPronóstico
                               </span>
                               <span className="font-mono text-slate-500">Cero Azar</span>
+                            </div>
+
+                            {/* MINI-COMPARADOR ECUADOR EN LAS 4 FIJAS */}
+                            <div className="pt-2 border-t border-slate-300">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-[10px] font-black uppercase text-slate-800">
+                                  🇪🇨 Comparador Cuotas Ecuador:
+                                </span>
+                                <span className="text-[10px] bg-emerald-100 text-emerald-900 border border-emerald-500 px-1.5 py-0.5 rounded font-black">
+                                  🏆 Mejor: {fijaComparison.topPickBookmakerName} ({Number(fijaComparison.topPickBestOdd).toFixed(2)})
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-5 gap-1 text-center">
+                                {fijaComparison.bookmakers.map((bk: any) => (
+                                  <div
+                                    key={bk.id}
+                                    className={`rounded-lg py-1 px-1 border text-[10px] ${
+                                      bk.isBestForTopPick
+                                        ? "bg-emerald-100 border-emerald-600 text-emerald-950 font-black shadow-sm"
+                                        : "bg-white border-slate-300 text-slate-800 font-bold"
+                                    }`}
+                                  >
+                                    <span className="block truncate text-[9px] uppercase">{bk.name}</span>
+                                    <span className="font-mono text-xs font-black">{Number(bk.oddTopPick).toFixed(2)}</span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           </div>
 
@@ -1517,6 +1558,19 @@ export default function EcuaPronosticoDashboard() {
                     const isHomeFav = probHome >= probAway && probHome >= probDraw;
                     const isAwayFav = probAway > probHome && probAway >= probDraw;
                     const isDrawFav = probDraw > probHome && probDraw > probAway;
+                    const matchComparison = m.ecuadorOddsComparison || buildEcuadorBookmakersComparison({
+                      fixtureId: String(m.fixtureId || m.id || idx),
+                      homeName: m.home || "Local",
+                      awayName: m.away || "Visitante",
+                      baseOdd1: Number(m.cuotaLocal || 2.00),
+                      baseOddX: Number(m.cuotaEmpate || 3.20),
+                      baseOdd2: Number(m.cuotaVisita || 3.40),
+                      baseOver: Number(m.cuotaOver || 1.90),
+                      baseUnder: Number(m.cuotaUnder || 1.90),
+                      bestOdd: Number(m.bestOdd || 1.90),
+                      bestMarketName: m.bestMarketName || "Ganador",
+                      hasDraw: isSoccer,
+                    });
 
                     return (
                       <div
@@ -1678,6 +1732,32 @@ export default function EcuaPronosticoDashboard() {
                                   <span className={isAwayFav ? "text-amber-800 font-black" : "text-slate-800 font-bold"}>
                                     Gana {m.away} <strong className="text-slate-950 font-black">{m.cleanProb2}%</strong>
                                   </span>
+                                </div>
+                                {/* CINTA COMPARADORA DE LAS 5 CASAS DE APUESTAS DE ECUADOR */}
+                                <div className="mt-2.5 pt-2 border-t border-slate-300">
+                                  <div className="flex items-center justify-between gap-1 mb-1.5">
+                                    <span className="text-[10px] font-black uppercase text-slate-800">
+                                      🇪🇨 Mejor Cuota ({m.bestMarketName}):
+                                    </span>
+                                    <span className="text-[10px] bg-emerald-100 text-emerald-950 border border-emerald-600 px-2 py-0.5 rounded-full font-black">
+                                      🏆 {matchComparison.topPickBookmakerName}: {Number(matchComparison.topPickBestOdd).toFixed(2)}
+                                    </span>
+                                  </div>
+                                  <div className="grid grid-cols-5 gap-1">
+                                    {matchComparison.bookmakers.map((bk: any) => (
+                                      <div
+                                        key={bk.id}
+                                        className={`rounded-lg py-1 px-1 border text-center ${
+                                          bk.isBestForTopPick
+                                            ? "bg-emerald-100 border-emerald-600 text-emerald-950 font-black shadow-sm"
+                                            : "bg-white border-slate-300 text-slate-800 font-bold"
+                                        }`}
+                                      >
+                                        <span className="block text-[9px] uppercase truncate">{bk.name}</span>
+                                        <span className="font-mono text-xs font-black">{Number(bk.oddTopPick).toFixed(2)}</span>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -2091,6 +2171,7 @@ export default function EcuaPronosticoDashboard() {
                     <div className="flex overflow-x-auto bg-slate-100 border-b border-slate-300 p-1.5 gap-1.5 text-xs font-bold">
                       {[
                         { id: "todos", label: "📊 Todas las Opciones Explicadas" },
+                        { id: "casas_ecuador", label: "🇪🇨 Comparador Cuotas Ecuador (5 Casas)" },
                         { id: "asiatico", label: "🛡️ Hándicap Asiático & Coberturas (+EV)" },
                         { id: "goles", label: "⚽ Goles (Poisson) & Ambos Marcan" },
                         { id: "marcadores", label: "🎯 Marcadores Más Probables & Doble Oportunidad" }
@@ -2149,6 +2230,157 @@ export default function EcuaPronosticoDashboard() {
                           </div>
                         </div>
                       )}
+
+                      {/* MÓDULO COMPARADOR DE CUOTAS DE LAS 5 CASAS LÍDERES EN ECUADOR */}
+                      {(activeMarketTab === "todos" || activeMarketTab === "casas_ecuador") && (() => {
+                        const compData = currentMatch.ecuadorOddsComparison || buildEcuadorBookmakersComparison({
+                          fixtureId: String(currentMatch.fixtureId || currentMatch.id || "1"),
+                          homeName: currentMatch.home || "Local",
+                          awayName: currentMatch.away || "Visitante",
+                          baseOdd1: Number(currentMatch.cuotaLocal || 2.00),
+                          baseOddX: Number(currentMatch.cuotaEmpate || 3.20),
+                          baseOdd2: Number(currentMatch.cuotaVisita || 3.40),
+                          baseOver: Number(currentMatch.cuotaOver || 1.90),
+                          baseUnder: Number(currentMatch.cuotaUnder || 1.90),
+                          bestOdd: Number(currentMatch.bestOdd || 1.90),
+                          bestMarketName: currentMatch.bestMarketName || "Ganador",
+                          hasDraw: !currentMatch.sportCategory || currentMatch.sportCategory === "soccer",
+                        });
+                        const hasDrawCol = !currentMatch.sportCategory || currentMatch.sportCategory === "soccer";
+
+                        return (
+                          <div className="bg-white border-2 border-emerald-500 rounded-xl p-4 space-y-4 shadow-md">
+                            <div className="flex flex-wrap justify-between items-center gap-2 border-b border-slate-300 pb-3">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-base">🇪🇨</span>
+                                  <h4 className="text-xs md:text-sm font-black uppercase text-slate-950">
+                                    Comparador Oficial de Cuotas en Ecuador (Betano • 1xBet • Latribet • Ecuabet • Bet365)
+                                  </h4>
+                                </div>
+                                <p className="text-[11px] text-slate-700 font-medium mt-0.5">
+                                  Encuentra qué casa de apuestas en Ecuador paga más por <strong>{currentMatch.bestMarketName}</strong> y maximiza tu retorno limpio.
+                                </p>
+                              </div>
+                              <div className="bg-emerald-100 border-2 border-emerald-600 px-3 py-1.5 rounded-xl text-right">
+                                <span className="text-[10px] font-black uppercase text-emerald-900 block">
+                                  🏆 Mejor Cuota Detectada
+                                </span>
+                                <span className="text-xs md:text-sm font-black text-slate-950 font-mono">
+                                  {compData.topPickBookmakerName}: {Number(compData.topPickBestOdd).toFixed(2)}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* TABLA COMPARATIVA DE LAS 5 CASAS */}
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-left text-xs border-collapse">
+                                <thead>
+                                  <tr className="bg-slate-100 text-slate-800 uppercase text-[10px] font-black border-b-2 border-slate-300">
+                                    <th className="py-2.5 px-3">Casa de Apuestas (Ecuador)</th>
+                                    <th className="py-2.5 px-2 text-center bg-amber-50 border-x border-amber-300 text-amber-950">
+                                      🎯 Jugada: {currentMatch.bestMarketName}
+                                    </th>
+                                    <th className="py-2.5 px-2 text-center">1 ({currentMatch.homeInitials})</th>
+                                    {hasDrawCol && <th className="py-2.5 px-2 text-center">X (Empate)</th>}
+                                    <th className="py-2.5 px-2 text-center">2 ({currentMatch.awayInitials})</th>
+                                    <th className="py-2.5 px-2 text-center">Más {currentMatch.lineGoals}</th>
+                                    <th className="py-2.5 px-2 text-center">Menos {currentMatch.lineGoals}</th>
+                                    <th className="py-2.5 px-2 text-center">Margen Casa</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-200">
+                                  {compData.bookmakers.map((bk: any) => (
+                                    <tr
+                                      key={bk.id}
+                                      className={
+                                        bk.isBestForTopPick
+                                          ? "bg-emerald-50/90 font-bold"
+                                          : "hover:bg-slate-50"
+                                      }
+                                    >
+                                      <td className="py-2.5 px-3">
+                                        <div className="flex items-center gap-2">
+                                          <a
+                                            href={bk.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="font-black text-slate-950 hover:text-blue-700 underline decoration-slate-400"
+                                          >
+                                            {bk.name} ↗
+                                          </a>
+                                          <span className="text-[10px] bg-slate-100 text-slate-800 border border-slate-300 px-1.5 py-0.5 rounded font-bold">
+                                            {bk.badge}
+                                          </span>
+                                          {bk.isBestForTopPick && (
+                                            <span className="text-[9px] bg-emerald-500 text-slate-950 font-black px-2 py-0.5 rounded-full uppercase">
+                                              ★ Mejor Pago
+                                            </span>
+                                          )}
+                                        </div>
+                                        <p className="text-[10px] text-slate-700 font-medium mt-0.5 leading-snug">
+                                          {bk.highlight}
+                                        </p>
+                                      </td>
+                                      <td className="py-2.5 px-2 text-center font-mono bg-amber-50/60 border-x border-amber-200">
+                                        <span
+                                          className={`inline-block px-2 py-0.5 rounded text-xs font-black ${
+                                            bk.isBestForTopPick
+                                              ? "bg-emerald-600 text-white shadow"
+                                              : "text-slate-900"
+                                          }`}
+                                        >
+                                          {Number(bk.oddTopPick).toFixed(2)}
+                                        </span>
+                                      </td>
+                                      <td className="py-2.5 px-2 text-center font-mono">
+                                        <span className={bk.isBestForHome ? "text-emerald-800 font-black underline" : "text-slate-800 font-bold"}>
+                                          {Number(bk.oddHome).toFixed(2)}
+                                        </span>
+                                      </td>
+                                      {hasDrawCol && (
+                                        <td className="py-2.5 px-2 text-center font-mono">
+                                          <span className={bk.isBestForDraw ? "text-emerald-800 font-black underline" : "text-slate-800 font-bold"}>
+                                            {Number(bk.oddDraw).toFixed(2)}
+                                          </span>
+                                        </td>
+                                      )}
+                                      <td className="py-2.5 px-2 text-center font-mono">
+                                        <span className={bk.isBestForAway ? "text-emerald-800 font-black underline" : "text-slate-800 font-bold"}>
+                                          {Number(bk.oddAway).toFixed(2)}
+                                        </span>
+                                      </td>
+                                      <td className="py-2.5 px-2 text-center font-mono">
+                                        <span className={bk.isBestForOver ? "text-emerald-800 font-black underline" : "text-slate-800 font-bold"}>
+                                          {Number(bk.oddOver).toFixed(2)}
+                                        </span>
+                                      </td>
+                                      <td className="py-2.5 px-2 text-center font-mono text-slate-800 font-bold">
+                                        {Number(bk.oddUnder).toFixed(2)}
+                                      </td>
+                                      <td className="py-2.5 px-2 text-center font-mono text-[11px] text-slate-700 font-semibold">
+                                        {bk.marginPercent}%
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+
+                            <div className="bg-emerald-50 border border-emerald-500/40 rounded-lg p-2.5 text-xs text-slate-900 flex flex-wrap items-center justify-between gap-2">
+                              <span>
+                                💡 <strong>Ventaja por Comparación en Ecuador:</strong> Apostar a <strong>{currentMatch.bestMarketName}</strong> en{" "}
+                                <strong className="text-emerald-800">{compData.topPickBookmakerName} (Cuota {Number(compData.topPickBestOdd).toFixed(2)})</strong>{" "}
+                                en lugar de la cuota más baja ({Number(compData.topPickMinOdd).toFixed(2)}) te genera{" "}
+                                <strong className="text-emerald-800">+${compData.extraProfitPer100} USD extra</strong> por cada $100 apostados.
+                              </span>
+                              <span className="text-[10px] font-mono font-bold text-slate-700">
+                                Cuota Mínima Rentable IA: {currentMatch.minFairOddForTopPick}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })()}
 
                       {/* MÓDULO DE HÁNDICAP ASIÁTICO & COBERTURAS (+EV) */}
                       {(activeMarketTab === "todos" || activeMarketTab === "asiatico") && (
