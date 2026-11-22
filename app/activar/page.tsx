@@ -503,25 +503,31 @@ function ActivacionVipForm() {
                     {/* DATOS PERSONALES */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-1">Nombre *</label>
+                        <label htmlFor="reg-nombre" className="text-xs font-bold text-slate-700 block mb-1">Nombre *</label>
                         <input
+                          id="reg-nombre"
                           type="text"
                           name="nombre"
                           value={formData.nombre}
                           onChange={handleRegisterChange}
                           placeholder="Ej: Wilson"
+                          autoComplete="given-name"
+                          enterKeyHint="next"
                           className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-amber-400"
                           required
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-1">Apellido *</label>
+                        <label htmlFor="reg-apellido" className="text-xs font-bold text-slate-700 block mb-1">Apellido *</label>
                         <input
+                          id="reg-apellido"
                           type="text"
                           name="apellido"
                           value={formData.apellido}
                           onChange={handleRegisterChange}
                           placeholder="Ej: Salazar"
+                          autoComplete="family-name"
+                          enterKeyHint="next"
                           className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-amber-400"
                           required
                         />
@@ -531,25 +537,31 @@ function ActivacionVipForm() {
                     {/* WHATSAPP Y CIUDAD */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                        <label htmlFor="reg-telefono" className="text-xs font-bold text-slate-700 block mb-1">
                           WhatsApp Vinculado al Pago *
                         </label>
                         <input
-                          type="text"
+                          id="reg-telefono"
+                          type="tel"
+                          inputMode="tel"
                           name="telefono_whatsapp"
                           value={formData.telefono_whatsapp}
                           onChange={handleRegisterChange}
+                          autoComplete="tel"
+                          enterKeyHint="next"
                           className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-mono outline-none focus:border-amber-400"
                           required
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-1">Ciudad *</label>
+                        <label htmlFor="reg-ciudad" className="text-xs font-bold text-slate-700 block mb-1">Ciudad *</label>
                         <select
+                          id="reg-ciudad"
                           name="ciudad"
                           value={formData.ciudad}
                           onChange={handleRegisterChange}
+                          autoComplete="address-level2"
                           className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-amber-400"
                           required
                         >
@@ -564,15 +576,17 @@ function ActivacionVipForm() {
 
                     {formData.ciudad === "Otra Ciudad (Ecuador o Exterior)" && (
                       <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                        <label htmlFor="reg-ciudad-otra" className="text-xs font-bold text-slate-700 block mb-1">
                           Escribe el nombre de tu ciudad o país *
                         </label>
                         <input
+                          id="reg-ciudad-otra"
                           type="text"
                           name="ciudadOtra"
                           value={formData.ciudadOtra}
                           onChange={handleRegisterChange}
                           placeholder="Ej: Manta / New York"
+                          autoComplete="address-level2"
                           className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-amber-400"
                           required
                         />
@@ -581,14 +595,18 @@ function ActivacionVipForm() {
 
                     {/* CORREO */}
                     <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1">Correo Electrónico *</label>
+                      <label htmlFor="reg-correo" className="text-xs font-bold text-slate-700 block mb-1">Correo Electrónico *</label>
                       <input
+                        id="reg-correo"
                         type="email"
                         name="correo"
                         value={formData.correo}
                         onChange={handleRegisterChange}
                         placeholder="tu.correo@ejemplo.com"
+                        autoComplete="email"
                         autoCapitalize="none"
+                        spellCheck={false}
+                        enterKeyHint="next"
                         className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-amber-400"
                         required
                       />
@@ -601,16 +619,21 @@ function ActivacionVipForm() {
                       </span>
 
                       <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                        <label htmlFor="reg-username" className="text-xs font-bold text-slate-700 block mb-1">
                           Nombre de Usuario Deseado *
                         </label>
                         <input
+                          id="reg-username"
                           type="text"
                           name="username"
                           value={formData.username}
                           onChange={handleRegisterChange}
                           placeholder="Ej: wilsons2026"
+                          autoComplete="username"
                           autoCapitalize="none"
+                          autoCorrect="off"
+                          spellCheck={false}
+                          enterKeyHint="next"
                           className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-mono outline-none focus:border-amber-400"
                           required
                         />
@@ -620,14 +643,17 @@ function ActivacionVipForm() {
                       </div>
 
                       <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-1">Contraseña *</label>
+                        <label htmlFor="reg-new-password" className="text-xs font-bold text-slate-700 block mb-1">Contraseña *</label>
                         <div className="relative">
                           <input
+                            id="reg-new-password"
                             type={showPassword ? "text" : "password"}
                             name="password"
                             value={formData.password}
                             onChange={handleRegisterChange}
                             placeholder="Mínimo 6 caracteres"
+                            autoComplete="new-password"
+                            enterKeyHint="done"
                             className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-amber-400 pr-12"
                             required
                           />
@@ -687,10 +713,12 @@ function ActivacionVipForm() {
 
                     <div className="space-y-3 bg-slate-100/95 border border-slate-300 p-4 rounded-2xl">
                       <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                        <label htmlFor="reactivate-identifier" className="text-xs font-bold text-slate-700 block mb-1">
                           Usuario o Correo Electrónico *
                         </label>
                         <input
+                          id="reactivate-identifier"
+                          name="username"
                           type="text"
                           value={reactivateData.identifier}
                           onChange={(e) => {
@@ -698,16 +726,22 @@ function ActivacionVipForm() {
                             setReactivateError("");
                           }}
                           placeholder="Tu nombre de usuario o correo"
+                          autoComplete="username"
                           autoCapitalize="none"
+                          autoCorrect="off"
+                          spellCheck={false}
+                          enterKeyHint="next"
                           className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-emerald-400 font-mono"
                           required
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-1">Contraseña Actual *</label>
+                        <label htmlFor="reactivate-password" className="text-xs font-bold text-slate-700 block mb-1">Contraseña Actual *</label>
                         <div className="relative">
                           <input
+                            id="reactivate-password"
+                            name="password"
                             type={showReactivatePassword ? "text" : "password"}
                             value={reactivateData.password}
                             onChange={(e) => {
@@ -715,6 +749,8 @@ function ActivacionVipForm() {
                               setReactivateError("");
                             }}
                             placeholder="Tu contraseña habitual"
+                            autoComplete="current-password"
+                            enterKeyHint="done"
                             className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-emerald-400 pr-12"
                             required
                           />

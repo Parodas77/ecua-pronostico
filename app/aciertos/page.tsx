@@ -38,9 +38,9 @@ export default function HistorialAciertosPage() {
         if (data.metrics) setMetrics(data.metrics);
         if (data.source) setDataSource(data.source);
         if (Array.isArray(data.aciertos)) {
-          // Ordenar rigurosamente cronológico (de más reciente a más antiguo)
-          const sorted = [...data.aciertos].sort(
-            (a, b) => new Date(b.dateIso).getTime() - new Date(a.dateIso).getTime()
+          // Ordenar rigurosamente cronológico (de más reciente a más antiguo) usando ES2023 .toSorted() sin copia intermedia
+          const sorted = data.aciertos.toSorted(
+            (a: any, b: any) => new Date(b.dateIso).getTime() - new Date(a.dateIso).getTime()
           );
           setAllAciertos(sorted);
         }

@@ -709,36 +709,57 @@ export default function EcuaPronosticoDashboard() {
                   <div className="text-xs font-bold text-slate-600 mb-2 uppercase text-center">
                     ¿Ya eres miembro VIP? Inicia sesión
                   </div>
-                  <div className="space-y-2">
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleLogin();
+                    }}
+                    className="space-y-2"
+                  >
+                    <label htmlFor="radar-vip-username" className="sr-only">
+                      Usuario VIP
+                    </label>
                     <input
+                      id="radar-vip-username"
+                      name="username"
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Usuario (admin)"
+                      placeholder="Usuario VIP"
+                      autoComplete="username"
                       autoCapitalize="none"
                       autoCorrect="off"
                       spellCheck={false}
+                      enterKeyHint="next"
+                      required
                       className="w-full bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-slate-900 outline-none text-xs focus:border-amber-400"
                     />
+                    <label htmlFor="radar-vip-password" className="sr-only">
+                      Contraseña VIP
+                    </label>
                     <input
+                      id="radar-vip-password"
+                      name="password"
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                       placeholder="Contraseña"
+                      autoComplete="current-password"
                       autoCapitalize="none"
                       autoCorrect="off"
                       spellCheck={false}
+                      enterKeyHint="done"
+                      required
                       className="w-full bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-slate-900 outline-none text-xs focus:border-amber-400"
                     />
                     {loginError && <p className="text-xs text-red-700 bg-red-50 p-2 rounded-lg">{loginError}</p>}
                     <button
-                      onClick={handleLogin}
-                      className="w-full bg-amber-100 hover:bg-amber-200 text-slate-900 font-bold py-2 rounded-lg text-xs transition-all"
+                      type="submit"
+                      className="w-full bg-amber-100 hover:bg-amber-200 text-slate-900 font-bold py-2 rounded-lg text-xs transition-all cursor-pointer"
                     >
                       Ingresar con mi cuenta VIP
                     </button>
-                  </div>
+                  </form>
                 </div>
               </div>
             </div>
@@ -2627,24 +2648,44 @@ export default function EcuaPronosticoDashboard() {
                       </button>
                     </div>
 
-                    {/* CAJA DE ENTRADA */}
-                    <div className="p-2 bg-slate-100 border-t border-slate-300 flex gap-2">
+                    {/* CAJA DE ENTRADA (IME-SAFE ENTER SUBMIT) */}
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }}
+                      className="p-2 bg-slate-100 border-t border-slate-300 flex gap-2"
+                    >
+                      <label htmlFor="auditor-chat-input" className="sr-only">
+                        Pregunta al Auditor Cuantitativo
+                      </label>
                       <input
+                        id="auditor-chat-input"
+                        name="chatInput"
                         type="text"
                         value={chatInput}
                         onChange={(e) => setChatInput(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            if (e.nativeEvent.isComposing || (e.nativeEvent as any).keyCode === 229) {
+                              return;
+                            }
+                            handleSendMessage();
+                          }
+                        }}
+                        enterKeyHint="send"
                         placeholder={`Pregunta sobre ${currentMatch.home} vs ${currentMatch.away}...`}
                         className="flex-1 bg-white border border-slate-300 text-xs text-slate-900 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
                       />
                       <button
-                        onClick={() => handleSendMessage()}
+                        type="submit"
                         disabled={isTyping}
-                        className="bg-blue-600 hover:bg-blue-500 disabled:bg-amber-100 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow"
+                        className="bg-blue-600 hover:bg-blue-500 disabled:bg-amber-100 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow cursor-pointer"
                       >
                         Preguntar
                       </button>
-                    </div>
+                    </form>
                   </div>
 
                 </div>

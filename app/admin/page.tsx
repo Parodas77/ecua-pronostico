@@ -514,24 +514,34 @@ export default function AdminCrmPage() {
 
           <form onSubmit={handleAdminLogin} className="space-y-4 text-left">
             <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Usuario Administrador</label>
+              <label htmlFor="admin-username" className="text-xs font-bold text-slate-700 block mb-1">Usuario Administrador</label>
               <input
+                id="admin-username"
+                name="username"
                 type="text"
                 value={adminUser}
                 onChange={(e) => setAdminUser(e.target.value)}
                 placeholder="admin"
+                autoComplete="username"
                 autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                enterKeyHint="next"
                 className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-amber-400"
                 required
               />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Contraseña</label>
+              <label htmlFor="admin-current-password" className="text-xs font-bold text-slate-700 block mb-1">Contraseña</label>
               <input
+                id="admin-current-password"
+                name="password"
                 type="password"
                 value={adminPass}
                 onChange={(e) => setAdminPass(e.target.value)}
                 placeholder="••••••••"
+                autoComplete="current-password"
+                enterKeyHint="done"
                 className="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-amber-400"
                 required
               />

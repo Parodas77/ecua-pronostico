@@ -55,6 +55,7 @@ export default function SportCourtBackground({
         key={activeStadium.src}
         src={activeStadium.src}
         alt={activeStadium.alt}
+        fetchPriority="high"
         className="w-full h-full object-cover object-center transition-all duration-500"
         style={{
           filter: "blur(2.5px) brightness(1.03) saturate(1.06)",
